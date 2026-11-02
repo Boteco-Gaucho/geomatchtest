@@ -1,278 +1,323 @@
-<div class="profile-dashboard-wrapper" style="overflow-x: hidden; width: 100%; max-width: 100vw;">
-  
-  <%# --- 1. HEADER (Apenas o Título) --- %>
-  <div class="profile-header-container">
-    <div class="header-left">
-      <%= image_tag "texto-perfil.png", alt: "Perfil", class: "header-title-sm" %>
-    </div>
-    <div class="header-right">
-      <button class="header-btn"
-        data-controller="theme"
-        data-action="click->theme#toggle"
-        data-theme-sol-icon="<%= asset_path('sol-dourado.svg') %>"
-        data-theme-lua-icon="<%= asset_path('lua-dourado.svg') %>">
-        <%= image_tag "sol-dourado.svg", alt: "Tema", data: { theme_target: "icon" } %>
-      </button>
-    </div>
-  </div>
+<%# Meu Perfil — layout do mockup (fonte Inter, como Curtidas). O título "Perfil"
+    continua o PNG dourado. Estilos em me_profile.scss. %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<% end %>
 
-  <%# --- 2. HERO SECTION (Avatar | Info | Ajuda) --- %>
-  <div class="profile-hero">
-    
-    <%# ESQUERDA: Avatar %>
-    <div class="hero-avatar-container">
-      <%= image_tag @user.avatar_url, class: "hero-avatar-img" %>
-      <%= image_tag "aurea-dourada-mensagens.svg", class: "hero-ring" %>
-    </div>
+<%
+  completion     = @user.profile_completion_percentage
+  missing        = profile_missing_items(@user)
+  tier           = profile_completion_state_class(completion) # cor por faixa: vermelho / laranja / verde
+  current_plan   = @user.plan
+  balance_hidden = cookies[:hide_wallet_balance] == "1"
+  verification   =
+    if @user.verified? then :verified
+    elsif %w[pending manual_review].include?(@user.ai_moderation_status) then :pending
+    elsif @user.ai_moderation_status == "rejected" then :rejected
+    else :none
+    end
+%>
 
-    <%# CENTRO: Nome e Botão Editar %>
-    <div class="hero-info">
-      <h2 class="hero-name">
-        <%= @user.display_name.split.first %>, <%= @user.age %>
-        
-        <%# --- LÓGICA: Exibe ícone APENAS se verificado --- %>
-        <% if @user&.verified? %>
-          <%= image_tag "icone-verificar.png", class: "verified-icon-name", title: "Perfil Verificado" %>
+<div class="profile-dashboard-wrapper me-profile">
+  <div class="me-column">
+
+    <%# --- 1. CABEÇALHO --- %>
+    <header class="me-header">
+      <%= image_tag "texto-perfil.png", alt: "Perfil", class: "me-title-img" %>
+      <%= link_to safety_center_path, class: "me-safety-btn" do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span>Segurança</span>
+      <% end %>
+    </header>
+
+    <%# --- 2. FOTO (anel = % do perfil), NOME E SELOS --- %>
+    <div class="me-hero">
+      <div class="me-avatar <%= tier %>">
+        <svg class="me-avatar-ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="me-avatar-ring-track" cx="60" cy="60" r="56"/>
+          <circle class="me-avatar-ring-progress" cx="60" cy="60" r="56" pathLength="100" stroke-dasharray="<%= completion %> 100"/>
+        </svg>
+        <%= image_tag @user.avatar_url, class: "me-avatar-img", alt: "Sua foto" %>
+        <%= link_to edit_profile_path, class: "me-avatar-camera", aria: { label: "Trocar foto" } do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <% end %>
+      </div>
+
+      <h2 class="me-name">
+        <span><%= @user.display_name.split.first %><%= ", #{@user.age}" if @user.age %></span>
+        <% if @user.verified? %>
+          <svg class="me-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
         <% end %>
       </h2>
-      
-      <%# Barra de completude do perfil — continua levando para a edição.
-          Cor por faixa (UsersHelper): vermelho < 50%, laranja 50–99%, verde 100%. %>
-      <% completion = @user.profile_completion_percentage %>
-      <% complete = completion >= 100 %>
-      <%= link_to edit_profile_path, class: ["profile-completion", profile_completion_state_class(completion)], aria: { label: "Completar perfil: #{completion}% completo" } do %>
-        <span class="profile-completion-label">
-          <% if complete %>
-            <svg class="profile-completion-check" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
-            Perfil completo
-          <% else %>
-            <%= completion %>% completo
-          <% end %>
-        </span>
-        <span class="profile-completion-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= completion %>">
-          <span class="profile-completion-fill" style="width: <%= completion %>%"></span>
-        </span>
-      <% end %>
-    </div>
 
-   <%# DIREITA: Botão Ajuda (AGORA COM LINK) %>
-    <div class="hero-help">
-      <%= link_to safety_center_path, class: "btn-help-png" do %>
-        <%= image_tag "botao-ajuda.png", alt: "Ajuda" %>
-      <% end %>
-      <span class="help-label">Ajuda</span>
-    </div>
-
-  </div>
-
-  <%# --- 3. BANNER VERIFICAÇÃO (Lógica condicional por status de moderação) --- %>
-  <% if @user&.verified? %>
-    <%# Estado 4: Verificado — selo verde %>
-    <div class="verification-banner" style="cursor:default;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.06)">
-      <div class="icon-box">
-        <%= image_tag "icone-verificar.png", class: "verify-icon-lg" %>
-      </div>
-      <div class="banner-text">
-        <strong style="color:#22c55e">Identidade Verificada!</strong>
-        <p class="banner-description">Obrigado por confirmar seu perfil. Seu selo de usuário verificado já está ativo.</p>
-        <div class="progress-bar-lines">
-          <span class="line full" style="background:#22c55e"></span>
-          <span class="line full" style="background:#22c55e"></span>
-          <span class="line full" style="background:#22c55e"></span>
-        </div>
+      <div class="me-badges">
+        <% case verification %>
+        <% when :verified %>
+          <span class="me-badge me-badge--verified">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            Identidade verificada
+          </span>
+        <% when :pending %>
+          <span class="me-badge me-badge--pending">Verificação em análise</span>
+        <% when :rejected %>
+          <%= link_to "Verificação recusada", verification_path, class: "me-badge me-badge--rejected" %>
+        <% else %>
+          <%= link_to "Verificar identidade", verification_path, class: "me-badge me-badge--verify" %>
+        <% end %>
+        <span class="me-badge me-badge--plan me-badge--<%= current_plan&.code %>"><%= profile_plan_name(@user) %></span>
       </div>
     </div>
 
-  <% elsif @user.ai_moderation_status == 'pending' || @user.ai_moderation_status == 'manual_review' %>
-    <%# Estado 2: Em análise — aviso âmbar com ícone de relógio %>
-    <div class="verification-banner" style="cursor:default;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.06)">
-      <div class="icon-box">
-        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <div class="banner-text">
-        <strong>Documentos em análise</strong>
-        <p class="banner-description">Seus documentos estão sendo validados. Nossa equipe está verificando sua identidade e avisaremos em breve.</p>
-      </div>
-    </div>
-
-  <% elsif @user.ai_moderation_status == 'rejected' %>
-    <%# Estado 3: Recusado — alerta vermelho + botão para reenviar %>
-    <%
-      rejection_reasons = {
-        "no_face_in_selfie"           => "Nenhum rosto foi identificado na selfie.",
-        "explicit_content"            => "Uma das imagens contém conteúdo inapropriado.",
-        "name_not_found_in_document"  => "Não conseguimos ler o seu nome no documento enviado.",
-        "face_mismatch"               => "O rosto da selfie não corresponde ao documento.",
-        "api_error"                   => "Ocorreu um erro ao processar os documentos.",
-        "no_face_detected"            => "Nenhum rosto foi identificado na foto.",
-        "name_not_found_in_photo"     => "Não conseguimos ler o seu nome na imagem."
-      }
-      raw_reason      = @user.ai_moderation_details&.dig("reason").to_s
-      friendly_reason = rejection_reasons.fetch(raw_reason, "Seus documentos não puderam ser aprovados.")
-    %>
-    <div class="verification-banner" style="cursor:default;flex-direction:column;gap:0.75rem;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.06)">
-      <div style="display:flex;align-items:center;gap:0.875rem;width:100%">
-        <div class="icon-box">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <div class="banner-text">
-          <strong style="color:#f87171">Documentos não aprovados</strong>
-          <p class="banner-description"><%= friendly_reason %></p>
-        </div>
-      </div>
-      <%= link_to verification_path, style: "display:block;padding:12px 20px;border-radius:50px;background:var(--color-primary);color:#000;font-weight:700;text-align:center;text-decoration:none;font-size:0.9rem;width:100%;box-sizing:border-box" do %>
-        Enviar novos documentos
-      <% end %>
-    </div>
-
-  <% else %>
-    <%# Estado 1: Nenhuma foto enviada ainda — banner padrão com link %>
-    <%= link_to verification_path, class: "verification-banner" do %>
-      <div class="icon-box">
-        <%= image_tag "icone-verificar.png", class: "verify-icon-lg" %>
-      </div>
-      <div class="banner-text">
-        <strong>Verifique seu Perfil</strong>
-        <p class="banner-description">
-          Ajuda a proteger os usuários contra perfis que tentam se passar por outros para enganar as pessoas.
-        </p>
-        <div class="progress-bar-lines">
-          <span class="line full"></span>
-          <span class="line full"></span>
-          <span class="line"></span>
-        </div>
-      </div>
-      <div class="banner-arrow">›</div>
+    <%# Documentos recusados: motivo e reenvio (o mockup mostra o estado verificado) %>
+    <% if verification == :rejected %>
+      <%
+        rejection_reasons = {
+          "no_face_in_selfie"          => "Nenhum rosto foi identificado na selfie.",
+          "explicit_content"           => "Uma das imagens contém conteúdo inapropriado.",
+          "name_not_found_in_document" => "Não conseguimos ler o seu nome no documento enviado.",
+          "face_mismatch"              => "O rosto da selfie não corresponde ao documento.",
+          "api_error"                  => "Ocorreu um erro ao processar os documentos.",
+          "no_face_detected"           => "Nenhum rosto foi identificado na foto.",
+          "name_not_found_in_photo"    => "Não conseguimos ler o seu nome na imagem."
+        }
+        friendly_reason = rejection_reasons.fetch(@user.ai_moderation_details&.dig("reason").to_s,
+                                                  "Seus documentos não puderam ser aprovados.")
+      %>
+      <section class="me-card me-alert">
+        <strong>Documentos não aprovados</strong>
+        <p><%= friendly_reason %></p>
+        <%= link_to "Enviar novos documentos", verification_path, class: "me-btn-outline" %>
+      </section>
     <% end %>
-  <% end %>
 
-  <%# --- 3.5. CARTEIRA DIGITAL (Mimos) — acesso rápido a saldo e saques ---
-      wallet pode ser nil pra quem nunca recebeu um Mimo ainda (has_one, sem
-      criação automática) — &. + fallback garantem "R$ 0,00" em vez de erro.
+    <%# --- 3. COMPLETUDE DO PERFIL --- %>
+    <section class="me-card me-completion <%= tier %>">
+      <div class="me-completion-head">
+        <strong><%= missing.empty? ? "Perfil completo" : "Perfil #{completion}% completo" %></strong>
+        <span><%= missing.empty? ? "Tudo certo" : (missing.size == 1 ? "Falta 1 item" : "Faltam #{missing.size} itens") %></span>
+      </div>
+      <div class="me-completion-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= completion %>">
+        <span class="me-completion-fill" style="width: <%= completion %>%"></span>
+      </div>
+      <p class="me-completion-hint"><%= profile_completion_hint(missing) %></p>
 
-      O card é uma <div> porque o botão do olho não pode ficar dentro de um <a>;
-      o link do título é "esticado" pelo CSS e o card inteiro continua abrindo a
-      carteira. Saldo oculto/visível vem do cookie hide_wallet_balance (gravado
-      pelo balance_visibility_controller.js): o servidor já desenha o estado certo,
-      então o valor nunca aparece de relance para quem escolheu ocultar. %>
-  <% balance_hidden = cookies[:hide_wallet_balance] == "1" %>
-  <%= tag.div class: ["verification-banner", "wallet-banner", ("is-balance-hidden" if balance_hidden)],
-              data: { controller: "balance-visibility", balance_visibility_hidden_value: balance_hidden } do %>
-    <div class="icon-box">
-      <span class="wallet-banner-icon">💰</span>
-    </div>
-    <div class="banner-text">
-      <%= link_to mimo_wallet_page_path, class: "wallet-banner-link" do %>
-        <strong>Minha Carteira</strong>
+      <% if missing.any? %>
+        <%= link_to "Completar perfil", profile_completion_path(missing), class: "me-btn-gold" %>
       <% end %>
-      <p class="banner-description">
-        Saldo disponível:
+      <div class="me-btn-row">
+        <%= link_to "Editar perfil", edit_profile_path, class: "me-btn-outline" %>
+        <%= link_to "Ver como me veem", preview_profile_path, class: "me-btn-outline" %>
+      </div>
+    </section>
+
+    <%# --- 4. SEU PLANO --- %>
+    <section class="me-plan-card">
+      <div class="me-plan-head">
+        <div>
+          <span class="me-plan-eyebrow">Seu plano</span>
+          <h3 class="me-plan-name">GeoMatch <%= profile_plan_name(@user) %></h3>
+          <p class="me-plan-status"><%= profile_plan_status(@user) %></p>
+        </div>
+        <svg class="me-plan-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+
+      <div class="me-plan-toggles">
+        <%# Modo oculto: visibility_toggle_controller (fora do Gold o servidor
+            responde 403 e o controller abre o modal de upgrade) %>
+        <div class="me-toggle-row <%= 'is-invisible' if @user.invisible? %>" data-controller="visibility-toggle"
+             data-visibility-toggle-invisible-value="<%= @user.invisible? %>">
+          <div class="me-toggle-text">
+            <strong>Modo oculto</strong>
+            <span>Navegue no mapa sem aparecer nele</span>
+          </div>
+          <button type="button" class="me-switch" role="switch" aria-label="Modo oculto"
+                  aria-checked="<%= @user.invisible? %>"
+                  data-visibility-toggle-target="switch" data-action="visibility-toggle#toggle"></button>
+        </div>
+
+        <%# Ainda não existe no backend — aparece como "Em breve" %>
+        <div class="me-toggle-row is-soon">
+          <div class="me-toggle-text">
+            <strong>Não mostrar minha idade <em class="me-soon">Em breve</em></strong>
+            <span>Sua idade some do seu perfil</span>
+          </div>
+          <span class="me-switch" role="switch" aria-label="Não mostrar minha idade (em breve)"
+                aria-checked="false" aria-disabled="true"></span>
+        </div>
+      </div>
+
+      <ul class="me-plan-perks">
+        <% [["Mapa ilimitado", "likes_right_unlimited"], ["Mensagens ilimitadas", "unlimited_messages"],
+            ["Quem curtiu você", "see_who_liked_me"], ["Quem você curtiu", "see_who_i_liked"]].each do |label, key| %>
+          <% active = user_has_perk?(@user, key) %>
+          <li class="<%= 'is-off' unless active %>">
+            <% if active %>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <% else %>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <% end %>
+            <%= label %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
+    <%# --- 5. PLANOS (carrossel; bolinhas: plans_carousel_controller.js) --- %>
+    <% if @plans.any? %>
+      <section class="me-plans" data-controller="plans-carousel">
+        <div class="me-section-head">
+          <h3>Planos</h3>
+          <span>Deslize para ver todos</span>
+        </div>
+
+        <div class="me-plans-track" data-plans-carousel-target="track" data-action="scroll->plans-carousel#sync">
+          <% @plans.each do |offer| %>
+            <article class="me-offer me-offer--<%= offer.code %>">
+              <div class="me-offer-head">
+                <span class="me-offer-brand">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  GeoMatch <span class="me-offer-code"><%= offer.code.upcase %></span>
+                </span>
+                <span class="me-offer-price"><%= offer.price.format %></span>
+              </div>
+
+              <div class="me-offer-subhead">
+                <strong>O que está incluído</strong>
+                <span><%= offer.price_cents.zero? ? "Grátis" : "Mensal" %></span>
+              </div>
+
+              <ul class="me-offer-perks">
+                <% UsersHelper::PLAN_PERKS.each do |label, key| %>
+                  <li>
+                    <span><%= label %></span>
+                    <% if key.nil? %>
+                      <em class="me-soon">Em breve</em>
+                    <% elsif plan_has_perk?(offer, key) %>
+                      <svg class="is-yes" viewBox="0 0 24 24" aria-label="Incluído"><polyline points="20 6 9 17 4 12"/></svg>
+                    <% else %>
+                      <svg class="is-no" viewBox="0 0 24 24" aria-label="Não incluído"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+
+              <% if offer == current_plan %>
+                <span class="me-offer-cta is-static">Seu plano atual</span>
+              <% elsif offer.price_cents.zero? %>
+                <span class="me-offer-cta is-static">Plano básico</span>
+              <% elsif current_plan && offer.price_cents < current_plan.price_cents %>
+                <span class="me-offer-cta is-static">Incluído no seu plano</span>
+              <% else %>
+                <%# Mesmo fluxo da página de planos: POST /checkout sem Turbo -> Mercado Pago %>
+                <%= button_to "Assinar #{offer.name}", checkout_path(plan_id: offer.id),
+                              method: :post, form: { data: { turbo: false } },
+                              class: "me-offer-cta", form_class: "me-offer-form" %>
+              <% end %>
+            </article>
+          <% end %>
+        </div>
+
+        <div class="me-plans-dots" aria-hidden="true">
+          <% @plans.each_with_index do |_offer, index| %>
+            <span class="<%= 'is-active' if index.zero? %>" data-plans-carousel-target="dot"></span>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+
+    <%# --- 6. CARTEIRA E EVENTOS --- %>
+    <section class="me-card me-list">
+      <%# Saldo oculto/visível vem do cookie hide_wallet_balance (balance_visibility_controller.js);
+          a linha inteira abre a carteira (link "esticado"), menos o olho. %>
+      <%= tag.div class: ["me-row", "wallet-banner", ("is-balance-hidden" if balance_hidden)],
+                  data: { controller: "balance-visibility", balance_visibility_hidden_value: balance_hidden } do %>
+        <span class="me-row-icon me-row-icon--wallet" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
+        </span>
+        <div class="me-row-text">
+          <%= link_to mimo_wallet_page_path, class: "wallet-banner-link" do %><strong>Minha Carteira</strong><% end %>
+          <span>Saldo disponível</span>
+        </div>
         <strong class="wallet-banner-balance wallet-banner-amount"><%= @user.wallet&.balance&.format || "R$ 0,00" %></strong>
         <strong class="wallet-banner-balance wallet-banner-mask" aria-hidden="true">R$ ••••</strong>
         <button type="button" class="wallet-eye-btn"
                 data-action="balance-visibility#toggle"
                 data-balance-visibility-target="button"
                 aria-label="<%= balance_hidden ? "Mostrar saldo" : "Ocultar saldo" %>">
-          <%# Olho aberto = saldo visível %>
           <svg class="wallet-eye wallet-eye--open" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          <%# Olho fechado (pálpebra com cílios) = saldo oculto %>
           <svg class="wallet-eye wallet-eye--closed" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M2 10c2.6 3.6 6 5.5 10 5.5s7.4-1.9 10-5.5"/>
             <path d="M4.5 13.4 3 15.6M9 15.2l-.7 2.6M15 15.2l.7 2.6M19.5 13.4l1.5 2.2"/>
           </svg>
         </button>
-      </p>
-    </div>
-    <div class="banner-arrow">›</div>
-  <% end %>
-
-  <%# --- 4. SEÇÃO DESTAQUE --- %>
-  <div class="highlight-section">
-    <div class="highlight-photo">
-      <%= image_tag "mao_comprimento.png", class: "photo-cover" %>
-    </div>
-    
-    <div class="highlight-text-content">
-      <h3 class="highlight-title">Integração com Eventos</h3>
-      <p class="highlight-description">
-        Participe de eventos especiais, faça check-in com QR code e descubra pessoas com interesses similares em festivais e encontros.
-      </p>
-    </div>
-  </div>
-
-<%# --- 5. BLOCO UPGRADE (CARROSSEL) --- %>
-  <div class="upgrade-carousel-container">
-    <div class="upgrade-track">
-      <%# Plano Grátis %>
-      <%= link_to plans_path, class: "upgrade-card" do %>
-        <%= image_tag "bloco-upgrade.png", class: "upgrade-img-responsive" %>
+        <svg class="me-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
       <% end %>
 
-      <%# Plano Plus %>
-      <%= link_to plans_path, class: "upgrade-card" do %>
-        <%= image_tag "bloco-upgrade-plus.png", class: "upgrade-img-responsive" %>
-      <% end %>
-
-      <%# Plano Gold %>
-      <%= link_to plans_path, class: "upgrade-card" do %>
-        <%= image_tag "bloco-upgrade-gold.png", class: "upgrade-img-responsive" %>
-      <% end %>
-    </div>
-  </div>
-
-  <%# --- SEÇÃO DE CUPONS --- %>
-  <div class="coupon-section" style="margin: 20px 16px 0; padding: 20px; background: var(--color-section-light); border: 1px solid var(--color-border); border-radius: 16px;">
-    <h3 style="margin: 0 0 4px; font-size: 1rem; font-weight: 700; color: var(--color-text);">
-      <i class="fas fa-ticket-alt" style="color: var(--color-primary); margin-right: 6px;"></i>Aplicar Cupom
-    </h3>
-
-    <% if @user.premium? %>
-      <p style="margin: 0 0 14px; font-size: 0.8rem; color: var(--color-text-secondary);">
-        ✨ Acesso premium ativo até <strong><%= @user.premium_until.strftime('%d/%m/%Y') %></strong>. Um novo cupom soma mais dias.
-      </p>
-    <% else %>
-      <p style="margin: 0 0 14px; font-size: 0.8rem; color: var(--color-text-secondary);">
-        Tem um código promocional? Insira abaixo para desbloquear recursos premium.
-      </p>
-    <% end %>
-
-    <%= form_with url: apply_coupon_path, method: :post do |form| %>
-      <div style="display: flex; gap: 10px; align-items: stretch;">
-        <%= form.text_field :coupon_code,
-              placeholder: "Insira seu código",
-              autocomplete: "off",
-              style: "flex: 1; min-width: 0; padding: 12px 15px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-input-bg); color: var(--color-text); font-size: 0.9rem; outline: none; text-transform: uppercase;" %>
-        <%= form.submit "Aplicar",
-              style: "padding: 12px 20px; border: none; border-radius: 12px; background: var(--color-primary); color: #121212; font-weight: 700; font-size: 0.9rem; cursor: pointer; flex-shrink: 0;" %>
+      <%# Eventos ainda não tem tela — aparece como "Em breve" em vez de um link vazio %>
+      <div class="me-row">
+        <span class="me-row-icon me-row-icon--events" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 19h1M19 14h2"/></svg>
+        </span>
+        <div class="me-row-text">
+          <strong>Eventos</strong>
+          <span>Faça check-in com QR code e veja quem está no mesmo festival.</span>
+        </div>
+        <em class="me-soon">Em breve</em>
       </div>
-    <% end %>
+    </section>
+
+    <%# --- 7. CUPOM --- %>
+    <section class="me-card me-coupon">
+      <h3>Tem um cupom?</h3>
+      <p>
+        <%= @user.premium? ? "Um novo cupom soma mais dias ao seu acesso." : "Insira um código promocional para desbloquear recursos premium." %>
+      </p>
+      <%= form_with url: apply_coupon_path, method: :post, class: "me-coupon-form" do |form| %>
+        <%= form.text_field :coupon_code, placeholder: "Código do cupom", autocomplete: "off",
+                            class: "me-coupon-input", aria: { label: "Código do cupom" } %>
+        <%= form.submit "Aplicar", class: "me-coupon-btn" %>
+      <% end %>
+    </section>
+
+    <%# --- 8. CONFIGURAÇÕES --- %>
+    <section class="me-card me-list me-settings">
+      <%= link_to privacy_path, class: "me-row" do %>
+        <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span class="me-row-label">Privacidade e localização</span>
+        <svg class="me-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+      <% end %>
+
+      <%# Tema claro/escuro (theme_controller.js) — antes ficava no topo da tela %>
+      <button type="button" class="me-row" data-controller="theme" data-action="click->theme#toggle">
+        <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <span class="me-row-label">Aparência</span>
+        <span class="me-row-value" data-theme-target="label">Claro</span>
+        <svg class="me-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <%= link_to suporte_path, class: "me-row" do %>
+        <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        <span class="me-row-label">Ajuda e suporte</span>
+        <svg class="me-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+      <% end %>
+
+      <%# Sair: abre o modal de confirmação abaixo %>
+      <button type="button" class="me-row me-row--logout" onclick="document.getElementById('logout-modal').classList.add('show')">
+        <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="me-row-label">Sair</span>
+      </button>
+    </section>
+
+    <%= button_to "Encerrar minha conta", user_registration_path, method: :delete,
+                  data: { turbo_confirm: "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita." },
+                  class: "me-delete-account", form_class: "me-delete-account-form" %>
+
   </div>
-
-</div> <%# fecha o upgrade-carousel-container %>
-
-  <%# --- 6. AÇÕES DA CONTA (SAIR / EXCLUIR) --- %>
-  <div class="profile-account-actions">
-
-    <%# Botão Sair - Abre o modal %>
-    <button type="button" class="btn-logout" onclick="document.getElementById('logout-modal').classList.add('show')" style="border: none; background: transparent; width: 100%;">
-      <i class="fas fa-sign-out-alt"></i> Sair
-    </button>
-
-    <%# Botão Encerrar Conta %>
-    <%= button_to user_registration_path, method: :delete, data: { turbo_confirm: "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita." }, class: "btn-delete-account" do %>
-      Encerrar minha conta
-    <% end %>
-
-  </div>
-
-</div> <%# fecha o profile-dashboard-wrapper %>
+</div>
 
 <%# --- MODAL DE CONFIRMAÇÃO DE LOGOUT --- %>
 <div id="logout-modal" class="logout-modal-overlay">
@@ -303,6 +348,9 @@
 
   </div>
 </div>
+
+<%# Modal de upgrade do "Modo oculto" (visibility_toggle_controller.js injeta aqui) %>
+<div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>
 
 <script>
   function confirmLogout() {

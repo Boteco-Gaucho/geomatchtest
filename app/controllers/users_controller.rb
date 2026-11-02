@@ -126,6 +126,8 @@ class UsersController < ApplicationController
   def me_profile
     @user = current_user
     @user.album_photos.load
+    # Carrossel "Planos" (do mais barato ao mais caro)
+    @plans = Plan.active.order(:price_cents)
   end
 
   def safety_center

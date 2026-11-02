@@ -6,7 +6,8 @@ import { Controller } from "@hotwired/stimulus"
 //   POST /users/toggle_visibility → { invisible: bool }
 //   403 + { upgrade_required: true } → abre o modal de planos (recurso Gold)
 export default class extends Controller {
-  static targets = ["eyeOpen", "eyeClosed"]
+  // switch (opcional): interruptor "Modo oculto" de Meu Perfil (aria-checked)
+  static targets = ["eyeOpen", "eyeClosed", "switch"]
   static values  = { invisible: Boolean }
 
   connect() {
@@ -44,6 +45,7 @@ export default class extends Controller {
       : "Modo invisível — navegue 100% oculto"
     if (this.hasEyeOpenTarget)   this.eyeOpenTarget.style.display   = invisible ? "none" : ""
     if (this.hasEyeClosedTarget) this.eyeClosedTarget.style.display = invisible ? "" : "none"
+    if (this.hasSwitchTarget)    this.switchTarget.setAttribute("aria-checked", String(invisible))
   }
 
   // Mesmo fluxo de upgrade do mapa (map_3d.js): injeta o modal de planos

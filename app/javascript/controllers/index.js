@@ -72,3 +72,6 @@ application.register("likes-tabs", LikesTabsController)
 
 import LikesUpsellController from "./likes_upsell_controller"
 application.register("likes-upsell", LikesUpsellController)
+
+import PlansCarouselController from "./plans_carousel_controller"
+application.register("plans-carousel", PlansCarouselController)

@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["icon"]
+  // label (opcional): texto "Claro"/"Escuro" da linha "Aparência" em Meu Perfil
+  static targets = ["icon", "label"]
   static STORAGE_KEY = 'theme-preference'
   static DARK_MODE_CLASS = 'dark-mode'
   static LIGHT_MODE_CLASS = 'light-mode'
@@ -39,5 +40,7 @@ export default class extends Controller {
       html.classList.add(this.constructor.LIGHT_MODE_CLASS)
       if (this.hasIconTarget) this.iconTarget.src = solIcon
     }
+
+    if (this.hasLabelTarget) this.labelTarget.textContent = theme === "dark" ? "Escuro" : "Claro"
   }
 }
