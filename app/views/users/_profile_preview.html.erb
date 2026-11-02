@@ -1,0 +1,78 @@
+<%# Pré-visualizar (aba de Editar Perfil): o cartão como as pessoas por perto veem,
+    com o mesmo carrossel de fotos do swipe (shared/profile_carousel) e os dados já
+    salvos. A distância é só um exemplo — cada pessoa vê a sua. Estilos: .pv-* em
+    edit_profile.scss. Locals: user, photos_count. %>
+<p class="pv-intro">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+  É assim que as pessoas por perto veem você.
+</p>
+<p class="pv-unsaved" data-profile-tabs-target="unsaved" hidden>
+  Você tem alterações ainda não salvas. Toque em Salvar para vê-las aqui.
+</p>
+
+<div class="pv-card">
+  <%= render "shared/profile_carousel", user: user %>
+
+  <span class="pv-online"><i></i>Ativo agora</span>
+
+  <div class="pv-info">
+    <h2 class="pv-name">
+      <strong><%= user.display_name.split.first %></strong>
+      <% if user.age %><span><%= user.age %></span><% end %>
+      <% if user.verified? %>
+        <svg class="pv-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+      <% end %>
+    </h2>
+    <p class="pv-place">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      ~200 m de você<%= " · #{user.city}" if user.city.present? %>
+    </p>
+    <% if user.bio.present? %>
+      <p class="pv-bio"><%= user.bio %></p>
+    <% end %>
+    <% if user.hobbies_list.any? %>
+      <ul class="pv-tags">
+        <% user.hobbies_list.each do |hobby| %>
+          <li><%= hobby %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>
+
+<%# Só de exemplo: os botões funcionam para quem vê o perfil, não aqui %>
+<div class="pv-actions">
+  <button type="button" class="pv-round" disabled aria-label="Compartilhar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4M12 2v13"/></svg>
+  </button>
+  <button type="button" class="pv-message" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Mandar mensagem
+  </button>
+  <button type="button" class="pv-round" disabled aria-label="Curtir">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+  </button>
+</div>
+<p class="pv-actions-note">Os botões ficam ativos para quem vê seu perfil.</p>
+
+<section class="pv-tips">
+  <h3>Como deixar seu perfil melhor</h3>
+  <ul>
+    <% profile_preview_tips(user, photos_count).each do |tip| %>
+      <li class="<%= tip[:done] ? "is-done" : "is-todo" %>">
+        <% if tip[:done] %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+        <% else %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5h.01"/></svg>
+        <% end %>
+        <span><%= tip[:text] %></span>
+        <% if tip[:anchor] %>
+          <%= link_to "Editar", edit_profile_path(anchor: tip[:anchor]), class: "pv-tip-link",
+                      data: { action: "profile-tabs#show", profile_tabs_tab_param: "edit", profile_tabs_anchor_param: tip[:anchor] } %>
+        <% elsif tip[:link] %>
+          <%= link_to tip[:link_label], tip[:link], class: "pv-tip-link" %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</section>

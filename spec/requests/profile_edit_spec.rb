@@ -34,7 +34,10 @@ RSpec.describe "Editar Perfil (/profile/edit)", type: :request do
       page = open_edit(user)
 
       expect(page.at_css("img.pe-title-img")["src"]).to include("texto-editar-perfil") # título continua o PNG dourado
-      expect(page.at_css("a.pe-tab")["href"]).to eq("/profile/preview")
+      expect(page.css("a.pe-tab").map { |tab| [ tab.text, tab["href"] ] })
+        .to eq([ [ "Editar", "/profile/edit" ], [ "Pré-visualizar", "/profile/preview" ] ])
+      expect(page.at_css("a.pe-tab.is-active").text).to eq("Editar")
+      expect(page.at_css('[data-tab="preview"]')["hidden"]).not_to be_nil
       # Sem foto principal de verdade (só o avatar padrão): 2 do álbum ocupadas
       expect(page.at_css(".pe-section-meta").text).to eq("2 de 6 · segure e arraste para reordenar")
       expect(page.css(".pe-photo-placeholder")).to be_present
@@ -92,6 +95,52 @@ RSpec.describe "Editar Perfil (/profile/edit)", type: :request do
     end
   end
 
+  describe "GET /profile/preview (aba Pré-visualizar)" do
+    def open_preview(user)
+      sign_in user, scope: :user
+      get "/profile/preview"
+      expect(response).to have_http_status(:ok)
+      Nokogiri::HTML(response.body)
+    end
+
+    it "abre a mesma tela já na prévia, com o cartão e as dicas" do
+      attach_album(user, "p2", "p3")
+      user.update_columns(username: "Samuel Teste", birthdate: 26.years.ago.to_date - 1.day, verified: true,
+                          city: "Salvador", state: "BA")
+
+      page = open_preview(user)
+
+      expect(page.at_css("a.pe-tab.is-active").text).to eq("Pré-visualizar")
+      expect(page.at_css('[data-tab="edit"]')["hidden"]).not_to be_nil
+      expect(page.at_css('[data-tab="preview"]')["hidden"]).to be_nil
+      expect(page.at_css('input[name="return_tab"]')["value"]).to eq("preview")
+
+      card = page.at_css(".pv-card")
+      expect(card.css(".pc-slide").size).to eq(2) # o mesmo carrossel do swipe
+      expect(card.at_css(".pv-name strong").text).to eq("Samuel")
+      expect(card.at_css(".pv-name span").text).to eq("26")
+      expect(card.at_css(".pv-verified")).to be_present
+      expect(card.at_css(".pv-place").text.squish).to eq("~200 m de você · Salvador")
+      expect(card.at_css(".pv-bio").text).to eq("Sou advogado.")
+      expect(card.css(".pv-tags li").map(&:text)).to eq(%w[Praia Culinária Fitness])
+      expect(page.css(".pv-actions button[disabled]").size).to eq(3)
+
+      tips = page.css(".pv-tips li").map { |tip| [ tip["class"], tip.at_css("span").text, tip.at_css("a")&.[]("href") ] }
+      expect(tips).to eq([
+        [ "is-todo", "2 de 6 fotos adicionadas", "/profile/edit#pe-fotos" ],
+        [ "is-done", "Identidade verificada", nil ],
+        [ "is-todo", "Escolha quem você quer conhecer", "/profile/edit#pe-interested-in" ]
+      ])
+    end
+
+    it "sem verificação: a dica leva para a verificação" do
+      page = open_preview(user)
+
+      tip = page.css(".pv-tips li").find { |item| item.text.include?("Verifique sua identidade") }
+      expect(tip.at_css("a")["href"]).to eq("/verificacao")
+    end
+  end
+
   describe "PATCH" do
     before { sign_in user, scope: :user }
 
@@ -100,6 +149,13 @@ RSpec.describe "Editar Perfil (/profile/edit)", type: :request do
 
       expect(response).to redirect_to(edit_profile_path)
       expect(user.reload.hobbies_list).to eq(%w[Praia Cinema])
+    end
+
+    it "salvando na aba Pré-visualizar, volta para ela" do
+      patch "/profile", params: { return_tab: "preview", user: { bio: "Nova bio" } }
+
+      expect(response).to redirect_to(preview_profile_path)
+      expect(user.reload.bio).to eq("Nova bio")
     end
 
     it "remover todos os interesses também é salvo" do

@@ -144,8 +144,11 @@ class UsersController < ApplicationController
     end
   end
 
+  # Mesma tela de Editar Perfil, abrindo na aba "Pré-visualizar"
   def preview
     @user = current_user
+    @tab  = "preview"
+    render :edit
   end
 
   # ==========================================
@@ -270,6 +273,7 @@ class UsersController < ApplicationController
   # ==========================================
   def edit
     @user = current_user
+    @tab  = "edit"
   end
 
   def update
@@ -293,8 +297,11 @@ class UsersController < ApplicationController
     end
 
     if @user.update(user_update_params)
-      redirect_to edit_profile_path, notice: "Perfil atualizado!", status: :see_other
+      # Volta para a aba em que a pessoa tocou "Salvar" (Editar ou Pré-visualizar)
+      back_to = params[:return_tab] == "preview" ? preview_profile_path : edit_profile_path
+      redirect_to back_to, notice: "Perfil atualizado!", status: :see_other
     else
+      @tab = "edit"
       render :edit, status: :unprocessable_entity
     end
   end

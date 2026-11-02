@@ -125,32 +125,6 @@
   padding-top: 18px;
 }
 
-/* .tab é das abas do Editar Perfil (users/edit, users/preview) — esta tela usa .likes-tab */
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 12px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  position: relative;
-
-  &.active {
-    color: var(--color-text);
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 20%;
-      right: 20%;
-      height: 2px;
-      background-color: var(--color-primary);
-    }
-  }
-}
-
 /* --- 3. NOVAS HOJE (quem curtiu desde a meia-noite) --- */
 .likes-today {
   margin-bottom: 20px;

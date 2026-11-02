@@ -1,5 +1,7 @@
 <%# Editar Perfil — layout do mockup (fonte Inter, como Meu Perfil). O título
-    continua o PNG dourado. Estilos em edit_profile.scss (.pe-*). %>
+    continua o PNG dourado. Estilos em edit_profile.scss (.pe-* e, na prévia, .pv-*).
+    As abas Editar / Pré-visualizar trocam na mesma página (profile-tabs); /profile/preview
+    renderiza esta view já na prévia (@tab). %>
 <% content_for :head do %>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,7 +27,9 @@
                      onchange: "document.getElementById('avatar-upload-form').submit();" %>
   <% end %>
 
-  <%= form_with model: @user, url: profile_path, method: :patch, multipart: true, id: "edit-profile-form", class: "pe-column" do |f| %>
+  <%= form_with model: @user, url: profile_path, method: :patch, multipart: true, id: "edit-profile-form",
+                class: "pe-column", data: { controller: "profile-tabs" } do |f| %>
+    <%= hidden_field_tag :return_tab, @tab, id: nil, data: { profile_tabs_target: "returnTab" } %>
 
     <%# --- 1. CABEÇALHO --- %>
     <header class="pe-header">
@@ -34,15 +38,21 @@
       <button type="submit" class="pe-save">Salvar</button>
     </header>
 
-    <%# --- 2. ABAS (div, não nav: no app iOS o CSS global esconde todo <nav>) --- %>
+    <%# --- 2. ABAS (div, não nav: no app iOS o CSS global esconde todo <nav>). São links de
+        verdade; com JS a troca acontece sem sair da página e nada do que foi editado se perde. %>
     <div class="pe-tabs">
-      <span class="pe-tab is-active" aria-current="page">Editar</span>
-      <%= link_to "Pré-visualizar", preview_profile_path, class: "pe-tab" %>
+      <% { "edit" => [ "Editar", edit_profile_path ], "preview" => [ "Pré-visualizar", preview_profile_path ] }.each do |tab, (label, path)| %>
+        <%= link_to label, path, class: [ "pe-tab", ("is-active" if @tab == tab) ],
+                    aria: { current: ("page" if @tab == tab) },
+                    data: { profile_tabs_target: "tab", action: "profile-tabs#show", profile_tabs_tab_param: tab } %>
+      <% end %>
     </div>
+
+    <div data-profile-tabs-target="panel" data-tab="edit" <%= "hidden" unless @tab == "edit" %>>
 
     <%# --- 3. FOTOS: a principal (avatar, trocada pelo lápis com recorte) + 5 do álbum.
         Segurar e arrastar muda a ordem do álbum; vale no "Salvar" (user[album_order][]). %>
-    <section class="pe-section">
+    <section class="pe-section" id="pe-fotos">
       <div class="pe-section-head">
         <h2 class="pe-section-title">Fotos</h2>
         <span class="pe-section-meta"><%= photos_count %> de 6 · segure e arraste para reordenar</span>
@@ -144,7 +154,7 @@
     <% end %>
 
     <%# --- 5. BIO --- %>
-    <section class="pe-section pe-bio-section" data-controller="char-counter">
+    <section class="pe-section pe-bio-section" id="pe-bio" data-controller="char-counter">
       <div class="pe-section-head">
         <%= f.label :bio, "Bio", class: "pe-section-title" %>
         <span class="pe-section-meta" data-char-counter-target="count"><%= @user.bio.to_s.length %>/300</span>
@@ -161,7 +171,7 @@
     <section class="pe-card">
       <h2 class="pe-card-title">Sobre você</h2>
 
-      <fieldset class="pe-field">
+      <fieldset class="pe-field" id="pe-gender">
         <legend class="pe-label">Gênero</legend>
         <div class="pe-chips">
           <% UsersHelper::PROFILE_GENDER_OPTIONS.each do |label, value| %>
@@ -179,7 +189,7 @@
         <% end %>
       </fieldset>
 
-      <fieldset class="pe-field">
+      <fieldset class="pe-field" id="pe-interested-in">
         <legend class="pe-label">Quero conhecer</legend>
         <div class="pe-chips">
           <% UsersHelper::PROFILE_INTERESTED_IN_OPTIONS.each do |label, value| %>
@@ -199,7 +209,7 @@
     </section>
 
     <%# --- 7. ONDE VOCÊ ESTÁ (cidades do estado vêm do IBGE para o autocompletar) --- %>
-    <section class="pe-card" data-controller="profile-location">
+    <section class="pe-card" id="pe-local" data-controller="profile-location">
       <h2 class="pe-card-title">Onde você está</h2>
       <div class="pe-location">
         <div>
@@ -224,7 +234,7 @@
 
     <%# --- 8. INTERESSES (cada chip leva um user[hobbies_list][]; o vazio garante que
         remover todos também é salvo) --- %>
-    <section class="pe-card" data-controller="interests"
+    <section class="pe-card" id="pe-interesses" data-controller="interests"
              data-interests-max-value="<%= User::HOBBIES_LIMIT %>"
              data-interests-shown-value="<%= UsersHelper::INTEREST_SUGGESTIONS_SHOWN %>">
       <div class="pe-card-head">
@@ -274,6 +284,13 @@
         </span>
       </template>
     </section>
+
+    </div>
+
+    <%# --- PRÉ-VISUALIZAR --- %>
+    <div data-profile-tabs-target="panel" data-tab="preview" <%= "hidden" unless @tab == "preview" %>>
+      <%= render "users/profile_preview", user: @user, photos_count: photos_count %>
+    </div>
 
   <% end %>
 </div>

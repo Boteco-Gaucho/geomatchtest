@@ -753,6 +753,337 @@
   &:disabled { opacity: 0.45; cursor: default; }
 }
 
+/* "Editar" de uma dica da prévia rola até o campo: folga para o notch */
+.pe-section,
+.pe-card,
+.pe-field { scroll-margin-top: calc(16px + env(safe-area-inset-top, 0px)); }
+
+// =========================================================
+// PRÉ-VISUALIZAR (aba de Editar Perfil) — mockup de 422px → ×0,924 para 390px
+// =========================================================
+
+.pv-intro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 17px 0 0;
+  font-size: 12.75px;
+  color: #5e5852;
+
+  svg {
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.pv-unsaved {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fdf0d5;
+  color: #8a5a12;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* Cartão: carrossel compartilhado (shared/profile_carousel) + sombra e textos do mockup */
+.pv-card {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 350 / 541;
+  max-height: 72vh;
+  margin-top: 10px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #9d7b5f;
+  box-shadow: 0 10px 24px rgba(70, 50, 30, 0.18);
+  color: #fff;
+
+  .pc-indicators {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 4px;
+  }
+
+  .pc-indicator { background: rgba(255, 255, 255, 0.42); }
+
+  // A sombra é do cartão (.pv-card::after), igual com 0, 1 ou várias fotos
+  .pc-gradient { display: none; }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 51%;
+    background: linear-gradient(to top, rgba(31, 23, 17, 0.92) 0%, rgba(31, 23, 17, 0.92) 29%, rgba(31, 23, 17, 0) 100%);
+    pointer-events: none;
+  }
+}
+
+.pv-online {
+  position: absolute;
+  top: 27px;
+  left: 12px;
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 25.5px;
+  padding: 0 9px 0 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: #1c1c1c;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #1a9c56;
+  }
+}
+
+// Textos por cima das fotos sem bloquear os toques de passar foto
+.pv-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11;
+  padding: 0 21px 21px;
+  pointer-events: none;
+}
+
+.pv-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  line-height: 1.1;
+  color: #fff;
+
+  strong {
+    font-size: 31px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  span {
+    font-size: 27px;
+    font-weight: 400;
+  }
+}
+
+.pv-verified {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+
+  circle { fill: #3b82f6; }
+
+  path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.pv-place {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 9.5px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.92);
+
+  svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.pv-bio {
+  display: -webkit-box;
+  margin: 9.5px 0 0;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 19.5px;
+  color: rgba(255, 255, 255, 0.92);
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.pv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    height: 29px;
+    padding: 0 11.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+/* Botões de exemplo (só funcionam para quem vê o perfil) */
+.pv-actions {
+  display: flex;
+  align-items: center;
+  gap: 10.7px;
+  margin-top: 14.5px;
+}
+
+.pv-round,
+.pv-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 55px;
+  padding: 0;
+  font: inherit;
+  cursor: default;
+}
+
+.pv-round {
+  flex-shrink: 0;
+  width: 55px;
+  border: 1px solid #ede5d9;
+  border-radius: 50%;
+  background: #fdfaf5;
+  color: #5e5852;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.pv-message {
+  flex: 1;
+  gap: 10px;
+  border: none;
+  border-radius: 999px;
+  background: #7e7a77;
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+
+  svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+}
+
+.pv-actions-note {
+  margin: 9.5px 0 0;
+  font-size: 11.5px;
+  text-align: center;
+  color: #5e5852;
+}
+
+/* Como deixar seu perfil melhor */
+.pv-tips {
+  margin-top: 24px;
+  padding: 16px 17px 12px;
+  border: 1px solid #efe8de;
+  border-radius: 18px;
+  background: #fff;
+
+  h3 {
+    margin: 0 0 10px;
+    font-size: 16.75px;
+    font-weight: 800;
+    color: #1c1c1c;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15.2px 0;
+    font-size: 13.5px;
+    color: #1c1c1c;
+
+    > span { flex: 1; min-width: 0; }
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+  }
+
+  .is-done {
+    circle { fill: #33806e; }
+
+    path {
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  .is-todo svg {
+    fill: none;
+    stroke: #b45c2c;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+}
+
+.pv-tip-link {
+  flex-shrink: 0;
+  color: #5c4a2c;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* --- MODO ESCURO: mesmo layout, superfícies do tema --- */
 .dark-mode,
 html.dark:not(.light-mode) {
@@ -816,96 +1147,18 @@ html.dark:not(.light-mode) {
   .pe-interest-remove { color: #d9c4a3; }
   .pe-interest-add { border-color: #555; }
   .pe-warning { color: #f0a070; }
-}
 
-// =========================================================
-// PRÉ-VISUALIZAR (users/preview) — cabeçalho e abas antigos
-// =========================================================
-
-.edit-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  padding-top: calc(10px + env(safe-area-inset-top));
-  background-color: var(--color-background);
-  z-index: 10;
-}
-
-.header-btn-left {
-  color: #aaa;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 500;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-
-  span {
-    display: block;
-  }
-}
-
-.header-title {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .title-img {
-    height: 18px;
-    width: auto;
-    display: block;
-  }
-}
-
-.header-btn-right {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-}
-
-.check-circle {
-  width: 32px;
-  height: 32px;
-  background-color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  svg {
-    stroke: #000;
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.edit-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 20px;
-}
-
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 12px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-
-  &.active {
-    color: var(--color-text);
-    border-bottom: 2px solid #aa9b67;
-  }
-
-  &.inactive:hover {
-    color: var(--color-text-secondary);
-  }
+  .pv-intro,
+  .pv-actions-note { color: var(--color-text-secondary); }
+  .pv-unsaved { background: #3a2f1a; color: #f3d38f; }
+  .pv-card { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); }
+  .pv-round { border-color: var(--color-border); background: var(--color-section-gray); color: var(--color-text); }
+  .pv-message { background: #4a4643; }
+  .pv-tips { border-color: var(--color-border); background: var(--color-section-gray); }
+  .pv-tips h3,
+  .pv-tips li { color: var(--color-text); }
+  .pv-tips .is-todo svg { stroke: #f0a070; }
+  .pv-tip-link { color: #d9b26a; }
 }
 
 // Campos escuros ainda usados fora daqui (matches/show, devise/registrations/edit)
@@ -934,90 +1187,4 @@ html.dark:not(.light-mode) {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   margin: 2px 0 0 5px;
-}
-
-/* =========================================================
-   PREVIEW CARD STYLES
-========================================================= */
-
-.preview-container {
-  flex: 1;
-  height: calc(100vh - 130px);
-  padding: 15px 20px 30px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.preview-container .gold-card-frame {
-  width: 100%;
-  height: 100%;
-  max-width: 400px;
-  aspect-ratio: 3 / 5;
-  border-radius: 25px;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid #c5b47d;
-  background-color: var(--color-section-light);
-}
-
-.preview-container .slides-container,
-.preview-container .card-gallery {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.preview-container .slide-img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-.preview-container .slide-gradient {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 60%;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.preview-container .card-user-info {
-  position: absolute;
-  z-index: 10;
-  bottom: 30px;
-  left: 20px;
-  right: 20px;
-  color: #fff;
-  text-align: left;
-}
-
-.preview-actions-right {
-  position: absolute;
-  bottom: 30px;
-  right: 15px;
-  display: flex;
-  gap: 10px;
-  z-index: 20;
-}
-
-.icon-circle-glass {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  svg { opacity: 0.9; }
 }

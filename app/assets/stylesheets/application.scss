@@ -19,7 +19,6 @@
 @use "safety_history";
 @use "report_incident";
 @use "plans";
-@use "preview";
 @use "map_3d";
 @use "gallery";
 @use "map_loading";
@@ -219,6 +218,14 @@ html, body {
   color: var(--color-text);
   line-height: 1.6;
   scroll-behavior: smooth;
+}
+
+// Rolagem do documento sempre livre. Veio do antigo preview.scss (Pré-visualizar)
+// e, por ser global, vale em todas as telas (vence o height/overflow de lead.scss e
+// report_incident.scss) — mantida aqui para nada mudar com a remoção daquele arquivo.
+html, body {
+  height: auto !important;
+  overflow: visible !important;
 }
 
 // --------------------------------------------------

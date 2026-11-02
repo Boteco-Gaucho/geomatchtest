@@ -82,6 +82,38 @@ module UsersHelper
                                          "Seus documentos não puderam ser aprovados.")
   end
 
+  # Pendências de "Como deixar seu perfil melhor" (Pré-visualizar) => âncora do
+  # campo na aba Editar. Fotos e verificação aparecem sempre (feitas ou não).
+  PROFILE_PREVIEW_TODOS = [
+    [ :interested_in, "Escolha quem você quer conhecer", "pe-interested-in" ],
+    [ :gender,        "Informe seu gênero",              "pe-gender" ],
+    [ :bio,           "Escreva uma bio",                 "pe-bio" ],
+    [ :hobbies,       "Adicione seus interesses",        "pe-interesses" ],
+    [ :city,          "Informe sua cidade",              "pe-local" ]
+  ].freeze
+
+  # [{ done:, text:, anchor: (campo em Editar) ou link: + link_label: }]
+  def profile_preview_tips(user, photos_count)
+    photos =
+      if photos_count >= 6
+        { done: true, text: "6 fotos adicionadas" }
+      else
+        { done: false, text: "#{photos_count} de 6 fotos adicionadas", anchor: "pe-fotos" }
+      end
+
+    verification =
+      case profile_verification_state(user)
+      when :verified then { done: true, text: "Identidade verificada" }
+      when :pending  then { done: false, text: "Verificação de identidade em análise" }
+      else { done: false, text: "Verifique sua identidade", link: verification_path, link_label: "Verificar" }
+      end
+
+    checks = user.profile_completion_checks
+    todos  = PROFILE_PREVIEW_TODOS.reject { |key, _text, _anchor| checks[key] }
+                                  .map { |_key, text, anchor| { done: false, text: text, anchor: anchor } }
+    [ photos, verification, *todos ]
+  end
+
   def interest_suggestions(user)
     chosen = user.hobbies_list.map { |hobby| hobby.strip.downcase }
     INTEREST_SUGGESTIONS.reject { |suggestion| chosen.include?(suggestion.downcase) }

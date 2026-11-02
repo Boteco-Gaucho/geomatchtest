@@ -84,3 +84,6 @@ application.register("interests", InterestsController)
 
 import CharCounterController from "./char_counter_controller"
 application.register("char-counter", CharCounterController)
+
+import ProfileTabsController from "./profile_tabs_controller"
+application.register("profile-tabs", ProfileTabsController)
