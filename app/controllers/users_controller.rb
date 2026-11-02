@@ -273,23 +273,31 @@ class UsersController < ApplicationController
   end
 
   def update
-  @user = current_user
+    @user = current_user
 
-  # 1. Tratamento das fotos do álbum
-  if params[:user][:album_photos].present?
-    @user.album_photos.attach(params[:user][:album_photos])
+    # 1. Removemos album_photos dos parâmetros de atualização em massa
+    # para evitar que o Rails tente sobrescrever as fotos que já existem
+    user_update_params = user_params.except(:album_photos)
+
+    # 2. Nova ordem do álbum (segurar e arrastar) — antes das fotos novas,
+    # que sempre entram no fim
+    album_order = album_order_param
+    @user.reorder_album_photos!(album_order) if album_order.present?
+
+    # 3. Fotos novas, até completar as 6 posições (a principal + 5 no álbum)
+    new_photos = Array(params[:user][:album_photos]).compact_blank
+    if new_photos.any?
+      free_slots = User::ALBUM_PHOTOS_LIMIT - @user.album_photos.count
+      @user.album_photos.attach(new_photos.first(free_slots)) if free_slots.positive?
+      flash[:alert] = "Você pode ter até 6 fotos. Remova uma para adicionar outra." if new_photos.size > free_slots
+    end
+
+    if @user.update(user_update_params)
+      redirect_to edit_profile_path, notice: "Perfil atualizado!", status: :see_other
+    else
+      render :edit, status: :unprocessable_entity
+    end
   end
-
-  # 2. Removemos album_photos dos parâmetros de atualização em massa
-  # para evitar que o Rails tente sobrescrever o que acabamos de anexar
-  user_update_params = user_params.except(:album_photos)
-
-  if @user.update(user_update_params)
-    redirect_to edit_profile_path, notice: "Perfil atualizado!", status: :see_other
-  else
-    render :edit, status: :unprocessable_entity
-  end
-end
 
   def upload_avatar
     @user = current_user
@@ -600,6 +608,11 @@ end
       { hobbies_list: [] },
       album_photos: []
     )
+  end
+
+  # Ids dos anexos do álbum na ordem em que ficaram em Editar Perfil
+  def album_order_param
+    params.require(:user).permit(album_order: [])[:album_order]
   end
 
 end

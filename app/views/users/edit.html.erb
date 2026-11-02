@@ -1,176 +1,279 @@
-<div class="edit-profile-wrapper">
+<%# Editar Perfil — layout do mockup (fonte Inter, como Meu Perfil). O título
+    continua o PNG dourado. Estilos em edit_profile.scss (.pe-*). %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<% end %>
 
-  <%# Formulário de upload da foto original — fora do form principal para evitar nesting inválido.
+<%
+  album        = @user.album_photos.to_a.first(User::ALBUM_PHOTOS_LIMIT)
+  photos_count = album.size + (@user.has_real_avatar? ? 1 : 0)
+  verification = profile_verification_state(@user)
+  hobbies      = @user.hobbies_list
+  hobbies_full = hobbies.size >= User::HOBBIES_LIMIT
+  suggested    = interest_suggestions(@user).first(UsersHelper::INTEREST_SUGGESTIONS_SHOWN)
+%>
+
+<div class="pe-page">
+
+  <%# Upload da foto principal — fora do form principal para evitar nesting inválido.
       turbo: false garante envio multipart nativo sem interferência do Turbo. %>
   <%= form_with url: upload_avatar_profile_path, method: :post, multipart: true,
-                id: "avatar-upload-form", style: "display:none",
-                data: { turbo: false } do |f| %>
+                id: "avatar-upload-form", data: { turbo: false } do |f| %>
     <%= f.file_field :avatar_original, id: "avatar_upload_field",
-                     accept: "image/*",
-                     class: "hidden-input",
+                     accept: "image/*", class: "pe-file-input",
                      onchange: "document.getElementById('avatar-upload-form').submit();" %>
   <% end %>
 
-   <%= form_with model: @user, url: profile_path, method: :patch, multipart: true, id: "edit-profile-form" do |f| %>
+  <%= form_with model: @user, url: profile_path, method: :patch, multipart: true, id: "edit-profile-form", class: "pe-column" do |f| %>
 
-    <%# --- 1. HEADER --- %>
-    <div class="edit-header">
-      <%# Botão Cancelar (Menor e mais cinza) %>
-      <%= link_to my_profile_path, class: "header-btn-left" do %>
-        <span>Cancelar</span>
-      <% end %>
+    <%# --- 1. CABEÇALHO --- %>
+    <header class="pe-header">
+      <%= link_to "Cancelar", my_profile_path, class: "pe-cancel" %>
+      <%= image_tag "texto-editar-perfil.png", alt: "Editar Perfil", class: "pe-title-img" %>
+      <button type="submit" class="pe-save">Salvar</button>
+    </header>
 
-      <%# Título Imagem (Menor) %>
-      <div class="header-title">
-        <%= image_tag "texto-editar-perfil.png", class: "title-img" %>
+    <%# --- 2. ABAS (div, não nav: no app iOS o CSS global esconde todo <nav>) --- %>
+    <div class="pe-tabs">
+      <span class="pe-tab is-active" aria-current="page">Editar</span>
+      <%= link_to "Pré-visualizar", preview_profile_path, class: "pe-tab" %>
+    </div>
+
+    <%# --- 3. FOTOS: a principal (avatar, trocada pelo lápis com recorte) + 5 do álbum.
+        Segurar e arrastar muda a ordem do álbum; vale no "Salvar" (user[album_order][]). %>
+    <section class="pe-section">
+      <div class="pe-section-head">
+        <h2 class="pe-section-title">Fotos</h2>
+        <span class="pe-section-meta"><%= photos_count %> de 6 · segure e arraste para reordenar</span>
       </div>
 
-      <%# Botão Salvar %>
-      <button type="submit" class="header-btn-right">
-        <div class="check-circle">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </div>
-      </button>
-    </div>
-
-    <%# --- 2. ABAS (TABS) --- %>
-    <div class="edit-tabs">
-      <div class="tab active">Editar</div>
-      <%= link_to "Visualizar", preview_profile_path, class: "tab inactive" %>
-    </div>
-
-    <div class="edit-scroll-content">
-      
-      <%# --- 3. GRADE DE FOTOS (Lógica Exata de 6 Slots) --- %>
-      <div class="photos-section">
-        <label class="photos-label">Adicionar fotos</label>
-        
-        <div class="photos-grid">
-
-          <%# Variável para contar slots usados (Limite 6) %>
-          <% slots_used = 0 %>
-
-          <%# SLOT 1: AVATAR — label dispara o input que pertence ao #avatar-upload-form acima %>
-          <div class="photo-slot filled">
-            <%= image_tag @user.avatar_or_default, class: "slot-img", id: "avatar-preview" %>
-            <label class="edit-badge" for="avatar_upload_field">
-              <i class="fas fa-pen"></i>
+      <div class="pe-photos" data-controller="photo-sort"
+           data-action="pointermove->photo-sort#move pointerup->photo-sort#release pointercancel->photo-sort#release">
+        <div class="pe-photo pe-photo--main">
+          <% if @user.has_real_avatar? %>
+            <%= image_tag @user.avatar, alt: "Sua foto principal", class: "pe-photo-img", draggable: false %>
+          <% else %>
+            <label class="pe-photo-placeholder" for="avatar_upload_field" aria-label="Adicionar foto principal">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
             </label>
-          </div>
-          <% slots_used += 1 %>
-
-          <%# SLOT 2 a N: FOTOS EXISTENTES %>
-          <% @user.album_photos.each do |photo| %>
-            <% break if slots_used >= 6 %>
-            <div class="photo-slot filled">
-              <%= image_tag photo, class: "slot-img" %>
-              <%= link_to delete_album_photo_path(photo), data: { turbo_method: :delete }, class: "delete-badge" do %>
-                ✕
-              <% end %>
-            </div>
-            <% slots_used += 1 %>
           <% end %>
+          <span class="pe-photo-main-tag">Foto principal</span>
+          <label class="pe-photo-edit" for="avatar_upload_field" aria-label="Trocar foto principal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </label>
+        </div>
 
-          <%# SLOT DE UPLOAD (Só aparece se tiver espaço sobrando) %>
-          <% if slots_used < 6 %>
-            <label class="photo-slot empty">
-              <div class="plus-icon">+</div>
-              <%= f.file_field :album_photos, multiple: true, class: "hidden-input",
-                    onchange: "this.form.submit()" %>
+        <% album.each_with_index do |photo, index| %>
+          <div class="pe-photo" data-photo-sort-target="photo"
+               data-action="pointerdown->photo-sort#press contextmenu->photo-sort#suppress">
+            <%= image_tag photo, alt: "Foto #{index + 2}", class: "pe-photo-img", draggable: false %>
+            <span class="pe-photo-number" data-photo-sort-target="number"><%= index + 2 %></span>
+            <%= link_to delete_album_photo_path(photo), class: "pe-photo-remove", aria: { label: "Remover foto" },
+                        data: { turbo_method: :delete, turbo_confirm: "Remover esta foto?" } do %>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            <% end %>
+            <%= hidden_field_tag "user[album_order][]", photo.id, id: nil %>
+          </div>
+        <% end %>
+
+        <% (User::ALBUM_PHOTOS_LIMIT - album.size).times do %>
+          <label class="pe-photo pe-photo--add" for="user_album_photos" aria-label="Adicionar fotos">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </label>
+        <% end %>
+      </div>
+      <%= f.file_field :album_photos, multiple: true, accept: "image/*", class: "pe-file-input",
+                       onchange: "this.form.submit()" %>
+
+      <p class="pe-photos-hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+        Fotos com o rosto visível passam mais confiança.
+      </p>
+    </section>
+
+    <%# --- 4. SELO DE VERIFICADO (o mockup mostra quem ainda não enviou) --- %>
+    <% seal = capture do %>
+      <svg class="pe-verify-seal" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path class="pe-verify-check" d="m8.5 12 2.5 2.5 4.5-4.5"/></svg>
+    <% end %>
+    <% case verification %>
+    <% when :verified %>
+      <section class="pe-verify pe-verify--done">
+        <div class="pe-verify-head">
+          <%= seal %>
+          <div>
+            <h3>Perfil verificado</h3>
+            <p>Seu selo azul aparece para quem está por perto.</p>
+          </div>
+        </div>
+      </section>
+    <% when :pending %>
+      <section class="pe-verify">
+        <div class="pe-verify-head">
+          <%= seal %>
+          <div>
+            <h3>Verificação em análise</h3>
+            <p>Recebemos seu documento e sua selfie. Avisaremos assim que a análise terminar.</p>
+          </div>
+        </div>
+      </section>
+    <% else %>
+      <section class="pe-verify">
+        <div class="pe-verify-head">
+          <%= seal %>
+          <div>
+            <% if verification == :rejected %>
+              <h3>Verificação não aprovada</h3>
+              <p><%= verification_rejection_reason(@user) %> Envie novas fotos para tentar de novo.</p>
+            <% else %>
+              <h3>Ganhe o selo de verificado</h3>
+              <p>Envie um documento e uma selfie. Quem tem o selo passa mais confiança para quem está por perto.</p>
+            <% end %>
+          </div>
+        </div>
+        <ol class="pe-verify-steps">
+          <li><span>1</span>Documento</li>
+          <li><span>2</span>Selfie</li>
+        </ol>
+        <%= link_to verification_path, class: "pe-verify-btn" do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          <%= verification == :rejected ? "Enviar novas fotos" : "Verificar meu perfil" %>
+        <% end %>
+        <p class="pe-verify-note">Leva cerca de 2 minutos · seus dados ficam protegidos</p>
+      </section>
+    <% end %>
+
+    <%# --- 5. BIO --- %>
+    <section class="pe-section pe-bio-section" data-controller="char-counter">
+      <div class="pe-section-head">
+        <%= f.label :bio, "Bio", class: "pe-section-title" %>
+        <span class="pe-section-meta" data-char-counter-target="count"><%= @user.bio.to_s.length %>/300</span>
+      </div>
+      <%= f.text_area :bio, maxlength: 300, rows: 3, placeholder: "Conte um pouco sobre você", class: "pe-bio",
+                      data: { char_counter_target: "input", action: "input->char-counter#update" } %>
+      <p class="pe-tip">
+        Dica: conte algo que facilite puxar assunto, como seu lugar favorito
+        <%= @user.city.present? ? "em #{@user.city}" : "na sua cidade" %>.
+      </p>
+    </section>
+
+    <%# --- 6. SOBRE VOCÊ --- %>
+    <section class="pe-card">
+      <h2 class="pe-card-title">Sobre você</h2>
+
+      <fieldset class="pe-field">
+        <legend class="pe-label">Gênero</legend>
+        <div class="pe-chips">
+          <% UsersHelper::PROFILE_GENDER_OPTIONS.each do |label, value| %>
+            <label class="pe-chip">
+              <%= f.radio_button :gender, value, class: "pe-chip-input" %>
+              <span><%= label %></span>
             </label>
-            <% slots_used += 1 %>
           <% end %>
+        </div>
+        <% if @user.gender.blank? %>
+          <p class="pe-warning">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5h.01"/></svg>
+            Escolha uma opção para aparecer para as pessoas certas.
+          </p>
+        <% end %>
+      </fieldset>
 
-          <%# SLOTS VAZIOS (Preenche o resto até dar 6) %>
-          <% (slots_used...6).each do %>
-             <div class="photo-slot empty-placeholder">
-               <div class="plus-icon" style="opacity: 0.3;">+</div>
-             </div>
+      <fieldset class="pe-field">
+        <legend class="pe-label">Quero conhecer</legend>
+        <div class="pe-chips">
+          <% UsersHelper::PROFILE_INTERESTED_IN_OPTIONS.each do |label, value| %>
+            <label class="pe-chip">
+              <%= f.radio_button :interested_in, value, class: "pe-chip-input" %>
+              <span><%= label %></span>
+            </label>
           <% end %>
+        </div>
+        <% if @user.interested_in.blank? %>
+          <p class="pe-warning">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5h.01"/></svg>
+            Escolha uma opção para aparecer para as pessoas certas.
+          </p>
+        <% end %>
+      </fieldset>
+    </section>
 
+    <%# --- 7. ONDE VOCÊ ESTÁ (cidades do estado vêm do IBGE para o autocompletar) --- %>
+    <section class="pe-card" data-controller="profile-location">
+      <h2 class="pe-card-title">Onde você está</h2>
+      <div class="pe-location">
+        <div>
+          <%= f.label :state, "Estado", class: "pe-label" %>
+          <%= f.select :state, options_for_select(UsersHelper::BRAZILIAN_STATES, @user.state), { include_blank: "Escolha" },
+                       class: "pe-select",
+                       data: { "profile-location-target": "state", action: "change->profile-location#fetchCities" } %>
+        </div>
+        <div>
+          <%= f.label :city, "Cidade", class: "pe-label" %>
+          <%= f.text_field :city, placeholder: "Sua cidade", class: "pe-input",
+                           list: "profile-cities-list", autocomplete: "off",
+                           data: { "profile-location-target": "city" } %>
+          <datalist id="profile-cities-list"></datalist>
         </div>
       </div>
+      <p class="pe-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Sua posição no mapa nunca é exata.
+      </p>
+    </section>
 
-      <%# --- 4. CAMPOS DO FORMULÁRIO --- %>
-      <div class="form-fields">
-        
-        <div class="field-group">
-          <%= f.label :bio, "Bio", class: "dark-label" %>
-          <%= f.text_area :bio, placeholder: "Fale um pouco sobre você", rows: 3, class: "dark-input textarea" %>
-        </div>
-
-        <div class="field-group">
-          <%= f.label :gender, "Gênero", class: "dark-label" %>
-          <%= f.select :gender, [["Homem", "Homem"], ["Mulher", "Mulher"], ["Não Binário", "Não Binário"]], { include_blank: "Selecione seu gênero" }, class: "dark-input" %>
-        </div>
-
-        <div class="field-group">
-          <%= f.label :interested_in, "Quero conhecer", class: "dark-label" %>
-          <%= f.select :interested_in,
-                options_for_select([["Mulheres", "Mulher"], ["Homens", "Homem"], ["Todos", "Todos"]], current_user.interested_in),
-                { include_blank: "Selecione" }, class: "dark-input" %>
-        </div>
-
-        <div data-controller="profile-location">
-          <div class="field-group">
-            <%= f.label :state, "Estado", class: "dark-label" %>
-            <%= f.select :state,
-                  options_for_select([
-                    ["Selecione seu estado", ""],
-                    ["Acre", "AC"], ["Alagoas", "AL"], ["Amapá", "AP"],
-                    ["Amazonas", "AM"], ["Bahia", "BA"], ["Ceará", "CE"],
-                    ["Distrito Federal", "DF"], ["Espírito Santo", "ES"],
-                    ["Goiás", "GO"], ["Maranhão", "MA"], ["Mato Grosso", "MT"],
-                    ["Mato Grosso do Sul", "MS"], ["Minas Gerais", "MG"],
-                    ["Pará", "PA"], ["Paraíba", "PB"], ["Paraná", "PR"],
-                    ["Pernambuco", "PE"], ["Piauí", "PI"],
-                    ["Rio de Janeiro", "RJ"], ["Rio Grande do Norte", "RN"],
-                    ["Rio Grande do Sul", "RS"], ["Rondônia", "RO"],
-                    ["Roraima", "RR"], ["Santa Catarina", "SC"],
-                    ["São Paulo", "SP"], ["Sergipe", "SE"], ["Tocantins", "TO"]
-                  ], @user.state),
-                  {},
-                  class: "dark-input",
-                  data: {
-                    "profile-location-target": "state",
-                    action: "change->profile-location#fetchCities"
-                  } %>
-          </div>
-
-          <div class="field-group">
-            <%= f.label :city, "Cidade", class: "dark-label" %>
-            <%= f.text_field :city,
-                  placeholder: "Digite sua cidade",
-                  class: "dark-input",
-                  list: "profile-cities-list",
-                  autocomplete: "off",
-                  data: { "profile-location-target": "city" } %>
-            <datalist id="profile-cities-list"></datalist>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <%= f.label :hobbies_list, "Hobbys", class: "dark-label" %>
-          <%= f.text_field :hobbies_list, value: @user.hobbies_list.join(", "), placeholder: "Praia, Cinema, Esportes", class: "dark-input" %>
-          <p class="field-hint">Separe por vírgulas</p>
-        </div>
-
+    <%# --- 8. INTERESSES (cada chip leva um user[hobbies_list][]; o vazio garante que
+        remover todos também é salvo) --- %>
+    <section class="pe-card" data-controller="interests"
+             data-interests-max-value="<%= User::HOBBIES_LIMIT %>"
+             data-interests-shown-value="<%= UsersHelper::INTEREST_SUGGESTIONS_SHOWN %>">
+      <div class="pe-card-head">
+        <h2 class="pe-card-title">Interesses</h2>
+        <span class="pe-section-meta" data-interests-target="count"><%= hobbies.size %> de <%= User::HOBBIES_LIMIT %></span>
       </div>
-      
-      <br><br><br>
-    </div>
+      <%= hidden_field_tag "user[hobbies_list][]", "", id: nil %>
+
+      <div class="pe-interests" data-interests-target="list">
+        <% hobbies.each do |hobby| %>
+          <span class="pe-interest" data-interests-target="chip">
+            <span class="pe-interest-name"><%= hobby %></span>
+            <%= hidden_field_tag "user[hobbies_list][]", hobby, id: nil %>
+            <button type="button" class="pe-interest-remove" data-action="interests#remove" aria-label="Remover <%= hobby %>">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </span>
+        <% end %>
+        <button type="button" class="pe-interest-add" data-interests-target="addButton"
+                data-action="interests#open" <%= "hidden" if hobbies_full %>>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Adicionar
+        </button>
+        <input type="text" class="pe-interest-input" maxlength="30" placeholder="Novo interesse"
+               enterkeyhint="done" aria-label="Novo interesse" hidden
+               data-interests-target="input" data-action="keydown->interests#keydown blur->interests#commit">
+      </div>
+
+      <p class="pe-label pe-suggestions-title">Sugestões</p>
+      <div class="pe-suggestions">
+        <% UsersHelper::INTEREST_SUGGESTIONS.each do |suggestion| %>
+          <button type="button" class="pe-suggestion" data-interests-target="suggestion"
+                  data-action="interests#add" data-interests-value-param="<%= suggestion %>"
+                  <%= "hidden" unless suggested.include?(suggestion) %> <%= "disabled" if hobbies_full %>>
+            + <%= suggestion %>
+          </button>
+        <% end %>
+      </div>
+
+      <template data-interests-target="template">
+        <span class="pe-interest" data-interests-target="chip">
+          <span class="pe-interest-name"></span>
+          <input type="hidden" name="user[hobbies_list][]" autocomplete="off">
+          <button type="button" class="pe-interest-remove" data-action="interests#remove" aria-label="Remover">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </span>
+      </template>
+    </section>
 
   <% end %>
 </div>
-
-<script>
-document.addEventListener("turbo:load", function() {
-  document.querySelectorAll('.delete-badge').forEach(link => {
-    link.addEventListener('click', function(e) {
-      if (!confirm("Tem certeza que deseja apagar?")) {
-        e.preventDefault();
-      }
-    });
-  });
-});
-</script>

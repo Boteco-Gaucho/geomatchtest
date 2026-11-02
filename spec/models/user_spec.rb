@@ -149,4 +149,49 @@ RSpec.describe User, type: :model do
       expect(premium_user.reload.plan).to eq(premium_plan)
     end
   end
+
+  describe "#reorder_album_photos!" do
+    subject(:owner) { create(:user) }
+
+    before do
+      %w[a b c].each do |name|
+        owner.album_photos.attach(io: StringIO.new(name), filename: "#{name}.jpg", content_type: "image/jpeg")
+      end
+    end
+
+    let(:ids) { owner.album_photos_attachments.pluck(:id) }
+
+    def filenames
+      owner.reload.album_photos.map { |photo| photo.filename.to_s }
+    end
+
+    it "puts the photos in the given order, keeping the attachment ids" do
+      owner.reorder_album_photos!([ ids[2], ids[0], ids[1] ].map(&:to_s))
+
+      expect(filenames).to eq(%w[c.jpg a.jpg b.jpg])
+      expect(owner.album_photos_attachments.pluck(:id)).to eq(ids)
+    end
+
+    it "appends photos missing from the list and ignores unknown ids" do
+      owner.reorder_album_photos!([ ids[1], 999_999 ])
+
+      expect(filenames).to eq(%w[b.jpg a.jpg c.jpg])
+    end
+
+    it "keeps every blob attached (nothing is purged)" do
+      blob_ids = owner.album_photos_blobs.pluck(:id).sort
+
+      owner.reorder_album_photos!(ids.reverse)
+
+      expect(owner.reload.album_photos_blobs.pluck(:id).sort).to eq(blob_ids)
+    end
+  end
+
+  describe "#hobbies_list=" do
+    it "strips, drops blanks and repeated values, and keeps at most 8" do
+      user.hobbies_list = [ " Praia ", "", "praia", "Cinema", *("1".."9") ]
+
+      expect(user.hobbies_list).to eq([ "Praia", "Cinema", "1", "2", "3", "4", "5", "6" ])
+    end
+  end
 end

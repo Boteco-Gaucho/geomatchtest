@@ -11,12 +11,7 @@
   tier           = profile_completion_state_class(completion) # cor por faixa: vermelho / laranja / verde
   current_plan   = @user.plan
   balance_hidden = cookies[:hide_wallet_balance] == "1"
-  verification   =
-    if @user.verified? then :verified
-    elsif %w[pending manual_review].include?(@user.ai_moderation_status) then :pending
-    elsif @user.ai_moderation_status == "rejected" then :rejected
-    else :none
-    end
+  verification   = profile_verification_state(@user)
 %>
 
 <div class="profile-dashboard-wrapper me-profile">
@@ -71,22 +66,9 @@
 
     <%# Documentos recusados: motivo e reenvio (o mockup mostra o estado verificado) %>
     <% if verification == :rejected %>
-      <%
-        rejection_reasons = {
-          "no_face_in_selfie"          => "Nenhum rosto foi identificado na selfie.",
-          "explicit_content"           => "Uma das imagens contém conteúdo inapropriado.",
-          "name_not_found_in_document" => "Não conseguimos ler o seu nome no documento enviado.",
-          "face_mismatch"              => "O rosto da selfie não corresponde ao documento.",
-          "api_error"                  => "Ocorreu um erro ao processar os documentos.",
-          "no_face_detected"           => "Nenhum rosto foi identificado na foto.",
-          "name_not_found_in_photo"    => "Não conseguimos ler o seu nome na imagem."
-        }
-        friendly_reason = rejection_reasons.fetch(@user.ai_moderation_details&.dig("reason").to_s,
-                                                  "Seus documentos não puderam ser aprovados.")
-      %>
       <section class="me-card me-alert">
         <strong>Documentos não aprovados</strong>
-        <p><%= friendly_reason %></p>
+        <p><%= verification_rejection_reason(@user) %></p>
         <%= link_to "Enviar novos documentos", verification_path, class: "me-btn-outline" %>
       </section>
     <% end %>

@@ -25,13 +25,67 @@ module UsersHelper
   # Recursos listados nos cards do carrossel "Planos" (rótulo do mockup =>
   # chave em plans.features). nil = recurso que ainda não existe ("Em breve").
   PLAN_PERKS = [
-    ["Interação no mapa ilimitada", "likes_right_unlimited"],
-    ["Lista de quem curtiu você",   "see_who_liked_me"],
-    ["Lista de quem você curtiu",   "see_who_i_liked"],
-    ["Mensagens ilimitadas",        "unlimited_messages"],
-    ["Modo oculto",                 "allow_invisible"],
-    ["Não mostrar minha idade",     nil]
+    [ "Interação no mapa ilimitada", "likes_right_unlimited" ],
+    [ "Lista de quem curtiu você",   "see_who_liked_me" ],
+    [ "Lista de quem você curtiu",   "see_who_i_liked" ],
+    [ "Mensagens ilimitadas",        "unlimited_messages" ],
+    [ "Modo oculto",                 "allow_invisible" ],
+    [ "Não mostrar minha idade",     nil ]
   ].freeze
+
+  # Editar Perfil — chips de "Sobre você" (rótulo => valor gravado). "Não Binário"
+  # continua com B maiúsculo no banco: é o valor que o onboarding e o filtro do mapa usam.
+  PROFILE_GENDER_OPTIONS = [
+    [ "Homem", "Homem" ], [ "Mulher", "Mulher" ], [ "Não binário", "Não Binário" ], [ "Outro", "Outro" ]
+  ].freeze
+
+  PROFILE_INTERESTED_IN_OPTIONS = [ [ "Homens", "Homem" ], [ "Mulheres", "Mulher" ], [ "Todos", "Todos" ] ].freeze
+
+  BRAZILIAN_STATES = [
+    [ "Acre", "AC" ], [ "Alagoas", "AL" ], [ "Amapá", "AP" ], [ "Amazonas", "AM" ], [ "Bahia", "BA" ],
+    [ "Ceará", "CE" ], [ "Distrito Federal", "DF" ], [ "Espírito Santo", "ES" ], [ "Goiás", "GO" ],
+    [ "Maranhão", "MA" ], [ "Mato Grosso", "MT" ], [ "Mato Grosso do Sul", "MS" ], [ "Minas Gerais", "MG" ],
+    [ "Pará", "PA" ], [ "Paraíba", "PB" ], [ "Paraná", "PR" ], [ "Pernambuco", "PE" ], [ "Piauí", "PI" ],
+    [ "Rio de Janeiro", "RJ" ], [ "Rio Grande do Norte", "RN" ], [ "Rio Grande do Sul", "RS" ],
+    [ "Rondônia", "RO" ], [ "Roraima", "RR" ], [ "Santa Catarina", "SC" ], [ "São Paulo", "SP" ],
+    [ "Sergipe", "SE" ], [ "Tocantins", "TO" ]
+  ].freeze
+
+  # Sugestões de interesses (aparecem as 4 primeiras que a pessoa ainda não escolheu)
+  INTEREST_SUGGESTIONS = [
+    "Viagens", "Música ao vivo", "Carnaval", "Futebol", "Praia", "Culinária", "Fitness",
+    "Cinema", "Séries", "Barzinho", "Trilhas", "Pets"
+  ].freeze
+  INTEREST_SUGGESTIONS_SHOWN = 4
+
+  VERIFICATION_REJECTION_REASONS = {
+    "no_face_in_selfie"          => "Nenhum rosto foi identificado na selfie.",
+    "explicit_content"           => "Uma das imagens contém conteúdo inapropriado.",
+    "name_not_found_in_document" => "Não conseguimos ler o seu nome no documento enviado.",
+    "face_mismatch"              => "O rosto da selfie não corresponde ao documento.",
+    "api_error"                  => "Ocorreu um erro ao processar os documentos.",
+    "no_face_detected"           => "Nenhum rosto foi identificado na foto.",
+    "name_not_found_in_photo"    => "Não conseguimos ler o seu nome na imagem."
+  }.freeze
+
+  # :verified, :pending (em análise), :rejected (recusada) ou :none (nunca enviou)
+  def profile_verification_state(user)
+    if user.verified? then :verified
+    elsif %w[pending manual_review].include?(user.ai_moderation_status) then :pending
+    elsif user.ai_moderation_status == "rejected" then :rejected
+    else :none
+    end
+  end
+
+  def verification_rejection_reason(user)
+    VERIFICATION_REJECTION_REASONS.fetch(user.ai_moderation_details&.dig("reason").to_s,
+                                         "Seus documentos não puderam ser aprovados.")
+  end
+
+  def interest_suggestions(user)
+    chosen = user.hobbies_list.map { |hobby| hobby.strip.downcase }
+    INTEREST_SUGGESTIONS.reject { |suggestion| chosen.include?(suggestion.downcase) }
+  end
 
   def profile_completion_state_class(percentage)
     if percentage >= 100

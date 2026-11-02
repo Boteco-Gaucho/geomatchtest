@@ -75,3 +75,12 @@ application.register("likes-upsell", LikesUpsellController)
 
 import PlansCarouselController from "./plans_carousel_controller"
 application.register("plans-carousel", PlansCarouselController)
+
+import PhotoSortController from "./photo_sort_controller"
+application.register("photo-sort", PhotoSortController)
+
+import InterestsController from "./interests_controller"
+application.register("interests", InterestsController)
+
+import CharCounterController from "./char_counter_controller"
+application.register("char-counter", CharCounterController)

@@ -68,6 +68,18 @@ class User < ApplicationRecord
   has_one_attached :document_back
   has_one_attached :selfie_with_document
   has_many_attached :album_photos
+  # Ordem do álbum = ordem dos anexos por id (ver reorder_album_photos!). São os
+  # mesmos dois has_many que o has_many_attached cria, só que com ORDER BY: sem
+  # ele o Postgres devolve as fotos na ordem física ou do índice, não na escolhida.
+  # O de blobs é refeito em seguida porque um :through precisa vir depois da
+  # associação por onde passa.
+  has_many :album_photos_attachments, -> { where(name: "album_photos").order(:id) },
+           as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy
+  has_many :album_photos_blobs, through: :album_photos_attachments, class_name: "ActiveStorage::Blob", source: :blob
+
+  # Editar Perfil tem 6 posições: a foto principal (avatar) + 5 no álbum
+  ALBUM_PHOTOS_LIMIT = 5
+  HOBBIES_LIMIT      = 8
 
   # Enum de escolaridade (coluna integer no banco)
   enum :education_level, {
@@ -319,7 +331,29 @@ class User < ApplicationRecord
 
   def hobbies_list=(values)
     val_to_save = values.is_a?(String) ? values.split(',') : values
-    self.hobbies = val_to_save.reject(&:blank?).join(",")
+    self.hobbies = val_to_save.map(&:strip).reject(&:blank?).uniq(&:downcase).first(HOBBIES_LIMIT).join(",")
+  end
+
+  # Reordena o álbum (fotos 2 a 6 de Editar Perfil). A ordem é a dos ids dos
+  # anexos, então reordenar = trocar os blobs entre os anexos que já existem.
+  # Ids de fora do álbum são ignorados; fotos não citadas vão para o fim.
+  def reorder_album_photos!(attachment_ids)
+    blob_by_attachment = album_photos_attachments.pluck(:id, :blob_id).to_h
+    slots     = blob_by_attachment.keys
+    requested = attachment_ids.map(&:to_i).uniq & slots
+    new_order = requested + (slots - requested)
+    return if new_order == slots
+
+    transaction do
+      # Nome provisório: o índice único (record, name, blob) não deixa dois anexos
+      # do álbum apontarem para o mesmo blob no meio da troca.
+      ActiveStorage::Attachment.where(id: slots).update_all(name: "album_photos_reordering")
+      slots.zip(new_order).each do |slot_id, source_id|
+        ActiveStorage::Attachment.where(id: slot_id)
+                                 .update_all(name: "album_photos", blob_id: blob_by_attachment[source_id])
+      end
+    end
+    album_photos_attachments.reset
   end
 
   # Itens que contam para a barra "X% completo" em /meu-perfil. Todos com o
