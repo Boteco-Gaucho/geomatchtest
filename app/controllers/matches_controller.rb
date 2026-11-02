@@ -1,7 +1,7 @@
 class MatchesController < ApplicationController
   before_action :authenticate_user!
   # Define @match apenas para actions específicas e garante segurança
-  before_action :set_match, only: [:show, :clear_conversation]
+  before_action :set_match, only: [ :show, :clear_conversation, :mute ]
 
   def index
     # 1. IDs dos matches com mensagem, ordenados pela mais recente.
@@ -38,11 +38,23 @@ class MatchesController < ApplicationController
         Like.exists?(liker_id: current_user.id, liked_id: other.id) &&
           Like.exists?(liker_id: other.id, liked_id: current_user.id)
       end
+
+    # 4. Linhas da lista: última mensagem que a pessoa ainda vê, quantas não leu
+    # e quantas conversas estão esperando resposta dela ("Sua vez")
+    visible = Message.visible_to(current_user).where(match_id: initiated_ids_ordered)
+    # id desempata mensagens enviadas no mesmo instante
+    @last_messages = visible.select("DISTINCT ON (messages.match_id) messages.*")
+                            .order("messages.match_id, messages.created_at DESC, messages.id DESC")
+                            .index_by(&:match_id)
+    @unread_counts = visible.where.not(sender_id: current_user.id).where.not(status: :read)
+                            .group(:match_id).count
+    @your_turn_count = @last_messages.values.count { |message| message.sender_id != current_user.id }
   end
 
   def show
     # reply_to: :sender — cada resposta desenha a citação (autor + trecho) sem N+1
-    @messages = @match.messages.includes(reply_to: :sender).order(created_at: :asc)
+    @messages = @match.messages.visible_to(current_user)
+                      .includes(:reactions, reply_to: :sender).order(created_at: :asc)
     @message  = Message.new
     @other_user = @match.other_user(current_user)
 
@@ -88,21 +100,37 @@ class MatchesController < ApplicationController
     redirect_to lead_path, alert: "Usuário não encontrado."
   end
 
- def clear_conversation
-  if @match.messages.destroy_all
-    respond_to do |format|
-      # Se for um acesso normal (fallback)
-      format.html { redirect_to match_path(@match), notice: "Conversa limpa." }
-      # Se for via AJAX (o que o seu JS vai usar)
-      format.json { head :no_content } 
-    end
-  else
-    respond_to do |format|
-      format.html { redirect_to match_path(@match), alert: "Erro ao limpar." }
-      format.json { render json: { error: "Erro" }, status: :unprocessable_entity }
+  # "Limpar conversa": some só para quem pediu — a outra pessoa mantém o histórico
+  # (antes apagava as mensagens dos dois lados)
+  def clear_conversation
+    if @match.clear_for!(current_user)
+      respond_to do |format|
+        format.html { redirect_to match_path(@match), notice: "Conversa limpa." }
+        format.json { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to match_path(@match), alert: "Não foi possível limpar a conversa agora." }
+        format.json { render json: { error: "Recurso indisponível no momento." }, status: :service_unavailable }
+      end
     end
   end
-end
+
+  # "Silenciar notificações" / "Ativar notificações" da conversa
+  def mute
+    if @match.toggle_mute!(current_user)
+      muted = @match.muted_for?(current_user)
+      respond_to do |format|
+        format.html { redirect_to match_path(@match), notice: muted ? "Notificações silenciadas." : "Notificações ativadas." }
+        format.json { render json: { muted: muted } }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to match_path(@match), alert: "Não foi possível alterar as notificações agora." }
+        format.json { render json: { error: "Recurso indisponível no momento." }, status: :service_unavailable }
+      end
+    end
+  end
 
   private
 

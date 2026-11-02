@@ -77,15 +77,18 @@ Rails.application.routes.draw do
   # Aqui juntamos a exibição, as mensagens e a ação de limpar conversa
   resources :matches, only: [:index, :show] do
     # Rotas aninhadas (mensagens dentro do match)
-    resources :messages, only: [:index, :create, :destroy] do
+    # update = Editar · destroy = Apagar para todos · hide = Apagar para mim
+    resources :messages, only: [:index, :create, :update, :destroy] do
       member do
         post :react
+        post :hide
       end
     end
-    
+
     # Ações de membro (agem sobre um match específico)
     member do
-      delete :clear_conversation
+      delete :clear_conversation # só para quem pediu
+      patch  :mute               # liga/desliga as notificações da conversa
     end
   end
 

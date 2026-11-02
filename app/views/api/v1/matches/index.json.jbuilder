@@ -1,6 +1,6 @@
 json.matches @matches do |match|
   other        = match.other_user(current_api_user)
-  last_message = match.messages.order(created_at: :desc).first
+  last_message = match.messages.visible_to(current_api_user).order(created_at: :desc).first
 
   json.id         match.id
   json.created_at match.created_at.iso8601

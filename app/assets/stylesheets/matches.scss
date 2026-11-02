@@ -1,16 +1,14 @@
 // =========================================================
-// MENSAGENS (/matches)
+// MENSAGENS (/matches) — layout do mockup (739px de largura → ×0,528 para 390px)
+// O título continua o PNG de sempre (mesmo tamanho e posição).
 // =========================================================
 
 .matches-screen-wrapper {
-  // Fundo bege com grade de pontinhos lilás
-  background-color: #f3eee3;
-  background-image: radial-gradient(circle, rgba(140, 140, 215, 0.35) 1px, transparent 1.4px);
-  background-size: 21px 21px;
-  background-position: 4px 4px;
+  background-color: #f8f2e8;
   width: 100%;
-  color: #2b2622;
-  font-family: 'Poppins', sans-serif;
+  color: #1c1c1c;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
   overflow-x: hidden;
 }
 
@@ -26,27 +24,7 @@
   padding-top: env(safe-area-inset-top);
 }
 
-// Curvas de nível decorativas (rolam junto com o conteúdo)
-.msg-topo {
-  position: absolute;
-  pointer-events: none;
-  z-index: 0;
-
-  g { stroke: #b9ab97; opacity: 0.5; }
-
-  &--top    { top: calc(env(safe-area-inset-top) - 10px); right: -30px; width: 230px; height: 260px; }
-  &--bottom { top: 640px; left: 0; width: 150px; height: 220px; }
-}
-
-.matches-header,
-.msg-search-field,
-.recent-matches-section,
-.conversations-section {
-  position: relative;
-  z-index: 1;
-}
-
-/* --- 1. HEADER --- */
+/* --- 1. HEADER (título: não mudou) --- */
 .matches-header {
   padding: 26px 18px 0 18px;
   display: flex;
@@ -61,60 +39,70 @@
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.12));
 }
 
-.msg-search-btn {
-  width: 42px;
-  height: 28px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  color: #6b6b6b;
+/* Busca sempre visível */
+.msg-search {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  gap: 12px;
+  height: 43px;
+  margin: 9px 20px 0;
+  padding: 0 16px 0 14px;
+  border: 1px solid #e8e0d4;
+  border-radius: 22px;
+  background: #fff;
+  cursor: text;
 
-  svg { width: 17px; height: 17px; }
-}
+  svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: #3a3631;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
 
-.msg-search-field {
-  padding: 12px 18px 0;
-
-  input {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 14px;
-    background: #fff;
-    padding: 9px 14px;
+  // Vence o input global de profile.scss
+  input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #1c1c1c;
     font: inherit;
-    font-size: 0.85rem;
-    color: #2b2622;
+    font-size: 15px;
     outline: none;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::placeholder { color: #8a847e; opacity: 1; }
+    &::-webkit-search-cancel-button { -webkit-appearance: none; }
   }
 }
 
 /* --- TÍTULOS DE SEÇÃO --- */
 .msg-section-title {
   margin: 0;
-  padding: 18px 18px 14px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #2e2924;
-  letter-spacing: -0.1px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1c1c1c;
+  letter-spacing: -0.2px;
 }
 
-/* --- 2. MATCHES RECENTES --- */
+/* --- 2. NOVAS CONEXÕES --- */
 .recent-matches-section {
-  padding-bottom: 4px;
+  .msg-section-title { padding: 20px 20px 8px; }
 }
 
 .matches-carousel {
   display: flex;
-  gap: 14px;
-  padding: 0 18px 4px;
+  gap: 17px;
+  padding: 0 20px 2px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -125,111 +113,88 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  text-decoration: none;
+  gap: 7px;
   flex-shrink: 0;
-  width: 72px;
+  width: 63px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-// Avatar de match: aro fino prateado + respiro creme
-.match-ring {
-  width: 66px;
-  height: 66px;
+// Curtidas: círculo escuro com aro e coração dourados
+.msg-likes {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 63px;
+  height: 63px;
+  border: 3px solid #c9a052;
   border-radius: 50%;
-  padding: 4px;
-  box-sizing: border-box;
-  background: #f6f1e8;
-  border: 1.5px solid #a39a91;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background: #1c1c1e;
+
+  svg { width: 22px; height: 22px; fill: #c9a052; }
+}
+
+.msg-likes-count {
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 27px;
+  height: 22px;
+  padding: 0 6px;
+  border: 2px solid #f8f2e8;
+  border-radius: 11px;
+  background: #1c1c1e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+// Match sem conversa: aro bege; verde quando a conexão é nova
+.match-ring {
+  position: relative;
+  display: block;
+  width: 63px;
+  height: 63px;
+  padding: 3px;
+  border: 2.5px solid #e7dfd2;
+  border-radius: 50%;
+  background: #f8f2e8;
+
+  &.is-new { border-color: #2f7a5f; }
 }
 
 .user-avatar-img {
+  display: block;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  display: block;
+}
+
+// Bolinha de online (matches e conversas)
+.msg-online {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  border: 2.5px solid #f8f2e8;
+  border-radius: 50%;
+  background: #1fa65a;
 }
 
 .match-name {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  font-size: 0.8rem;
-  color: #2b2622;
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   max-width: 100%;
-}
-
-.gold-text { color: #b08d5f; font-weight: 500; }
-
-// Curtidas: aro perolado/dourado com pontilhado
-.likes-ring {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  padding: 5px;
-  box-sizing: border-box;
-  background: conic-gradient(from 200deg, #f5e6c4, #e9d3f1, #fff4dc, #d9c3a0, #efe0f6, #f5e6c4);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-}
-
-.likes-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #f8f4ec;
-  border: 1px dashed rgba(176, 141, 95, 0.55);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.map-heart-icon {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-}
-
-.likes-gem {
-  position: absolute;
-  right: -1px;
-  bottom: 1px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #fff8ec;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  svg { width: 14px; height: 14px; }
-}
-
-.likes-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background-color: #b08d5f;
-  color: #fff;
-  font-size: 0.62rem;
-  font-weight: 700;
-  height: 18px;
-  min-width: 18px;
-  padding: 0 4px;
-  box-sizing: border-box;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #f3eee3;
+  overflow: hidden;
+  color: #1c1c1c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* --- 3. CONVERSAS --- */
@@ -237,17 +202,53 @@
   padding-bottom: 20px;
 }
 
+.msg-conv-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 20px 9px;
+}
+
+.msg-filter {
+  display: flex;
+  gap: 7px;
+}
+
+.msg-filter-btn {
+  height: 31.5px;
+  padding: 0 12px;
+  border: 1px solid #e2ddd5;
+  border-radius: 999px;
+  background: #fff;
+  color: #1c1c1c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-active {
+    border-color: #1c1c1e;
+    background: #1c1c1e;
+    color: #fff;
+  }
+}
+
 .conversations-list {
   display: flex;
   flex-direction: column;
-  padding: 0 18px;
+  padding: 0 20px;
 }
 
 /* ── Swipe-to-action ────────────────────────────────────── */
 .swipe-container {
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(43, 38, 34, 0.12);
+  border-bottom: 1px solid #e8e0d4;
+
+  &[hidden] { display: none; }
 }
 
 .swipe-actions {
@@ -258,8 +259,8 @@
   display: flex;
   width: 148px;
   z-index: 1;
-  // A linha é transparente (deixa ver o fundo pontilhado), então os botões só
-  // aparecem enquanto o usuário arrasta ou com a linha aberta.
+  // A linha é transparente, então os botões só aparecem enquanto o usuário
+  // arrasta ou com a linha aberta.
   visibility: hidden;
 }
 
@@ -299,7 +300,7 @@
 // Arrastada, a linha precisa de fundo para cobrir os botões que ficam por baixo
 .swipe-container.is-dragging .swipe-content,
 .swipe-content.is-swiped {
-  background-color: #f3eee3;
+  background-color: #f8f2e8;
 }
 
 .swipe-content.is-swiped {
@@ -310,139 +311,174 @@
 .conversation-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  text-decoration: none;
+  gap: 13px;
   width: 100%;
-  padding: 11px 0 11px 2px;
-  min-height: 76px;
-  box-sizing: border-box;
+  min-height: 72px;
+  padding: 10px 0;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .conv-avatar-container {
+  position: relative;
   flex-shrink: 0;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  padding: 2px;
-  box-sizing: border-box;
-  background: #fff;
-  border: 1px solid #8f857c;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  width: 52px;
+  height: 52px;
 }
 
 .conv-avatar {
+  display: block;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  display: block;
 }
 
 .conv-details {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.conv-name-line {
+  display: flex;
+  align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
 .conv-name {
-  color: #221d19;
-  font-size: 0.98rem;
+  overflow: hidden;
+  color: #1c1c1c;
+  font-size: 14.5px;
   font-weight: 600;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.conv-verified {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+
+  circle { fill: #3d83f5; }
+
+  path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 }
 
 .conv-last-message {
-  color: #6b5a50;
-  font-size: 0.85rem;
-  margin: 0;
-  white-space: nowrap;
+  display: block;
   overflow: hidden;
+  color: #6b6560;
+  font-size: 13.5px;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.msg-prefix { margin-right: 0; }
+// Status da última mensagem quando é sua: ✓ enviada / ✓✓ entregue / ✓✓ azul lida
+.conv-check {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  vertical-align: -3px;
+  fill: none;
+  stroke: #8a847e;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 
-// Coluna da direita: selo de verificado em cima, "Sua vez" embaixo
+  &.is-read { stroke: #3d83f5; }
+}
+
+.conv-empty { font-style: italic; }
+
 .conv-meta {
   flex-shrink: 0;
   align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 2px 0;
-}
-
-.conv-verified {
-  display: flex;
-  margin-right: 6px;
-  // Sempre no topo (ao lado do nome), mesmo sem o "Sua vez" embaixo
-  margin-bottom: auto;
-
-  svg { width: 17px; height: 17px; }
-  circle { fill: #4a8fe0; stroke: #fff; stroke-width: 1.5; }
-  path { stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-}
-
-.badge-your-turn {
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
-  background-color: #f7d9d6;
-  border: 1px solid #e3aaa5;
-  color: #8a3a36;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 2px 8px 2px 6px;
-  border-radius: 10px;
-  white-space: nowrap;
+  padding-top: 7px;
+}
 
-  svg { width: 11px; height: 11px; }
+.conv-time {
+  color: #6b6560;
+  font-size: 11.5px;
+}
+
+.conv-unread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #1c1c1e;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+// Com mensagem não lida: nome, prévia e horário em destaque
+.conversation-row.is-unread {
+  .conv-name { font-weight: 800; }
+  .conv-last-message { color: #1c1c1c; font-weight: 600; }
+  .conv-time { color: #1c1c1c; font-weight: 700; }
 }
 
 .empty-conversations {
   text-align: center;
-  color: #6b5a50;
+  color: #6b6560;
   padding: 20px;
 }
 
-/* Ícone de verificado no carrossel: sempre pequeno */
-.verified-mini {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
 /* --- MODO ESCURO: mantém o layout, troca só as superfícies --- */
-.dark-mode .matches-screen-wrapper {
+.dark-mode .matches-screen-wrapper,
+html.dark:not(.light-mode) .matches-screen-wrapper {
   background-color: var(--color-background);
   color: var(--color-text);
 
   .msg-section-title,
   .match-name,
-  .conv-name { color: var(--color-text); }
+  .conv-name,
+  .conversation-row.is-unread .conv-last-message,
+  .conversation-row.is-unread .conv-time { color: var(--color-text); }
 
   .conv-last-message,
+  .conv-time,
   .empty-conversations { color: var(--color-text-secondary); }
 
-  .msg-search-btn,
-  .msg-search-field input {
-    background: var(--color-section-gray);
+  .msg-search,
+  .msg-filter-btn:not(.is-active) {
     border-color: var(--color-border);
+    background: var(--color-section-gray);
     color: var(--color-text);
   }
+
+  .msg-search svg { stroke: var(--color-text); }
+  .msg-search input[type="search"] { color: var(--color-text); }
+
+  .msg-filter-btn.is-active,
+  .conv-unread { background: var(--color-text); border-color: var(--color-text); color: #121212; }
+
+  .match-ring { border-color: #3a3a3a; background: var(--color-background); }
+  .match-ring.is-new { border-color: #2f7a5f; }
+  .msg-online,
+  .msg-likes-count { border-color: var(--color-background); }
 
   .swipe-container { border-bottom-color: var(--color-border); }
 
   .swipe-container.is-dragging .swipe-content,
   .swipe-content.is-swiped { background-color: var(--color-background); }
-
-  .match-ring,
-  .likes-inner { background: var(--color-section-gray); }
 }

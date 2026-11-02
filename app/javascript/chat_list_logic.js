@@ -184,6 +184,7 @@ function bindActions(container) {
   const clearBtn = container.querySelector('.swipe-btn-clear');
   const blockBtn = container.querySelector('.swipe-btn-block');
 
+  // "Limpar": as mensagens somem só para você (a outra pessoa mantém o histórico)
   onTap(clearBtn, () => {
     fetch(`/matches/${matchId}/clear_conversation`, {
       method: 'DELETE',
@@ -191,8 +192,11 @@ function bindActions(container) {
     }).then(r => {
       if (r.ok) {
         const preview = container.querySelector('.conv-last-message');
-        if (preview) preview.textContent = 'Comece a conversar...';
-        container.querySelector('.badge-your-turn')?.remove();
+        if (preview) preview.innerHTML = '<em class="conv-empty">Sem mensagens</em>';
+        container.querySelector('.conv-unread')?.remove();
+        container.querySelector('.conversation-row')?.classList.remove('is-unread');
+        container.dataset.yourTurn = 'false';
+        updateYourTurnCount();
         const content = container.querySelector('.swipe-content');
         content.style.transform = '';
         content.classList.remove('is-swiped');
@@ -228,32 +232,52 @@ function injectModalStyles() {
   document.head.appendChild(s);
 }
 
-// ── Busca por nome (lupa do cabeçalho) ───────────────────────────────────────
+// ── Busca por nome + filtro "Todas / Sua vez" ────────────────────────────────
+function updateYourTurnCount() {
+  const count = document.getElementById('conversations-your-turn-count');
+  if (!count) return;
+  count.textContent = document.querySelectorAll('#conversations-master-list .swipe-container[data-your-turn="true"]').length;
+}
+
 function initSearch() {
-  const toggle = document.getElementById('conversations-search-toggle');
-  const field  = document.getElementById('conversations-search-field');
   const input  = document.getElementById('conversations-search-input');
-  if (!toggle || !field || !input || toggle.dataset.bound) return;
-  toggle.dataset.bound = 'true';
+  const filter = document.getElementById('conversations-filter');
+  if (!input || input.dataset.bound) return;
+  input.dataset.bound = 'true';
 
   const empty = document.getElementById('conversations-search-empty');
+  let onlyYourTurn = false;
 
-  const filter = () => {
+  const apply = () => {
     const term = input.value.trim().toLowerCase();
     let visible = 0;
     document.querySelectorAll('#conversations-master-list .swipe-container').forEach(row => {
-      const match = !term || (row.dataset.searchName || '').includes(term);
-      row.hidden = !match;
-      if (match) visible++;
+      const show = (!term || (row.dataset.searchName || '').includes(term)) &&
+                   (!onlyYourTurn || row.dataset.yourTurn === 'true');
+      row.hidden = !show;
+      if (show) visible++;
     });
-    if (empty) empty.hidden = visible > 0;
+    if (empty) {
+      empty.textContent = onlyYourTurn && !term ? 'Nenhuma conversa esperando sua resposta.' : 'Nenhuma conversa encontrada.';
+      empty.hidden = visible > 0;
+    }
   };
 
-  toggle.addEventListener('click', () => {
-    field.hidden = !field.hidden;
-    if (field.hidden) { input.value = ''; filter(); } else { input.focus(); }
-  });
-  input.addEventListener('input', filter);
+  input.addEventListener('input', apply);
+
+  if (filter) {
+    filter.querySelectorAll('.msg-filter-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        onlyYourTurn = button.dataset.filter === 'your-turn';
+        filter.querySelectorAll('.msg-filter-btn').forEach(other => {
+          const active = other === button;
+          other.classList.toggle('is-active', active);
+          other.setAttribute('aria-pressed', String(active));
+        });
+        apply();
+      });
+    });
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

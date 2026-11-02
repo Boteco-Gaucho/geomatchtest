@@ -1,153 +1,188 @@
-<div class="chat-screen-wrapper" style="overflow-x: hidden; width: 100%; max-width: 100vw;">
-  
-  <%# --- 1. HEADER MINIMALISTA (Fixo no topo) --- %>
+<%# Conversa — layout do mockup (fonte Inter). Estilos em chat.scss; envio, toque longo
+    (menu da mensagem), editar, apagar e "digitando" em chat_logic.js. %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<% end %>
+
+<% online_label = online_now_label(@other_user) %>
+
+<div class="chat-screen-wrapper">
+
+  <%# --- 1. TOPO --- %>
   <div class="chat-header-dark">
-    <%= link_to matches_path, class: "back-btn" do %>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    <%= link_to matches_path, class: "back-btn", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     <% end %>
 
-    <div class="header-user-info">
-      <%= link_to user_path(@other_user), class: "header-avatar-link" do %>
-        <%= image_tag @other_user.avatar_url, class: "header-avatar" %>
-      <% end %>
-
-      <div class="header-text">
-        <h2 class="header-name" style="display: flex; align-items: center; gap: 5px;">
-          <%= @other_user.display_name %>
-          <% if @other_user&.verified? %>
-            <%= image_tag "icone-verificar.png", style: "width: 18px; height: 18px; flex-shrink: 0;", title: "Perfil Verificado" %>
-          <% end %>
-        </h2>
-        <span class="header-status">
-          <% if @other_user.respond_to?(:online?) && @other_user.online? %>
-            <span class="dot-online">●</span> Online
-          <% else %>
-            <span class="dot-offline">●</span> Offline
+    <%= link_to user_path(@other_user), class: "header-user-info" do %>
+      <span class="header-avatar-wrap">
+        <%= image_tag @other_user.avatar_url, class: "header-avatar", alt: "" %>
+        <% if online_label %><span class="header-online" aria-hidden="true"></span><% end %>
+      </span>
+      <span class="header-text">
+        <span class="header-name">
+          <span class="header-name-text"><%= @other_user.display_name %></span>
+          <% if @other_user.verified? %>
+            <svg class="header-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
           <% end %>
         </span>
-      </div>
-    </div>
+        <span class="header-status <%= 'is-online' if online_label %>"><%= chat_status_label(@other_user) %></span>
+      </span>
+    <% end %>
 
     <div class="header-actions">
       <div class="gm-header-trigger" data-controller="chat-menu">
         <button type="button" class="gm-icon-btn"
                 data-action="click->chat-menu#toggle"
                 data-chat-menu-target="trigger"
+                aria-label="Mais opções"
                 aria-haspopup="menu"
                 aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
-          </svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
         </button>
         <%= render "matches/chat_menu", match: @match, other_user: @other_user %>
       </div>
-    </div> 
-  </div> 
+    </div>
+  </div>
 
-  <%# --- 2. ÁREA DE MENSAGENS --- %>
+  <%# --- 2. MENSAGENS --- %>
   <div id="chat-window" class="chat-window-dark"
        data-match-id="<%= @match.id %>"
        data-current-user-id="<%= current_user.id %>"
-       data-other-user-name="<%= @other_user.display_name %>">
+       data-other-user-name="<%= @other_user.display_name %>"
+       data-edit-window="<%= Message::EDIT_WINDOW.to_i %>"
+       data-delete-window="<%= Message::DELETE_FOR_EVERYONE_WINDOW.to_i %>"
+       data-chat-controls="<%= Message.chat_controls? %>"
+       data-connection-date="<%= @match.created_at.iso8601 %>">
 
-  <div class="messages-slide-container">
+    <div class="messages-slide-container">
 
-   <%# Aviso de Match (Topo) %>
-    <div class="match-date-notice">
-      <%# Verifica se é um Match Mútuo %>
-      <% is_mutual = current_user.likes.exists?(liked_id: @other_user.id) && @other_user.likes.exists?(liked_id: current_user.id) %>
+      <%# Aviso de segurança (sempre no começo da conversa) %>
+      <div class="chat-safety-tip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <p>Para o primeiro encontro, prefira um lugar público. Nunca envie dinheiro para quem você conheceu no app.</p>
+      </div>
 
-      <% if is_mutual %>
-        VOCÊ DEU MATCH COM <%= @other_user.display_name.upcase %> NO DIA <%= @match.created_at.strftime("%d/%m/%Y") %>
-      <% else %>
-        VOCÊ INICIOU A CONVERSA COM <%= @other_user.display_name.upcase %> NO DIA <%= @match.created_at.strftime("%d/%m/%Y") %>
-      <% end %>
-    </div>
+      <%# Como a conexão começou, no dia em que aconteceu %>
+      <% last_date = @match.created_at.to_date %>
+      <div class="date-separator is-connection"><%= chat_day_label(last_date) %></div>
+      <div class="chat-connection-chip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <%= connection_chip_text(@match, current_user) %>
+      </div>
 
-    <%# Loop de Mensagens %>
-    <% last_date = nil %>
-    <% @messages.each do |message| %>
+      <% @messages.each_with_index do |message, index| %>
+        <% msg_date = message.created_at.to_date %>
+        <% if msg_date != last_date %>
+          <div class="date-separator"><%= chat_day_label(msg_date) %></div>
+          <% last_date = msg_date %>
+        <% end %>
 
-      <%# Separador de Data %>
-      <% msg_date = message.created_at.to_date %>
-      <% if last_date != msg_date %>
-        <div class="date-separator">
-          <%= l(msg_date, format: :long) rescue msg_date.strftime("%d de %b") %>
-        </div>
-        <% last_date = msg_date %>
-      <% end %>
+        <%
+          mine = message.sender_id == current_user.id
+          nxt  = @messages[index + 1]
+          # Horário só embaixo do último balão de cada sequência da mesma pessoa
+          group_end = nxt.nil? || nxt.sender_id != message.sender_id ||
+                      nxt.created_at.to_date != msg_date || nxt.created_at - message.created_at > 5.minutes
+          reactions = message.reactions.group_by(&:emoji).transform_values(&:size)
+        %>
+        <div id="msg-<%= message.id %>"
+             data-sending="false"
+             data-content="<%= message.content %>"
+             data-sent-at="<%= message.created_at.iso8601 %>"
+             data-status="<%= message.status %>"
+             data-read-at="<%= message.read_at&.iso8601 %>"
+             class="message message-row <%= mine ? 'sent' : 'received' %> <%= 'is-group-end' if group_end %>">
 
-      <div id="msg-<%= message.id %>"
-           data-sending="false"
-           data-content="<%= message.content %>"
-           class="message message-row <%= message.sender_id == current_user.id ? 'sent' : 'received' %>">
+          <div class="message-bubble">
+            <%# Citação da mensagem respondida — tocar nela leva até a original %>
+            <% if (quoted = message.reply_to) %>
+              <button type="button" class="msg-quote" data-reply-to-id="<%= quoted.id %>">
+                <span class="msg-quote-name"><%= quoted.sender_id == current_user.id ? "Você" : quoted.sender&.display_name %></span>
+                <span class="msg-quote-text"><%= quoted.content.to_s.truncate(Message::REPLY_PREVIEW_LENGTH) %></span>
+              </button>
+            <% end %>
+            <span class="msg-text"><%= message.content %></span>
+          </div>
 
-        <%# Avatar (apenas nas recebidas) %>
-        <% unless message.sender_id == current_user.id %>
-          <div class="msg-avatar-container">
-            <% if message.sender&.avatar&.attached? %>
-              <%= image_tag message.sender.avatar, class: "msg-avatar" %>
-            <% else %>
-              <div class="msg-avatar-placeholder"><%= message.sender&.display_name.to_s[0] || "?" %></div>
+          <% if reactions.any? %>
+            <div class="reaction-bar">
+              <% reactions.each do |emoji, count| %>
+                <span class="reaction-badge"><%= emoji %><%= " #{count}" if count > 1 %></span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="message-meta">
+            <span class="message-time"><%= message.created_at.strftime("%H:%M") %></span>
+            <% if message.edited? %><span class="message-edited">editada</span><% end %>
+            <% if mine %>
+              <span class="message-status status-<%= message.status %>" data-status-id="<%= message.id %>"></span>
             <% end %>
           </div>
-        <% end %>
 
-       <div class="message-bubble">
-        <%# Citação da mensagem respondida — tocar nela leva até a original %>
-        <% if (quoted = message.reply_to) %>
-          <button type="button" class="msg-quote" data-reply-to-id="<%= quoted.id %>">
-            <span class="msg-quote-name"><%= quoted.sender_id == current_user.id ? "Você" : quoted.sender&.display_name %></span>
-            <span class="msg-quote-text"><%= quoted.content.to_s.truncate(Message::REPLY_PREVIEW_LENGTH) %></span>
-          </button>
-        <% end %>
-        <%= message.content %>
-       </div>
-       <% if message.sender_id == current_user.id %>
-         <div class="message-status status-<%= message.status %>" data-status-id="<%= message.id %>"></div>
-       <% end %>
-       <span class="message-timestamp"><%= message.created_at.strftime("%H:%M") %></span>
+          <%# Horário de cada balão, revelado ao deslizar a conversa para a esquerda %>
+          <span class="message-timestamp"><%= message.created_at.strftime("%H:%M") %></span>
+        </div>
+      <% end %>
+
+      <%# "Digitando…": três pontinhos num balão (chat_logic.js mostra e esconde) %>
+      <div id="typing-indicator" class="typing-bubble" hidden aria-label="Digitando">
+        <span></span><span></span><span></span>
       </div>
-    <% end %>
 
-    <%# --- INDICADOR DE DIGITAÇÃO (INSERIDO AQUI) --- %>
-    <div id="typing-indicator" style="display: none; padding: 10px 20px; font-size: 0.8rem; color: #888;">
-      <%# O JS vai injetar: "Fulano está digitando..." aqui %>
-    </div>
-
-  </div><%# /messages-slide-container %>
-
+    </div><%# /messages-slide-container %>
   </div>
 
-  <%# --- 2.5. RESPONDENDO A… (aparece ao arrastar uma mensagem para a direita) --- %>
+  <%# --- 2.5. RESPONDENDO A… / EDITANDO (barra acima do campo) --- %>
   <div class="reply-preview" id="reply-preview" hidden>
     <div class="reply-preview-content">
       <span class="reply-preview-name" id="reply-preview-name"></span>
       <span class="reply-preview-text" id="reply-preview-text"></span>
     </div>
-    <button type="button" class="reply-preview-close" id="reply-preview-close" aria-label="Cancelar resposta">
+    <button type="button" class="reply-preview-close" id="reply-preview-close" aria-label="Cancelar">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
 
-  <%# --- 3. INPUT (Barra inferior) --- %>
+  <%# --- RESPOSTAS RÁPIDAS (tocar preenche o campo) --- %>
+  <div class="chat-quick-replies" id="chat-quick-replies">
+    <% MatchesHelper::QUICK_REPLIES.each do |text| %>
+      <button type="button" class="chat-quick-reply" data-text="<%= text %>"><%= text %></button>
+    <% end %>
+  </div>
+
+  <%# --- 3. CAMPO (Barra inferior) --- %>
   <%# <div> em vez de <form>: o envio é feito via JS (chat_logic.js). Isso NÃO remove
       a barra de formulário do iOS (^ v ✓) — ela é nativa e é escondida no app iOS
       (ApplicationWebViewController#hideFormAccessoryBar). %>
   <div class="chat-input-dark">
-    <button type="button" class="btn-gif">GIF</button>
+    <%# "+": enviar um Mimo para a pessoa da conversa %>
+    <div class="chat-plus">
+      <button type="button" class="chat-plus-btn" id="chat-plus-btn" aria-label="Mais opções" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <div class="chat-plus-menu" id="chat-plus-menu" hidden>
+        <%= link_to mimo_catalog_page_path(receiver_id: @other_user.id), class: "chat-plus-item" do %>
+          <span aria-hidden="true">🎁</span> Enviar um Mimo
+        <% end %>
+      </div>
+    </div>
 
     <div id="new-message-form" class="dark-form">
       <input type="text"
              id="message-input"
-             placeholder="Digite uma mensagem"
+             placeholder="Mensagem"
              autocomplete="off"
              autocorrect="off"
              autocapitalize="sentences"
              enterkeyhint="send"
              class="dark-input">
 
-      <button type="button" id="send-button" class="btn-send">➤</button>
+      <button type="button" id="send-button" class="btn-send" aria-label="Enviar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
   </div>
 

@@ -5,15 +5,19 @@ module NotificationsHelper
   # suffix: false devolve só "~150 m" (pílula dos cards borrados do plano grátis).
   def approx_distance_from_you(viewer, other, suffix: true)
     km = shared_distance_km(viewer, other) or return nil
-    meters = ((km * 1000) / 50.0).round * 50
-
-    label =
-      if meters < 1000 then "~#{[meters, 50].max} m"
-      elsif km < 10    then "~#{('%.1f' % km).tr('.', ',')} km"
-      else                  "~#{km.round} km"
-      end
+    label = approx_km_label(km)
 
     suffix ? "#{label} de você" : label
+  end
+
+  # "~150 m" (múltiplos de 50 m) / "~1,2 km" / "~12 km"
+  def approx_km_label(km)
+    meters = ((km * 1000) / 50.0).round * 50
+
+    if meters < 1000 then "~#{[ meters, 50 ].max} m"
+    elsif km < 10    then "~#{('%.1f' % km).tr('.', ',')} km"
+    else                  "~#{km.round} km"
+    end
   end
 
   # Card do /lead: dentro do raio do GeoMatch (300 m) diz só "Menos de 300 m de você";

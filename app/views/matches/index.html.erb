@@ -1,108 +1,91 @@
+<%# Mensagens — layout do mockup (fonte Inter). O título continua o PNG de sempre
+    e a barra de navegação de baixo não muda. Estilos em matches.scss; busca, filtro
+    "Sua vez" e o arrastar das linhas em chat_list_logic.js. %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<% end %>
+
+<% check_icons = {
+     "sent"      => '<svg class="conv-check" viewBox="0 0 24 24" aria-label="Enviada"><path d="M5 12.5l4.2 4.2L19 7"/></svg>',
+     "delivered" => '<svg class="conv-check" viewBox="0 0 24 24" aria-label="Entregue"><path d="M2 12.5l4.2 4.2L16 7M10.5 16.2l.5.5L21 7"/></svg>',
+     "read"      => '<svg class="conv-check is-read" viewBox="0 0 24 24" aria-label="Lida"><path d="M2 12.5l4.2 4.2L16 7M10.5 16.2l.5.5L21 7"/></svg>'
+   } %>
+
 <div class="matches-screen-wrapper conversations-page-container">
 
-  <%# Fundo decorativo: curvas de nível no canto superior direito e no rodapé esquerdo %>
-  <svg class="msg-topo msg-topo--top" viewBox="0 0 300 320" aria-hidden="true">
-    <g fill="none" stroke-width="0.9">
-      <path d="M150 20 C210 0 280 40 290 100 S260 210 190 220 S70 190 80 120 S100 35 150 20Z"/>
-      <path d="M155 45 C200 32 255 62 262 108 S238 190 186 196 S98 172 104 120 S118 56 155 45Z"/>
-      <path d="M160 70 C195 62 232 84 236 115 S218 168 182 171 S124 156 128 121 S135 78 160 70Z"/>
-      <path d="M165 92 C188 88 210 101 212 120 S200 150 179 151 S148 142 150 122 S152 96 165 92Z"/>
-      <path d="M170 110 C181 108 190 114 190 122 S184 134 176 134 S163 130 164 122 S165 112 170 110Z"/>
-      <path d="M40 0 C20 60 60 120 30 180 S0 260 40 320"/>
-      <path d="M70 0 C50 50 85 110 55 175 S35 250 70 320"/>
-      <path d="M300 230 C260 240 240 270 250 320"/>
-      <path d="M300 255 C275 262 266 285 272 320"/>
-    </g>
-  </svg>
-  <svg class="msg-topo msg-topo--bottom" viewBox="0 0 220 300" aria-hidden="true">
-    <g fill="none" stroke-width="0.9">
-      <path d="M0 40 C60 30 110 70 100 130 S40 220 0 230"/>
-      <path d="M0 70 C45 64 80 92 74 135 S30 196 0 202"/>
-      <path d="M0 100 C30 98 50 115 47 140 S22 172 0 175"/>
-      <path d="M0 10 C80 0 150 60 140 140 S70 270 0 285"/>
-      <path d="M90 300 C120 250 190 240 220 270"/>
-    </g>
-  </svg>
-
-  <%# --- 1. CABEÇALHO --- %>
+  <%# --- 1. CABEÇALHO (título PNG de sempre) --- %>
   <div class="matches-header">
     <%= image_tag "texto-mensagen.png", class: "header-title-img", alt: "Mensagens" %>
-
-    <button type="button" class="msg-search-btn" id="conversations-search-toggle" aria-label="Buscar conversas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>
-      </svg>
-    </button>
   </div>
 
-  <%# Campo de busca (abre pelo botão da lupa e filtra as conversas pelo nome) %>
-  <div class="msg-search-field" id="conversations-search-field" hidden>
-    <input type="search" id="conversations-search-input" placeholder="Buscar por nome" autocomplete="off">
-  </div>
+  <%# Busca: filtra as conversas pelo nome %>
+  <label class="msg-search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" id="conversations-search-input" placeholder="Buscar conversa" autocomplete="off" aria-label="Buscar conversa">
+  </label>
 
-  <%# --- 2. MATCHES RECENTES --- %>
-  <div class="recent-matches-section">
-    <h2 class="msg-section-title">Matches recentes</h2>
+  <%# --- 2. NOVAS CONEXÕES: curtidas + matches que ainda não conversaram --- %>
+  <section class="recent-matches-section">
+    <h2 class="msg-section-title">Novas conexões</h2>
 
     <div class="matches-carousel">
-      <%# ITEM 0: CURTIDAS %>
-      <%= link_to notifications_path, class: "match-item likes-item" do %>
-        <div class="likes-ring">
-          <div class="likes-inner">
-            <%= image_tag "icone-mapa-mensagens.svg", class: "map-heart-icon", alt: "" %>
-          </div>
-          <span class="likes-gem" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <defs>
-                <linearGradient id="gemFill" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#f3e2ff"/><stop offset="0.5" stop-color="#c9a9f0"/><stop offset="1" stop-color="#f6d58f"/>
-                </linearGradient>
-              </defs>
-              <path d="M7 4h10l4 5-9 11L3 9z" fill="url(#gemFill)" stroke="#9a7ab8" stroke-width="0.8" stroke-linejoin="round"/>
-              <path d="M3 9h18M9 4l-2 5 5 11 5-11-2-5" fill="none" stroke="#9a7ab8" stroke-width="0.6" stroke-linejoin="round"/>
-            </svg>
-          </span>
+      <%= link_to notifications_path, class: "match-item" do %>
+        <span class="msg-likes">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
           <% unread_likes = current_user.notifications.unread.count %>
           <% if unread_likes > 0 %>
-            <span class="likes-badge"><%= unread_likes %></span>
+            <span class="msg-likes-count"><%= unread_likes > 99 ? "99+" : unread_likes %></span>
           <% end %>
-        </div>
-        <span class="match-name gold-text">Curtidas</span>
+        </span>
+        <span class="match-name">Curtidas</span>
       <% end %>
 
-      <%# LOOP MATCHES (ainda sem conversa) %>
       <% @matches_uninitiated.each do |match| %>
         <% other = match.other_user(current_user) %>
         <% next if other.nil? %>
+        <%# Aro verde = conexão nova (últimas 48 h); bolinha = online %>
         <%= link_to match_path(match), class: "match-item" do %>
-          <div class="match-ring">
+          <span class="match-ring <%= 'is-new' if match.created_at > 48.hours.ago %>">
             <%= image_tag other.avatar_url, class: "user-avatar-img", alt: "" %>
-          </div>
-          <span class="match-name">
-            <%= other.display_name.split.first %>
-            <% if other.verified? %>
-              <%= image_tag "icone-verificar.png", class: "verified-mini", title: "Perfil Verificado", alt: "" %>
-            <% end %>
+            <% if online_now_label(other) %><span class="msg-online" aria-label="Online"></span><% end %>
           </span>
+          <span class="match-name"><%= other.display_name.split.first %></span>
         <% end %>
       <% end %>
     </div>
-  </div>
+  </section>
 
   <%# --- 3. CONVERSAS --- %>
-  <div class="conversations-section">
-    <h2 class="msg-section-title">Conversas</h2>
+  <section class="conversations-section">
+    <div class="msg-conv-head">
+      <h2 class="msg-section-title">Conversas</h2>
+      <% if @matches_initiated.any? %>
+        <div class="msg-filter" id="conversations-filter">
+          <button type="button" class="msg-filter-btn is-active" data-filter="all" aria-pressed="true">Todas</button>
+          <button type="button" class="msg-filter-btn" data-filter="your-turn" aria-pressed="false">
+            Sua vez · <span id="conversations-your-turn-count"><%= @your_turn_count %></span>
+          </button>
+        </div>
+      <% end %>
+    </div>
 
     <% if @matches_initiated.any? %>
       <div class="conversations-list" id="conversations-master-list">
         <% @matches_initiated.each do |match| %>
           <% other = match.other_user(current_user) %>
           <% next if other.nil? %>
-          <% last_msg = match.messages.last %>
+          <%
+            last_msg  = @last_messages[match.id]
+            mine      = last_msg && last_msg.sender_id == current_user.id
+            unread    = @unread_counts[match.id].to_i
+            your_turn = last_msg.present? && !mine
+          %>
           <div class="swipe-container" id="match-row-<%= match.id %>"
                data-match-id="<%= match.id %>"
                data-other-user-id="<%= other.id %>"
-               data-search-name="<%= other.display_name.to_s.downcase %>">
+               data-search-name="<%= other.display_name.to_s.downcase %>"
+               data-your-turn="<%= your_turn %>">
             <div class="swipe-actions">
               <button class="swipe-btn swipe-btn-clear" type="button" aria-label="Limpar conversa">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -119,36 +102,34 @@
             </div>
 
             <div class="swipe-content">
-              <%= link_to match_path(match), class: "conversation-row" do %>
-                <div class="conv-avatar-container">
+              <%= link_to match_path(match), class: "conversation-row #{'is-unread' if unread.positive?}" do %>
+                <span class="conv-avatar-container">
                   <%= image_tag other.avatar_url, class: "conv-avatar", alt: "" %>
-                </div>
+                  <% if online_now_label(other) %><span class="msg-online" aria-label="Online"></span><% end %>
+                </span>
 
-                <div class="conv-details">
-                  <span class="conv-name"><%= other.display_name %></span>
-                  <p class="conv-last-message">
-                    <% if last_msg %>
-                      <% if last_msg.sender_id == current_user.id %><span class="msg-prefix">Você:</span><% end %>
-                      <%= truncate(last_msg.content, length: 30) %>
-                    <% else %>
-                      Comece a conversar...
+                <span class="conv-details">
+                  <span class="conv-name-line">
+                    <span class="conv-name"><%= other.display_name %></span>
+                    <% if other.verified? %>
+                      <svg class="conv-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
                     <% end %>
-                  </p>
-                </div>
+                  </span>
+                  <span class="conv-last-message">
+                    <% if last_msg %>
+                      <% if mine %><%= check_icons.fetch(last_msg.status, check_icons["sent"]).html_safe %>Você: <% end %><%= truncate(last_msg.content, length: 80) %>
+                    <% else %>
+                      <em class="conv-empty">Sem mensagens</em>
+                    <% end %>
+                  </span>
+                </span>
 
-                <div class="conv-meta">
-                  <% if other.verified? %>
-                    <span class="conv-verified" title="Perfil Verificado">
-                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9" fill="none"/></svg>
-                    </span>
+                <span class="conv-meta">
+                  <span class="conv-time"><%= conversation_time_label(last_msg&.created_at || match.created_at) %></span>
+                  <% if unread.positive? %>
+                    <span class="conv-unread" aria-label="<%= unread %> não lida(s)"><%= unread > 99 ? "99+" : unread %></span>
                   <% end %>
-                  <% if last_msg && last_msg.sender_id != current_user.id %>
-                    <span class="badge-your-turn">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6"/></svg>
-                      Sua vez
-                    </span>
-                  <% end %>
-                </div>
+                </span>
               <% end %>
             </div><!-- .swipe-content -->
           </div><!-- .swipe-container -->
@@ -160,6 +141,6 @@
         <p>Nenhuma conversa ainda.</p>
       </div>
     <% end %>
-  </div>
+  </section>
 
 </div>

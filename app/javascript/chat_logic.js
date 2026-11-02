@@ -9,9 +9,20 @@ document.addEventListener('turbo:load', () => {
 
   const matchId = chatWindow.dataset.matchId;
   const currentUserId = parseInt(chatWindow.dataset.currentUserId, 10);
+  const slideContainer = chatWindow.querySelector('.messages-slide-container');
+  const typingIndicator = document.getElementById('typing-indicator');
+
+  // Regras do menu da mensagem (as mesmas do servidor — ver Message)
+  const EDIT_WINDOW_MS   = (parseInt(chatWindow.dataset.editWindow, 10) || 900) * 1000;
+  const DELETE_WINDOW_MS = (parseInt(chatWindow.dataset.deleteWindow, 10) || 180) * 1000;
+  const CHAT_CONTROLS    = chatWindow.dataset.chatControls === 'true';
+  const GROUP_GAP_MS     = 5 * 60 * 1000; // mesmo intervalo do show.html.erb
 
   let typingTimer;
+  let typingHideTimer;
   const TYPING_TIMEOUT = 3000;
+
+  const csrfToken = () => document.querySelector('meta[name="csrf-token"]').content;
 
   // =======================================================
   //   INJECT OVERLAYS (apenas uma vez por turbo:load)
@@ -40,7 +51,7 @@ document.addEventListener('turbo:load', () => {
         // -------------------------
         if (Object.prototype.hasOwnProperty.call(data, "typing")) {
           if (data.user_id == currentUserId) return;
-          updateTypingIndicator(data);
+          updateTypingIndicator(data.typing === true);
           return;
         }
 
@@ -56,31 +67,28 @@ document.addEventListener('turbo:load', () => {
         //     NOVA MENSAGEM
         // -------------------------
         if (data.message) {
+          if (data.message.sender_id !== currentUserId) updateTypingIndicator(false);
           appendMessageToDOM(data.message);
 
           if (data.message.sender_id !== currentUserId) {
             matchChannel.perform('mark_as_delivered', { message_id: data.message.id });
           }
-
-          const conversationList = document.getElementById('conversations-master-list');
-          const conversationRow = document.getElementById(`match-row-${data.message.match_id}`);
-
-          if (conversationList && conversationRow) {
-            conversationList.prepend(conversationRow);
-            const lastMsgText = conversationRow.querySelector('.conv-last-message');
-            if (lastMsgText) lastMsgText.innerText = data.message.content.substring(0, 30);
-            const prefix = conversationRow.querySelector('.msg-prefix');
-            if (prefix && data.message.sender_id !== currentUserId) prefix.remove();
-          }
           return;
         }
 
         // -------------------------
-        //   MENSAGEM APAGADA
+        //   MENSAGEM EDITADA
+        // -------------------------
+        if (data.edited_message) {
+          applyEdit(data.edited_message);
+          return;
+        }
+
+        // -------------------------
+        //   MENSAGEM APAGADA (para todos)
         // -------------------------
         if (data.deleted_message_id) {
-          const el = document.getElementById(`msg-${data.deleted_message_id}`);
-          if (el) el.remove();
+          removeMessageRow(data.deleted_message_id);
           markQuotesAsDeleted(data.deleted_message_id);
           return;
         }
@@ -113,75 +121,96 @@ document.addEventListener('turbo:load', () => {
   }, { root: chatWindow, threshold: 0.5 });
 
   // =======================================================
-  //   LIMPAR CONVERSA
+  //   MENU DOS TRÊS PONTINHOS
+  //   Limpar conversa (só para mim) e Silenciar notificações
   // =======================================================
+  const headerMenu = document.querySelector('[data-chat-menu-target="menu"]');
+  const closeHeaderMenu = () => {
+    if (!headerMenu) return;
+    headerMenu.hidden = true;
+    document.querySelector('[data-chat-menu-target="trigger"]')?.setAttribute('aria-expanded', 'false');
+  };
+
   const clearBtn = document.getElementById('clear-chat-btn');
   if (clearBtn) {
     const clearForm = clearBtn.closest('form');
 
     clearForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!window.confirm('Limpar a conversa? As mensagens somem só para você.')) return;
 
       fetch(clearForm.action, {
         method: "DELETE",
-        headers: {
-          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
-          "Accept": "application/json"
-        }
+        headers: { "X-CSRF-Token": csrfToken(), "Accept": "application/json" }
       })
       .then(response => {
         if (response.ok) {
-          const itemsToRemove = chatWindow.querySelectorAll('.message-row, .date-separator');
-          itemsToRemove.forEach(m => m.remove());
+          // Mantém o começo da conversa (aviso de segurança + como vocês se conectaram)
+          chatWindow.querySelectorAll('.message-row, .date-separator:not(.is-connection)').forEach(m => m.remove());
           cancelReply();
-          const menu = document.querySelector('[data-chat-menu-target="menu"]');
-          if (menu) menu.hidden = true;
+          closeHeaderMenu();
+          showToast('Conversa limpa.');
+        } else {
+          showToast('Não foi possível limpar a conversa agora.', true);
         }
       })
       .catch(err => console.error("Erro ao limpar:", err));
     });
   }
 
-  // =======================================================
-  //   INDICADOR DE DIGITAÇÃO
-  // =======================================================
-  function updateTypingIndicator(data) {
-    const typing = document.getElementById("typing-indicator");
-    if (!typing) return;
+  const muteBtn = document.getElementById('mute-chat-btn');
+  if (muteBtn) {
+    const muteForm = muteBtn.closest('form');
 
-    if (data.typing === true) {
-      const verifiedBadge = data.verified
-        ? `<img src="/assets/icone-verificar.png" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 2px;" title="Perfil Verificado">`
-        : '';
-      typing.innerHTML = `
-        <div class="typing-user" style="color: #888; font-size: 0.8rem; margin-left: 20px; display: flex; align-items: center; gap: 3px;">
-           ${data.user_name || "Alguém"}${verifiedBadge} está digitando...
-        </div>
-      `;
-      typing.style.display = "block";
+    muteForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      fetch(muteForm.action, {
+        method: "PATCH",
+        headers: { "X-CSRF-Token": csrfToken(), "Accept": "application/json" }
+      })
+      .then(response => response.ok ? response.json() : Promise.reject(response))
+      .then(({ muted }) => {
+        muteBtn.dataset.muted = String(muted);
+        muteBtn.querySelector('.gm-mute-label').textContent = muted ? 'Ativar notificações' : 'Silenciar notificações';
+        muteBtn.querySelector('.gm-icon-muted').hidden = !muted;
+        muteBtn.querySelector('.gm-icon-unmuted').hidden = muted;
+        closeHeaderMenu();
+        showToast(muted ? 'Notificações silenciadas.' : 'Notificações ativadas.');
+      })
+      .catch(() => showToast('Não foi possível alterar as notificações agora.', true));
+    });
+  }
+
+  // =======================================================
+  //   INDICADOR DE DIGITAÇÃO (balão com três pontinhos)
+  // =======================================================
+  function updateTypingIndicator(isTyping) {
+    if (!typingIndicator) return;
+
+    clearTimeout(typingHideTimer);
+    typingIndicator.hidden = !isTyping;
+    if (isTyping) {
       scrollToBottom();
-    } else {
-      typing.style.display = "none";
+      // Se o "parou de digitar" não chegar (app fechado, rede), some sozinho
+      typingHideTimer = setTimeout(() => { typingIndicator.hidden = true; }, 8000);
     }
   }
 
   // =======================================================
   //   CAPTURA DE "ESTÁ DIGITANDO"
   // =======================================================
-  if (messageInput) {
-    messageInput.addEventListener("input", () => {
-      matchChannel.sendTypingStatus(true);
-      clearTimeout(typingTimer);
-      typingTimer = setTimeout(() => {
-        matchChannel.sendTypingStatus(false);
-      }, TYPING_TIMEOUT);
-    });
-  }
+  messageInput.addEventListener("input", () => {
+    matchChannel.sendTypingStatus(true);
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      matchChannel.sendTypingStatus(false);
+    }, TYPING_TIMEOUT);
+  });
 
   // =======================================================
-  //   RESPONDER MENSAGEM (estilo WhatsApp)
+  //   RESPONDER / EDITAR (barra acima do campo)
   //   Arrastar uma mensagem para a direita (ou "Responder" no toque longo)
-  //   marca a mensagem na barra acima do campo; o envio leva reply_to_id.
+  //   marca a mensagem; "Editar" usa a mesma barra e o mesmo campo.
   // =======================================================
   const otherUserName     = chatWindow.dataset.otherUserName || 'Usuário';
   const replyPreview      = document.getElementById('reply-preview');
@@ -189,11 +218,13 @@ document.addEventListener('turbo:load', () => {
   const replyPreviewText  = document.getElementById('reply-preview-text');
   const replyPreviewClose = document.getElementById('reply-preview-close');
   let replyingTo = null; // id da mensagem que está sendo respondida
+  let editingId  = null; // id da mensagem que está sendo editada
 
   function startReply(row) {
     const id = parseInt((row.id || '').replace('msg-', ''), 10);
     if (!id || !replyPreview) return;
 
+    if (editingId) cancelEdit();
     replyingTo = id;
     replyPreviewName.textContent = row.classList.contains('sent') ? 'Você' : otherUserName;
     replyPreviewText.textContent = row.dataset.content || '';
@@ -203,13 +234,33 @@ document.addEventListener('turbo:load', () => {
 
   function cancelReply() {
     replyingTo = null;
+    if (replyPreview && !editingId) replyPreview.hidden = true;
+  }
+
+  function startEdit(row) {
+    const id = parseInt((row.id || '').replace('msg-', ''), 10);
+    if (!id || !replyPreview) return;
+
+    cancelReply();
+    editingId = id;
+    replyPreviewName.textContent = 'Editando mensagem';
+    replyPreviewText.textContent = row.dataset.content || '';
+    replyPreview.hidden = false;
+    messageInput.value = row.dataset.content || '';
+    messageInput.focus();
+  }
+
+  function cancelEdit() {
+    if (!editingId) return;
+    editingId = null;
+    messageInput.value = '';
     if (replyPreview) replyPreview.hidden = true;
   }
 
   if (replyPreviewClose) {
     // mousedown sem default: no desktop o campo não perde o foco ao fechar a barra
     replyPreviewClose.addEventListener('mousedown', (e) => e.preventDefault());
-    replyPreviewClose.addEventListener('click', cancelReply);
+    replyPreviewClose.addEventListener('click', () => { editingId ? cancelEdit() : cancelReply(); });
   }
 
   // Citação dentro do balão (mesmo HTML que o show.html.erb desenha)
@@ -249,6 +300,31 @@ document.addEventListener('turbo:load', () => {
       if (text) text.textContent = 'Mensagem apagada';
     });
     if (replyingTo === msgId) cancelReply();
+    if (editingId === msgId) cancelEdit();
+  }
+
+  // =======================================================
+  //   RESPOSTAS RÁPIDAS E "+" (ENVIAR UM MIMO)
+  // =======================================================
+  document.querySelectorAll('.chat-quick-reply').forEach((chip) => {
+    chip.addEventListener('mousedown', (e) => e.preventDefault()); // não tira o foco do campo
+    chip.addEventListener('click', () => {
+      messageInput.value = chip.dataset.text || chip.textContent.trim();
+      messageInput.focus();
+    });
+  });
+
+  const plusBtn  = document.getElementById('chat-plus-btn');
+  const plusMenu = document.getElementById('chat-plus-menu');
+  if (plusBtn && plusMenu) {
+    const closePlus = () => { plusMenu.hidden = true; plusBtn.setAttribute('aria-expanded', 'false'); };
+    plusBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = plusMenu.hidden;
+      plusMenu.hidden = !open;
+      plusBtn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => { if (!plusMenu.hidden && !plusMenu.contains(e.target)) closePlus(); });
   }
 
   // =======================================================
@@ -261,6 +337,7 @@ document.addEventListener('turbo:load', () => {
   function sendMessage() {
     const content = messageInput.value.trim();
     if (!content) return;
+    if (editingId) { saveEdit(content); return; }
 
     const message = { content };
     if (replyingTo) message.reply_to_id = replyingTo;
@@ -276,14 +353,14 @@ document.addEventListener('turbo:load', () => {
     const restoreUnsent = () => {
       if (!messageInput.value) messageInput.value = content;
       if (repliedRow && repliedRow.isConnected && !replyingTo) startReply(repliedRow);
-      showSendError();
+      showToast('Não foi possível enviar a mensagem. Tente novamente.', true);
     };
 
     fetch(messagesUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
+        "X-CSRF-Token": csrfToken(),
       },
       body: JSON.stringify({ message }),
     })
@@ -299,19 +376,43 @@ document.addEventListener('turbo:load', () => {
     });
   }
 
+  // Salva a edição; o balão é atualizado pelo broadcast (edited_message)
+  function saveEdit(content) {
+    const id = editingId;
+    const row = document.getElementById(`msg-${id}`);
+    if (row && row.dataset.content === content) { cancelEdit(); return; }
+
+    fetch(`${messagesUrl}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken(), "Accept": "application/json" },
+      body: JSON.stringify({ message: { content } }),
+    })
+    .then(async (response) => {
+      if (response.ok) {
+        applyEdit(await response.json());
+        cancelEdit();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        showToast(data.error || 'Não foi possível editar a mensagem.', true);
+      }
+    })
+    .catch(() => showToast('Não foi possível editar a mensagem.', true));
+  }
+
   // Mesmo toast de shared/_flash.html.erb (fica acima do chat: z-index do container)
-  function showSendError() {
+  function showToast(text, isError = false) {
     const container = document.getElementById("toast-container");
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = "toast toast--alert";
+    toast.className = `toast toast--${isError ? 'alert' : 'notice'}`;
     toast.setAttribute("data-controller", "toast");
     toast.setAttribute("role", "alert");
     toast.setAttribute("aria-live", "polite");
     toast.innerHTML =
-      `<span class="toast__message">Não foi possível enviar a mensagem. Tente novamente.</span>` +
+      `<span class="toast__message"></span>` +
       `<button class="toast__close" data-action="toast#close" aria-label="Fechar">✕</button>`;
+    toast.querySelector('.toast__message').textContent = text;
     container.prepend(toast);
   }
 
@@ -321,55 +422,55 @@ document.addEventListener('turbo:load', () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
-    } else if (e.key === 'Escape' && replyingTo) {
+    } else if (e.key === 'Escape' && (replyingTo || editingId)) {
       e.preventDefault();
-      cancelReply();
+      editingId ? cancelEdit() : cancelReply();
     }
   });
 
   // =======================================================
-  //   APPEND NO DOM
+  //   APPEND NO DOM (mesmo HTML do show.html.erb)
   // =======================================================
   function appendMessageToDOM(message) {
     if (document.getElementById(`msg-${message.id}`)) return;
 
     const isSender = message.sender_id === currentUserId;
-    const el = document.createElement("div");
+    const sentAt = message.created_at ? new Date(message.created_at) : new Date();
+    const lastRow = lastMessageRow();
 
-    el.className = `message message-row ${isSender ? "sent" : "received"}`;
+    // Dia novo (conversa aberta na virada da meia-noite, ou primeira mensagem
+    // num dia diferente da conexão): separador "Hoje"
+    const lastDate = lastRow ? new Date(lastRow.dataset.sentAt) : new Date(chatWindow.dataset.connectionDate || sentAt);
+    if (!sameDay(lastDate, sentAt)) {
+      const separator = document.createElement('div');
+      separator.className = 'date-separator';
+      separator.textContent = 'Hoje';
+      insertInConversation(separator);
+    }
+
+    const el = document.createElement("div");
+    el.className = `message message-row ${isSender ? "sent" : "received"} is-group-end`;
     el.id = `msg-${message.id}`;
     el.dataset.content = message.content || '';
+    el.dataset.sentAt = sentAt.toISOString();
+    el.dataset.status = message.status || 'sent';
+    el.dataset.readAt = '';
 
-    let avatarHtml = "";
-    if (!isSender) {
-      const avatarSrc = message.avatar_url;
-      const displayName = message.user_name || "?";
-
-      avatarHtml = `<div class="msg-avatar-container">`;
-      if (avatarSrc) {
-        avatarHtml += `<img class="msg-avatar" src="${avatarSrc}">`;
-      } else {
-        avatarHtml += `<div class="msg-avatar-placeholder">${displayName.charAt(0).toUpperCase()}</div>`;
-      }
-      avatarHtml += `</div>`;
-    }
-
-    const bubbleHtml = `<div class="message-bubble">${quoteHtml(message.reply_to)}${escapeHtml(message.content)}</div>`;
     const statusHtml = isSender
-      ? `<div class="message-status status-${message.status || 'sent'}" data-status-id="${message.id}"></div>`
+      ? `<span class="message-status status-${message.status || 'sent'}" data-status-id="${message.id}"></span>`
       : '';
-    const tsHtml = `<span class="message-timestamp">${formatTime(message.created_at)}</span>`;
+    el.innerHTML =
+      `<div class="message-bubble">${quoteHtml(message.reply_to)}<span class="msg-text">${escapeHtml(message.content)}</span></div>` +
+      `<div class="message-meta"><span class="message-time">${formatTime(message.created_at)}</span>${statusHtml}</div>` +
+      `<span class="message-timestamp">${formatTime(message.created_at)}</span>`;
 
-    el.innerHTML = avatarHtml + bubbleHtml + statusHtml + tsHtml;
-
-    const slideContainer = chatWindow.querySelector('.messages-slide-container');
-    const target = slideContainer || chatWindow;
-    const typingIndicator = target.querySelector('#typing-indicator');
-    if (typingIndicator) {
-      target.insertBefore(el, typingIndicator);
-    } else {
-      target.appendChild(el);
+    // Mesma pessoa em menos de 5 min: o horário passa para o novo balão
+    if (lastRow && lastRow.classList.contains(isSender ? 'sent' : 'received') &&
+        sentAt - new Date(lastRow.dataset.sentAt) <= GROUP_GAP_MS && sameDay(new Date(lastRow.dataset.sentAt), sentAt)) {
+      lastRow.classList.remove('is-group-end');
     }
+
+    insertInConversation(el);
 
     // Configura long press na nova mensagem
     setupLongPress(el);
@@ -377,6 +478,55 @@ document.addEventListener('turbo:load', () => {
     if (!isSender) readObserver.observe(el);
 
     scrollToBottom();
+  }
+
+  function lastMessageRow() {
+    const rows = chatWindow.querySelectorAll('.message-row');
+    return rows[rows.length - 1] || null;
+  }
+
+  // Antes do balão de "digitando", que fica sempre por último
+  function insertInConversation(el) {
+    const target = slideContainer || chatWindow;
+    if (typingIndicator && typingIndicator.parentNode === target) {
+      target.insertBefore(el, typingIndicator);
+    } else {
+      target.appendChild(el);
+    }
+  }
+
+  // Tirou um balão: quem ficou por último na sequência volta a mostrar o horário
+  function removeMessageRow(id) {
+    const el = document.getElementById(`msg-${parseInt(id, 10)}`);
+    if (!el) return;
+
+    const previous = el.previousElementSibling;
+    const wasGroupEnd = el.classList.contains('is-group-end');
+    el.remove();
+    if (wasGroupEnd && previous && previous.classList.contains('message-row')) {
+      previous.classList.add('is-group-end');
+    }
+  }
+
+  // Mensagem editada (broadcast ou resposta do PATCH)
+  function applyEdit(edited) {
+    const row = document.getElementById(`msg-${parseInt(edited.id, 10)}`);
+    if (!row) return;
+
+    row.dataset.content = edited.content || '';
+    const text = row.querySelector('.msg-text');
+    if (text) text.textContent = edited.content || '';
+
+    const meta = row.querySelector('.message-meta');
+    if (meta && !meta.querySelector('.message-edited')) {
+      const label = document.createElement('span');
+      label.className = 'message-edited';
+      label.textContent = 'editada';
+      meta.querySelector('.message-time')?.after(label);
+    }
+
+    chatWindow.querySelectorAll(`.msg-quote[data-reply-to-id="${parseInt(edited.id, 10)}"] .msg-quote-text`)
+      .forEach((quote) => { quote.textContent = edited.content || ''; });
   }
 
   // =======================================================
@@ -409,111 +559,165 @@ document.addEventListener('turbo:load', () => {
 
     row.addEventListener('touchend',   () => clearTimeout(longPressTimer));
     row.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+
+    // Computador: botão direito abre o mesmo menu
+    row.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      openContextMenu(row);
+    });
   }
 
   // =======================================================
-  //   ABRIR MENU DE CONTEXTO
+  //   MENU DA MENSAGEM (segurar o balão)
+  //   O balão aparece em foco no mesmo lugar, com o horário embaixo
+  //   ("Lida às 13:05") e as ações; recebidas têm reações em cima.
   // =======================================================
+  const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢'];
+  const MORE_REACTIONS  = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '😍', '🥰', '😘', '👏', '🎉',
+                           '😅', '🤣', '😎', '🤔', '👀', '💯', '🙌', '😳', '😡', '💔', '✨', '🌹'];
+
+  const ICONS = {
+    reply:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+    copy:   '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+    edit:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+    trash:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>',
+    flag:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4.5 2 4.5H5"/></svg>',
+    plus:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+  };
+
   function openContextMenu(row) {
     if (navigator.vibrate) navigator.vibrate(35);
 
     const overlay = document.getElementById('msg-context-overlay');
     const menu    = document.getElementById('msg-context-menu');
-    if (!overlay || !menu) return;
+    const bubble  = row.querySelector('.message-bubble');
+    if (!overlay || !menu || !bubble) return;
 
-    const msgId  = row.id.replace('msg-', '');
-    const isSent = row.classList.contains('sent');
+    const msgId   = row.id.replace('msg-', '');
+    const isSent  = row.classList.contains('sent');
     const content = row.dataset.content || '';
+    const sentAt  = new Date(row.dataset.sentAt || Date.now());
+    const now     = Date.now();
+
+    const canEdit = isSent && CHAT_CONTROLS && now - sentAt < EDIT_WINDOW_MS;
+    const readAt  = row.dataset.readAt ? new Date(row.dataset.readAt) : null;
+    const canDeleteForAll = isSent &&
+      (row.dataset.status !== 'read' || (readAt && now - readAt < DELETE_WINDOW_MS));
 
     let html = '';
 
-    // ----- MENSAGENS RECEBIDAS: barra de emojis -----
+    // ----- RECEBIDAS: barra de reações -----
     if (!isSent) {
-      html += `<div class="emoji-reaction-bar">`;
-      ['👍', '❤️', '😂', '😮', '😢', '🙏'].forEach(emoji => {
-        html += `<button class="emoji-btn" data-emoji="${emoji}" data-msg-id="${msgId}">${emoji}</button>`;
-      });
-      html += `</div>`;
+      html += `<div class="emoji-reaction-bar">` +
+        QUICK_REACTIONS.map(emoji => `<button type="button" class="emoji-btn" data-emoji="${emoji}">${emoji}</button>`).join('') +
+        `<button type="button" class="emoji-btn emoji-more" aria-label="Mais reações">${ICONS.plus}</button>` +
+        `</div>`;
     }
 
-    // ----- TODAS: responder (alternativa ao arrastar para a direita) -----
-    html += `
-      <button class="context-action" id="ctx-reply-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 14 4 9 9 4"></polyline>
-          <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
-        </svg>
-        Responder
-      </button>
-    `;
+    // ----- Balão em foco + horário -----
+    html += `<div class="msg-context-bubble ${isSent ? 'is-sent' : 'is-received'}">${bubble.innerHTML}</div>`;
+    html += `<div class="msg-context-meta">${contextMetaHtml(row, isSent, sentAt)}</div>`;
 
-    // ----- MENSAGENS ENVIADAS: apagar -----
-    if (isSent) {
-      html += `
-        <button class="context-action danger" id="ctx-delete-btn" data-msg-id="${msgId}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          Apagar Mensagem
-        </button>
-      `;
-    }
+    // ----- Ações -----
+    const actions = [];
+    actions.push(['reply', 'Responder', ICONS.reply]);
+    actions.push(['copy', 'Copiar', ICONS.copy]);
+    if (canEdit) actions.push(['edit', 'Editar', ICONS.edit]);
+    actions.push('separator');
+    if (CHAT_CONTROLS) actions.push(['hide', 'Apagar para mim', ICONS.trash, 'danger']);
+    if (isSent && canDeleteForAll) actions.push(['delete', 'Apagar para todos', ICONS.trash, 'danger is-strong']);
+    if (!isSent) actions.push(['report', 'Denunciar mensagem', ICONS.flag, 'danger is-strong']);
 
-    // ----- MENSAGENS RECEBIDAS: denunciar -----
-    if (!isSent) {
-      const safeContent = content.replace(/"/g, '&quot;');
-      html += `
-        <button class="context-action warn" id="ctx-report-btn" data-msg-id="${msgId}" data-content="${safeContent}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-            <line x1="4" y1="22" x2="4" y2="15"></line>
-          </svg>
-          Denunciar Mensagem
-        </button>
-      `;
-    }
+    html += `<div class="msg-context-actions">` + actions.map(action => {
+      if (action === 'separator') return `<div class="context-separator"></div>`;
+      const [name, label, icon, extra] = action;
+      return `<button type="button" class="context-action ${extra || ''}" data-action="${name}">${label}${icon}</button>`;
+    }).join('') + `</div>`;
 
     menu.innerHTML = html;
+    menu.className = `msg-context-menu ${isSent ? 'is-sent' : 'is-received'}`;
     overlay.classList.remove('hidden');
 
-    // Emoji buttons
-    menu.querySelectorAll('.emoji-btn').forEach(btn => {
+    // O balão em foco tem a mesma largura do original (quebra as linhas igual)
+    const rect = bubble.getBoundingClientRect();
+    const focused = menu.querySelector('.msg-context-bubble');
+    focused.style.width = `${rect.width}px`;
+    positionContextMenu(menu, rect, isSent);
+
+    // Reações
+    menu.querySelectorAll('.emoji-btn:not(.emoji-more)').forEach(btn => {
       btn.addEventListener('click', () => {
-        sendReaction(btn.dataset.msgId, btn.dataset.emoji);
+        sendReaction(msgId, btn.dataset.emoji);
         closeContextMenu();
       });
     });
+    menu.querySelector('.emoji-more')?.addEventListener('click', () => expandReactions(menu, msgId, rect, isSent));
 
-    // Botão responder
-    const replyBtn = menu.querySelector('#ctx-reply-btn');
-    if (replyBtn) {
-      replyBtn.addEventListener('click', () => {
+    // Ações
+    menu.querySelectorAll('.context-action').forEach(btn => {
+      btn.addEventListener('click', () => {
         closeContextMenu();
-        startReply(row);
+        switch (btn.dataset.action) {
+          case 'reply':  startReply(row); break;
+          case 'copy':   copyText(content); break;
+          case 'edit':   startEdit(row); break;
+          case 'hide':   hideMessage(msgId); break;
+          case 'delete': deleteMessage(msgId); break;
+          case 'report': openReportSheet(msgId, content); break;
+        }
       });
-    }
+    });
 
-    // Botão apagar
-    const deleteBtn = menu.querySelector('#ctx-delete-btn');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
-        deleteMessage(deleteBtn.dataset.msgId);
-        closeContextMenu();
-      });
-    }
-
-    // Botão denunciar
-    const reportBtn = menu.querySelector('#ctx-report-btn');
-    if (reportBtn) {
-      reportBtn.addEventListener('click', () => {
-        closeContextMenu();
-        openReportSheet(reportBtn.dataset.msgId, reportBtn.dataset.content);
-      });
-    }
-
-    // Fechar ao clicar no backdrop
+    // Fechar ao clicar no fundo
     document.getElementById('msg-context-backdrop').onclick = closeContextMenu;
+  }
+
+  // "Lida às 13:05 ✓✓" / "Entregue às 13:04 ✓✓" / "Enviada às 13:04 ✓" / "Recebida às 13:04"
+  function contextMetaHtml(row, isSent, sentAt) {
+    const sentTime = formatTime(sentAt.toISOString());
+    if (!isSent) return `Recebida às ${sentTime}`;
+
+    const status = row.dataset.status || 'sent';
+    const icon = `<span class="message-status status-${status}"></span>`;
+    if (status === 'read') {
+      return row.dataset.readAt ? `Lida às ${formatTime(row.dataset.readAt)} ${icon}` : `Lida ${icon}`;
+    }
+    return `${status === 'delivered' ? 'Entregue' : 'Enviada'} às ${sentTime} ${icon}`;
+  }
+
+  // Alinha a pilha ao balão pressionado e a mantém inteira dentro da tela
+  function positionContextMenu(menu, rect, isSent) {
+    const margin = 12;
+    const bar = menu.querySelector('.emoji-reaction-bar');
+    const barOffset = bar ? bar.offsetHeight + 9 : 0;
+
+    if (isSent) {
+      menu.style.left = 'auto';
+      menu.style.right = `${Math.max(margin, window.innerWidth - rect.right)}px`;
+    } else {
+      menu.style.right = 'auto';
+      menu.style.left = `${Math.max(margin, rect.left)}px`;
+    }
+
+    const height = menu.offsetHeight;
+    const maxTop = window.innerHeight - height - margin;
+    menu.style.top = `${Math.max(margin, Math.min(rect.top - barOffset, maxTop))}px`;
+  }
+
+  // "+" da barra de reações: mostra mais emojis
+  function expandReactions(menu, msgId, rect, isSent) {
+    const bar = menu.querySelector('.emoji-reaction-bar');
+    if (!bar) return;
+
+    bar.classList.add('is-expanded');
+    bar.innerHTML = MORE_REACTIONS.map(emoji => `<button type="button" class="emoji-btn" data-emoji="${emoji}">${emoji}</button>`).join('');
+    bar.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sendReaction(msgId, btn.dataset.emoji);
+        closeContextMenu();
+      });
+    });
+    positionContextMenu(menu, rect, isSent);
   }
 
   function closeContextMenu() {
@@ -521,21 +725,65 @@ document.addEventListener('turbo:load', () => {
     if (overlay) overlay.classList.add('hidden');
   }
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeContextMenu();
+  });
+
   // =======================================================
-  //   APAGAR MENSAGEM
+  //   COPIAR
+  // =======================================================
+  function copyText(text) {
+    const done = () => showToast('Mensagem copiada.');
+    const fallback = () => {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try { document.execCommand('copy'); done(); } catch (_) { showToast('Não foi possível copiar.', true); }
+      area.remove();
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  // =======================================================
+  //   APAGAR PARA TODOS / APAGAR PARA MIM
   // =======================================================
   function deleteMessage(msgId) {
     fetch(`/matches/${matchId}/messages/${msgId}`, {
       method: 'DELETE',
-      headers: {
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      headers: { 'X-CSRF-Token': csrfToken(), 'Accept': 'application/json' }
+    })
+    .then(async (res) => {
+      if (res.ok) {
+        // Remove localmente (o ActionCable remove para a outra pessoa)
+        removeMessageRow(msgId);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || 'Não foi possível apagar a mensagem.', true);
       }
     })
-    .then(res => {
+    .catch(err => console.error('Erro ao apagar mensagem:', err));
+  }
+
+  function hideMessage(msgId) {
+    fetch(`/matches/${matchId}/messages/${msgId}/hide`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken(), 'Accept': 'application/json' }
+    })
+    .then((res) => {
       if (res.ok) {
-        // Remove localmente (o ActionCable vai remover para os outros via broadcast)
-        const el = document.getElementById(`msg-${msgId}`);
-        if (el) el.remove();
+        removeMessageRow(msgId);
+        if (replyingTo === parseInt(msgId, 10)) cancelReply();
+      } else {
+        showToast('Não foi possível apagar a mensagem.', true);
       }
     })
     .catch(err => console.error('Erro ao apagar mensagem:', err));
@@ -549,7 +797,7 @@ document.addEventListener('turbo:load', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': csrfToken()
       },
       body: JSON.stringify({ emoji })
     })
@@ -574,13 +822,13 @@ document.addEventListener('turbo:load', () => {
     }
 
     const html = entries.map(([emoji, count]) =>
-      `<span class="reaction-badge">${emoji}${count > 1 ? ` ${count}` : ''}</span>`
+      `<span class="reaction-badge">${escapeHtml(emoji)}${count > 1 ? ` ${count}` : ''}</span>`
     ).join('');
 
     if (!reactionBar) {
       reactionBar = document.createElement('div');
       reactionBar.className = 'reaction-bar';
-      row.appendChild(reactionBar);
+      row.querySelector('.message-bubble')?.after(reactionBar);
     }
 
     reactionBar.innerHTML = html;
@@ -612,7 +860,7 @@ document.addEventListener('turbo:load', () => {
     el.innerHTML = `
       <div class="msg-report-backdrop" id="msg-report-backdrop"></div>
       <div class="msg-report-body">
-        <h3>Denunciar Mensagem</h3>
+        <h3>Denunciar mensagem</h3>
         <p class="msg-report-preview"></p>
         <textarea id="msg-report-textarea" placeholder="Descreva o motivo da denúncia (opcional)..."></textarea>
         <div class="msg-report-actions">
@@ -659,13 +907,16 @@ document.addEventListener('turbo:load', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': csrfToken()
       },
       body: JSON.stringify({ description })
     })
     .then(res => {
       if (res.ok || res.status === 201 || res.status === 204) {
         closeReportSheet();
+        showToast('Denúncia enviada. Obrigado por avisar.');
+      } else {
+        showToast('Não foi possível enviar a denúncia.', true);
       }
     })
     .catch(err => console.error('Erro ao denunciar:', err));
@@ -688,10 +939,19 @@ document.addEventListener('turbo:load', () => {
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   }
 
+  function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
   function handleStatusUpdate(data) {
     const el = document.querySelector(`.message-status[data-status-id="${data.message_id}"]`);
-    if (!el) return;
-    el.className = `message-status status-${data.status}`;
+    if (el) el.className = `message-status status-${data.status}`;
+
+    const row = document.getElementById(`msg-${data.message_id}`);
+    if (row) {
+      row.dataset.status = data.status;
+      if (data.read_at) row.dataset.readAt = data.read_at;
+    }
   }
 
   function scrollToBottom() {
@@ -774,7 +1034,6 @@ document.addEventListener('turbo:load', () => {
   //   fazia ele fechar e abrir de novo.
   // =======================================================
   (function setupMessageGestures() {
-    const slideContainer = chatWindow.querySelector('.messages-slide-container');
     if (!slideContainer) return;
 
     const MAX_SLIDE       = 52;  // ← quanto a lista anda para mostrar os horários

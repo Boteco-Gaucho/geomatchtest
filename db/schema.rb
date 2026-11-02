@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -170,7 +170,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
 
   create_table "matches", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "distance_m"
     t.bigint "matched_user_id", null: false
+    t.bigint "muted_by_user_ids", default: [], null: false, array: true
     t.string "status"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -181,6 +183,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
   create_table "messages", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
+    t.datetime "edited_at"
+    t.bigint "hidden_for_user_ids", default: [], null: false, array: true
     t.bigint "match_id", null: false
     t.datetime "read_at"
     t.bigint "reply_to_id"

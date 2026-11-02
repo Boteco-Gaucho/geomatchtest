@@ -52,11 +52,14 @@ class MatchChannel < ApplicationCable::Channel
     return unless message && message.sender_id != user.id
     return if message.read?
 
-    message.update!(status: :read)
+    # read_at: "Lida às 13:05" no menu da mensagem e o prazo de 3 min do
+    # "Apagar para todos" (Message#deletable_for_everyone_by?)
+    message.update!(status: :read, read_at: Time.current)
     MatchChannel.broadcast_to(@match, {
       action:     "status_update",
       message_id: message.id,
-      status:     "read"
+      status:     "read",
+      read_at:    message.read_at.iso8601
     })
   end
 end

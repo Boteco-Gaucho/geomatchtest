@@ -78,8 +78,8 @@ RSpec.describe "Messages", type: :request do
       expect(reply.errors[:reply_to]).to be_present
     end
 
-    # "Apagar mensagem" e "Limpar conversa" destroem mensagens que podem já ter
-    # sido respondidas — a chave estrangeira não pode bloquear isso.
+    # "Apagar para todos" destrói mensagens que podem já ter sido respondidas —
+    # a chave estrangeira não pode bloquear isso.
     it "apagar a mensagem original mantém a resposta e só remove a citação" do
       reply = match.messages.create!(sender: user, content: "Tudo!", reply_to: original)
 
@@ -87,13 +87,15 @@ RSpec.describe "Messages", type: :request do
       expect(reply.reload.reply_to_id).to be_nil
     end
 
+    # "Limpar conversa" esconde as mensagens só para quem limpou (não apaga)
     it "limpar a conversa com respostas não quebra" do
       match.messages.create!(sender: user, content: "Tudo!", reply_to: original)
 
       delete "/matches/#{match.id}/clear_conversation", as: :json
 
       expect(response).to have_http_status(:no_content)
-      expect(match.messages.count).to eq(0)
+      expect(match.messages.visible_to(user)).to be_empty
+      expect(match.messages.visible_to(other).count).to eq(2)
     end
   end
 end

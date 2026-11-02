@@ -1,44 +1,40 @@
-// GeoMatch Chat Menu — Premium Component
-// Adapts to light / dark themes via CSS custom properties.
+// Menu dos três pontinhos da conversa — layout do mockup.
+// Cartão branco, ícone à esquerda, faixa bege entre os grupos, vermelho nas
+// ações de segurança. O botão fica bege enquanto o menu está aberto.
 
-// ── Light-mode defaults ──────────────────────────────────────────
 :root {
-  --gm-menu-bg:              rgba(255, 255, 255, 0.96);
-  --gm-menu-border:          rgba(0, 0, 0, 0.08);
-  --gm-menu-shadow:
-    0 0 0 0.5px rgba(0, 0, 0, 0.08),
-    0 8px 22px   rgba(0, 0, 0, 0.12),
-    0 24px 56px  rgba(0, 0, 0, 0.08);
-  --gm-menu-text:            rgba(0, 0, 0, 0.82);
-  --gm-menu-icon:            rgba(0, 0, 0, 0.35);
-  --gm-menu-separator:       rgba(0, 0, 0, 0.06);
-  --gm-menu-hover-bg:        rgba(0, 0, 0, 0.04);
-  --gm-menu-hover-icon:      rgba(0, 0, 0, 0.55);
-  --gm-menu-danger-hover-bg: rgba(220, 38, 38, 0.08);
-  --gm-menu-danger-text:     #dc2626;
-  --gm-menu-danger-icon:     #dc2626;
-  --gm-icon-btn-color:       #555;
-  --gm-icon-btn-hover:       rgba(0, 0, 0, 0.06);
+  --gm-menu-bg:        #fff;
+  --gm-menu-text:      #1c1c1c;
+  --gm-menu-line:      #f0e9df;
+  --gm-menu-band:      #f3eee6;
+  --gm-menu-pressed:   #f8f4ee;
+  --gm-menu-danger:    #c0302a;
+  --gm-icon-btn-color: #1c1c1c;
+  --gm-icon-btn-open:  #ede4d6;
 }
 
-// ── Dark-mode overrides ──────────────────────────────────────────
-.dark-mode {
-  --gm-menu-bg:              rgba(28, 28, 30, 0.97);
-  --gm-menu-border:          rgba(255, 255, 255, 0.10);
-  --gm-menu-shadow:
-    0 0 0 0.5px rgba(0, 0, 0, 0.45),
-    0 8px 22px   rgba(0, 0, 0, 0.45),
-    0 24px 56px  rgba(0, 0, 0, 0.55);
-  --gm-menu-text:            rgba(255, 255, 255, 0.88);
-  --gm-menu-icon:            rgba(255, 255, 255, 0.40);
-  --gm-menu-separator:       rgba(255, 255, 255, 0.07);
-  --gm-menu-hover-bg:        rgba(255, 255, 255, 0.07);
-  --gm-menu-hover-icon:      rgba(255, 255, 255, 0.65);
-  --gm-menu-danger-hover-bg: rgba(239, 68, 68, 0.12);
-  --gm-menu-danger-text:     #f87171;
-  --gm-menu-danger-icon:     #f87171;
-  --gm-icon-btn-color:       #aaa;
-  --gm-icon-btn-hover:       rgba(255, 255, 255, 0.08);
+.dark-mode,
+html.dark:not(.light-mode) {
+  --gm-menu-bg:        #1c1c1e;
+  --gm-menu-text:      rgba(255, 255, 255, 0.9);
+  --gm-menu-line:      rgba(255, 255, 255, 0.08);
+  --gm-menu-band:      #121212;
+  --gm-menu-pressed:   rgba(255, 255, 255, 0.06);
+  --gm-menu-danger:    #f87171;
+  --gm-icon-btn-color: #e8e4dd;
+  --gm-icon-btn-open:  #2c2c2e;
+}
+
+// Menu aberto: a conversa atrás fica escura e borrada (o topo, que é sticky com
+// z-index 600, continua por cima). Tocar fora fecha o menu (chat_menu_controller).
+.chat-screen-wrapper:has(.gm-chat-menu:not([hidden]))::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(70, 64, 58, 0.3);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 // ── Trigger wrapper ──────────────────────────────────────────────
@@ -49,43 +45,42 @@
   z-index: 1001;
 }
 
-// ── Three-dots button ────────────────────────────────────────────
+// ── Botão dos três pontinhos ─────────────────────────────────────
 .gm-icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: transparent;
+  width: 43px;
+  height: 43px;
+  padding: 0;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 12px;
+  background: transparent;
   color: var(--gm-icon-btn-color);
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.15s ease;
 
-  svg { width: 22px; height: 22px; }
+  svg { width: 22px; height: 22px; fill: currentColor; }
 
-  &:hover  { background: var(--gm-icon-btn-hover); }
-  &:active { transform: scale(0.88); }
+  &[aria-expanded="true"] { background: var(--gm-icon-btn-open); }
+  &:active { transform: scale(0.92); }
 }
 
-// ── Menu panel ───────────────────────────────────────────────────
+// ── Cartão do menu ───────────────────────────────────────────────
 .gm-chat-menu {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 240px;
-  background: var(--gm-menu-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--gm-menu-border);
-  border-radius: 16px;
-  box-shadow: var(--gm-menu-shadow);
+  top: calc(100% + 6px);
+  right: -4px;
+  width: 270px;
   overflow: hidden;
+  border-radius: 16px;
+  background: var(--gm-menu-bg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   z-index: 1000;
   transform-origin: top right;
-  animation: gmMenuIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: gmMenuIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &[hidden] {
     display: none !important;
@@ -94,57 +89,55 @@
 }
 
 @keyframes gmMenuIn {
-  from { opacity: 0; transform: scale(0.88) translateY(-8px); }
+  from { opacity: 0; transform: scale(0.92) translateY(-6px); }
   to   { opacity: 1; transform: scale(1)    translateY(0);    }
 }
 
-// ── Menu rows ────────────────────────────────────────────────────
-.gm-menu-item {
-  & + & { border-top: 1px solid var(--gm-menu-separator); }
+// Faixa bege entre os grupos
+.gm-menu-group + .gm-menu-group { border-top: 8px solid var(--gm-menu-band); }
 
-  // button_to renders <form class="..."><button>…</button></form>
-  form {
-    display: block;
-    margin: 0;
-    padding: 0;
-  }
-
-  button {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 14px 16px;
-    background: transparent;
-    color: var(--gm-menu-text);
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    transition: background-color 0.12s ease, color 0.12s ease;
-    -webkit-tap-highlight-color: transparent;
-
-    svg {
-      flex-shrink: 0;
-      stroke: var(--gm-menu-icon);
-      transition: stroke 0.12s ease;
-    }
-
-    &:hover, &:active {
-      background: var(--gm-menu-hover-bg);
-      svg { stroke: var(--gm-menu-hover-icon); }
-    }
-  }
-
-  // Destructive actions
-  &.gm-menu-item--danger button {
-    &:hover, &:active {
-      background: var(--gm-menu-danger-hover-bg);
-      color: var(--gm-menu-danger-text);
-      svg { stroke: var(--gm-menu-danger-icon); }
-    }
-  }
+// button_to renderiza <form class="gm-menu-form"><button>…</button></form>
+.gm-menu-form {
+  display: block;
+  margin: 0;
 }
+
+.gm-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 52px;
+  margin: 0;
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  color: var(--gm-menu-text);
+  font: inherit;
+  font-size: 15.5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    flex-shrink: 0;
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    &[hidden] { display: none; }
+  }
+
+  &:active { background: var(--gm-menu-pressed); }
+
+  &.is-danger { color: var(--gm-menu-danger); }
+  &.is-strong { font-weight: 700; }
+}
+
+// Linha fina entre as opções do mesmo grupo
+.gm-menu-group > * + * { border-top: 1px solid var(--gm-menu-line); }

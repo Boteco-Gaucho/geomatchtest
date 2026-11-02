@@ -10,6 +10,8 @@ class PushNotificationJob < ApplicationJob
     recipient = message.match.other_user(message.sender)
     return unless recipient
     return if recipient.id == message.sender_id
+    # "Silenciar notificações" no menu da conversa
+    return if message.match.muted_for?(recipient)
 
     title   = message.sender.display_name
     body    = message.content.truncate(80)
