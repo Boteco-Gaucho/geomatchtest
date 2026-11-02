@@ -1,293 +1,109 @@
-<div class="safety-wrapper">
+<%# Central de Segurança — layout do mockup.
+    Ligar 190 é um link tel:; "Compartilhar local" e "Modo Pânico" ficam no
+    safety_center_controller.js (GPS + folha de compartilhamento, com painel de reserva). %>
+<div class="safety-center" data-controller="safety-center"
+     data-safety-center-name-value="<%= current_user.display_name.to_s.strip %>"
+     data-action="turbo:before-cache@document->safety-center#reset keydown.esc@window->safety-center#closeSheet">
 
-  <%# Fundo decorativo: rede de pontos e linhas (vermelho à esquerda, azul à direita) %>
-  <svg class="safety-network" viewBox="0 0 390 700" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
-    <g class="net-red" stroke-width="0.8">
-      <line x1="0" y1="250" x2="70" y2="320"/><line x1="70" y1="320" x2="0" y2="400"/>
-      <line x1="70" y1="320" x2="140" y2="290"/><line x1="140" y1="290" x2="190" y2="255"/>
-      <line x1="190" y1="255" x2="280" y2="220"/><line x1="190" y1="255" x2="250" y2="320"/>
-      <line x1="280" y1="220" x2="250" y2="320"/><line x1="140" y1="290" x2="250" y2="320"/>
-      <line x1="0" y1="480" x2="60" y2="530"/><line x1="60" y1="530" x2="0" y2="600"/>
-      <line x1="60" y1="530" x2="20" y2="680"/><line x1="0" y1="640" x2="70" y2="690"/>
-      <circle cx="70" cy="320" r="2.5"/><circle cx="190" cy="255" r="2.5"/><circle cx="280" cy="220" r="4"/>
-      <circle cx="140" cy="290" r="2"/><circle cx="250" cy="320" r="2"/><circle cx="60" cy="530" r="3"/>
-      <circle cx="20" cy="680" r="2"/>
-    </g>
-    <g class="net-blue" stroke-width="0.8">
-      <line x1="280" y1="220" x2="340" y2="225"/><line x1="340" y1="225" x2="390" y2="190"/>
-      <line x1="340" y1="225" x2="375" y2="255"/><line x1="375" y1="255" x2="390" y2="300"/>
-      <line x1="340" y1="225" x2="320" y2="300"/><line x1="320" y1="300" x2="375" y2="255"/>
-      <line x1="320" y1="300" x2="390" y2="350"/><line x1="300" y1="160" x2="340" y2="225"/>
-      <line x1="320" y1="560" x2="390" y2="520"/><line x1="320" y1="560" x2="390" y2="620"/>
-      <circle cx="340" cy="225" r="3"/><circle cx="375" cy="255" r="2.5"/><circle cx="320" cy="300" r="2"/>
-      <circle cx="300" cy="160" r="2"/><circle cx="320" cy="560" r="2.5"/>
-    </g>
-  </svg>
-
-  <%# --- 1. HEADER --- %>
-  <div class="safety-header">
-    <div class="header-top-row">
-      <%= link_to my_profile_path, class: "btn-back", aria: { label: "Voltar" } do %>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10.5"/>
-          <path d="M16.5 12H8M11.5 8l-4 4 4 4"/>
-        </svg>
-      <% end %>
-
-      <div class="header-text-block">
-        <div class="title-wrap">
-          <%# Linha de batimento cardíaco atrás do título %>
-          <svg class="title-heartbeat" viewBox="0 0 340 90" preserveAspectRatio="none" aria-hidden="true">
-            <polyline points="0,40 150,40 160,30 170,40 182,40 192,2 202,78 212,40 340,40"/>
-          </svg>
-          <%= image_tag "texto-central-de-seguranca.png", class: "title-img", alt: "Central de Segurança" %>
-        </div>
-        <p class="subtitle">Recursos e ferramentas para sua proteção</p>
-      </div>
-
-      <div class="header-icon-right">
-        <%= image_tag "icone-central-de-seguranca.png", class: "icon-shield", alt: "" %>
-      </div>
-    </div>
-  </div>
-
-  <%# --- 2. AÇÕES RÁPIDAS (GRID) --- %>
-  <div class="safety-body">
-    <h3 class="section-label">Ações Rápidas</h3>
-
-    <div class="cards-grid">
-
-      <%# CARD 1: Polícia — disca 190 %>
-      <%= link_to "tel:190", class: "safety-card card-pink" do %>
-        <div class="card-badge">!</div>
-        <div class="card-icon-circle icon-red">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-        </div>
-        <div class="card-text">
-          <strong>Ações Rápidas</strong>
-          <span>Ligar 190</span>
-        </div>
-      <% end %>
-
-      <%# CARD 2: Denúncias %>
-      <%= link_to report_incident_path, class: "safety-card card-blue" do %>
-        <div class="card-icon-circle icon-blue-dark">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
-        </div>
-        <div class="card-text">
-          <strong>Denúncias Rápidas</strong>
-          <span>Reportar Incidencia</span>
-        </div>
-      <% end %>
-
-      <%# CARD 3: Compartilhar Localização (JavaScript abaixo) %>
-      <button type="button" id="share-location-btn" class="safety-card card-purple card--left">
-        <div class="card-icon-circle icon-purple-dark">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 10h2v7h-2zM11 6.5h2v2h-2z"/></svg>
-        </div>
-        <div class="card-text">
-          <strong>Compartilhar Local</strong>
-          <span>Enviar localização atual</span>
-        </div>
-      </button>
-
-      <%# CARD 4: Modo Pânico (JavaScript abaixo) %>
-      <button type="button" id="panic-btn" class="safety-card card-pink-light card--left">
-        <div class="card-icon-circle icon-red-light">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 16.8v.2" stroke-linecap="round"/></svg>
-        </div>
-        <div class="card-text">
-          <strong id="panic-text-title">Modo Pânico</strong>
-          <span id="panic-text-status">Enviar alerta de emergência</span>
-        </div>
-      </button>
-
-    </div>
-
-    <%# --- HISTÓRICO (Bloqueados + Denúncias) --- %>
-    <%= link_to safety_history_path, class: "safety-history-btn" do %>
-      <div class="sh-btn-inner">
-        <div class="sh-btn-left">
-          <div class="sh-btn-icon-wrap">
-            <%= image_tag "icone-central-de-seguranca.png", alt: "" %>
-          </div>
-          <div class="sh-btn-text">
-            <strong>Bloqueados &amp; Denúncias</strong>
-            <span>Gerencie perfis bloqueados e veja seu histórico</span>
-          </div>
-        </div>
-        <svg class="sh-btn-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-      </div>
+  <%# --- 1. TOPO --- %>
+  <div class="sc-header">
+    <%= link_to my_profile_path, class: "sc-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     <% end %>
-
+    <div class="sc-heading">
+      <h1 class="sc-title"><span>Central de Segurança</span></h1>
+      <p class="sc-subtitle">Segurança a um toque de distância.</p>
+    </div>
   </div>
 
-  <%# --- 3. INSTRUÇÕES DE EMERGÊNCIA (RODAPÉ) --- %>
-  <div class="safety-footer">
-    <h4 class="footer-title">
-      <span class="warning-icon">!</span> Instrução de Emergência
-    </h4>
+  <%# --- 2. EMERGÊNCIA --- %>
+  <%= link_to "tel:190", class: "sc-call", aria: { label: "Ligar 190, Polícia" } do %>
+    <svg class="sc-call-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+    <span class="sc-call-label">Ligar 190</span>
+    <span class="sc-call-tag">Polícia</span>
+  <% end %>
 
-    <ul class="instruction-list">
-      <li>
-        <strong>1. Mantenha a calma e avalie a situação</strong>
-        <p>Respire fundo e tente entender o que está acontecendo</p>
-      </li>
-      <li>
-        <strong>2. Saia do local se não se sentir seguro</strong>
-        <p>Procure um local público e movimentado</p>
-      </li>
-      <li>
-        <strong>3. Use ações rápidas confirme necessario</strong>
-        <p>Ligue para Emergencia ou compartilhe sua localização.</p>
-      </li>
-      <li>
-        <strong>4. Documente incidente</strong>
-        <p>Faça uma denuncia detalhada para a segurança*</p>
-      </li>
-    </ul>
+  <%# --- 3. OUTRAS AÇÕES --- %>
+  <h2 class="sc-section-title">Outras ações</h2>
+
+  <div class="sc-grid">
+    <button type="button" class="sc-card" data-action="safety-center#shareLocation">
+      <span class="sc-tile sc-tile--green">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+      </span>
+      <strong class="sc-card-title">Compartilhar local</strong>
+      <span class="sc-card-text" data-safety-center-target="shareStatus">Enviar localização atual</span>
+    </button>
+
+    <%= link_to report_incident_path, class: "sc-card" do %>
+      <span class="sc-tile sc-tile--peach">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V3.5"/><path d="M6 3.5h12l-3.5 4.75L18 13H6"/></svg>
+      </span>
+      <strong class="sc-card-title">Denunciar</strong>
+      <span class="sc-card-text">Reportar um incidente</span>
+    <% end %>
   </div>
 
+  <button type="button" class="sc-row" data-action="safety-center#panic">
+    <span class="sc-tile sc-tile--red">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg>
+    </span>
+    <span class="sc-row-text">
+      <strong>Modo Pânico</strong>
+      <span data-safety-center-target="panicStatus">Enviar alerta de emergência</span>
+    </span>
+    <svg class="sc-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
 
-  <script>
-  // Função para inicializar o botão de compartilhar
-  function initShareButton() {
-    const shareBtn = document.getElementById("share-location-btn");
+  <%= link_to safety_history_path, class: "sc-row" do %>
+    <span class="sc-tile sc-tile--sand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.64 5.64l12.72 12.72"/></svg>
+    </span>
+    <span class="sc-row-text">
+      <strong>Bloqueados e denúncias</strong>
+      <span>Perfis bloqueados e status das denúncias</span>
+    </span>
+    <svg class="sc-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+  <% end %>
 
-    // Evita adicionar múltiplos eventos se o script rodar 2x
-    if (shareBtn && !shareBtn.dataset.listenerAdded) {
-      shareBtn.dataset.listenerAdded = "true"; // Marca como iniciado
+  <%# --- 4. DICAS --- %>
+  <section class="sc-tips" aria-labelledby="sc-tips-title">
+    <h2 class="sc-tips-title" id="sc-tips-title">Dicas para se sentir à vontade</h2>
+    <p class="sc-tips-intro">Pequenos cuidados que deixam cada encontro mais tranquilo.</p>
 
-      shareBtn.addEventListener("click", () => {
-        // 1. Verifica suporte
-        if (!navigator.geolocation) {
-          alert("Seu navegador não suporta geolocalização.");
-          return;
-        }
+    <ol class="sc-tips-list">
+      <% [
+        [ "Confie no seu instinto", "Se algo não parecer certo, tudo bem encerrar a conversa ou ir embora." ],
+        [ "Prefira lugares movimentados", "Nos primeiros encontros, escolha um lugar público e avise alguém de confiança." ],
+        [ "Conte com a gente", "As ações desta tela estão sempre a um toque, quando você precisar." ],
+        [ "Nos conte o que aconteceu", "Sua denúncia é confidencial e ajuda a manter a comunidade segura." ]
+      ].each.with_index(1) do |(title, text), number| %>
+        <li class="sc-tip">
+          <span class="sc-tip-number" aria-hidden="true"><%= format("%02d", number) %></span>
+          <div>
+            <strong class="sc-tip-title"><%= title %></strong>
+            <p class="sc-tip-text"><%= text %></p>
+          </div>
+        </li>
+      <% end %>
+    </ol>
+  </section>
 
-        // Feedback visual
-        const textSpan = shareBtn.querySelector("span");
-        const originalText = textSpan.innerText;
-        textSpan.innerText = "Obtendo localização...";
-
-        // 2. Obtém posição
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            // --- CORREÇÃO AQUI: URL CORRETA DO GOOGLE MAPS ---
-            const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-            
-            const shareData = {
-              title: 'Minha Localização',
-              text: 'Estou aqui! Segue minha localização atual:',
-              url: mapUrl
-            };
-
-            // 3. Compartilhamento Nativo (Mobile)
-            if (navigator.share) {
-              navigator.share(shareData)
-                .then(() => console.log('Compartilhado com sucesso'))
-                .catch((error) => console.log('Erro ao compartilhar', error));
-            } else {
-              // Fallback (WhatsApp Web)
-              window.open(`https://wa.me/?text=${encodeURIComponent(shareData.text + " " + mapUrl)}`, '_blank');
-            }
-
-            // Restaura texto
-            textSpan.innerText = originalText;
-          },
-          (error) => {
-            console.error(error);
-            alert("Erro ao obter localização. Verifique o GPS.");
-            textSpan.innerText = originalText;
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      });
-    }
-  }
-
-  // Inicializa com Turbo (Rails padrão) e carregamento normal
-  document.addEventListener("turbo:load", initShareButton);
-  document.addEventListener("DOMContentLoaded", initShareButton);
-
-
-  // --- FUNÇÃO MODO PÂNICO ---
- function initPanicButton() {
-  const panicBtn = document.getElementById("panic-btn");
-  const statusText = document.getElementById("panic-text-status");
-
-  if (panicBtn && !panicBtn.dataset.listenerAdded) {
-    panicBtn.dataset.listenerAdded = "true";
-
-    panicBtn.addEventListener("click", () => {
-      if (!navigator.geolocation) {
-        alert("Seu navegador não suporta geolocalização.");
-        return;
-      }
-
-      // Feedback visual de carregamento
-      const originalText = statusText.innerText;
-      statusText.innerText = "Preparando alerta...";
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
-          // Link do Google Maps
-          const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-          
-          // Nome do usuário logado (to_json escapa aspas/caracteres especiais).
-          // Sem nome cadastrado, cai para um texto neutro.
-          const userName = <%= raw current_user.display_name.to_s.strip.to_json %> || "Um usuário do GeoMatch";
-
-          const messageText = `Olá! Esta é uma mensagem de alerta 🚨 do GeoMatch. ${userName} ativou o modo de segurança e pode precisar da sua ajuda ou atenção. Por favor, entre em contato o mais breve possível e acompanhe a localização em tempo real aqui: ${mapUrl} Sua atenção é muito importante neste momento.`;
-
-          const shareData = {
-            title: 'ALERTA DE SEGURANÇA - GeoMatch',
-            text: messageText
-          };
-
-          // Disparar compartilhamento nativo ou WhatsApp
-          if (navigator.share) {
-            navigator.share(shareData)
-              .then(() => console.log('Alerta enviado'))
-              .catch((err) => console.log('Erro ao compartilhar', err));
-          } else {
-            // Fallback para WhatsApp
-            window.open(`https://wa.me/?text=${encodeURIComponent(messageText)}`, '_blank');
-          }
-
-          statusText.innerText = originalText;
-        },
-        (error) => {
-          console.error(error);
-          alert("Erro ao obter localização para o alerta.");
-          statusText.innerText = originalText;
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    });
-  }
-}
-
-  // --- ATUALIZE OS LISTENERS NO FINAL DO SCRIPT ---
-  document.addEventListener("turbo:load", () => {
-    initShareButton(); // Sua função anterior
-    initPanicButton(); // Nova função
-  });
-  
-  document.addEventListener("DOMContentLoaded", () => {
-    initShareButton();
-    initPanicButton();
-  });
-</script>
-
-
-
+  <%# --- Painel de reserva: o navegador não abriu a folha de compartilhamento
+         (sem suporte, ou recusou porque o GPS respondeu depois do toque) --- %>
+  <div class="sc-sheet" data-safety-center-target="sheet" hidden>
+    <div class="sc-sheet-backdrop" data-action="click->safety-center#closeSheet"></div>
+    <div class="sc-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sc-sheet-title">
+      <h3 class="sc-sheet-title" id="sc-sheet-title" data-safety-center-target="sheetTitle"></h3>
+      <p class="sc-sheet-message" data-safety-center-target="sheetMessage"></p>
+      <a class="sc-sheet-btn sc-sheet-btn--primary" data-safety-center-target="whatsapp"
+         data-action="safety-center#closeSheet" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+      <button type="button" class="sc-sheet-btn" data-action="safety-center#copy">Copiar mensagem</button>
+      <button type="button" class="sc-sheet-btn" data-safety-center-target="moreOptions"
+              data-action="safety-center#moreOptions">Outras opções</button>
+      <button type="button" class="sc-sheet-cancel" data-action="safety-center#closeSheet">Cancelar</button>
+    </div>
+  </div>
 </div>

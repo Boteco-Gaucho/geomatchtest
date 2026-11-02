@@ -87,3 +87,6 @@ application.register("char-counter", CharCounterController)
 
 import ProfileTabsController from "./profile_tabs_controller"
 application.register("profile-tabs", ProfileTabsController)
+
+import SafetyCenterController from "./safety_center_controller"
+application.register("safety-center", SafetyCenterController)

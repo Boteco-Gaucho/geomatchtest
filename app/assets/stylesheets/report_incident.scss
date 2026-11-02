@@ -58,6 +58,12 @@ html, body {
   opacity: 0.8;
 }
 
+// Escudo à direita do topo (a regra morava no CSS antigo da Central de Segurança)
+.header-icon-right {
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
 /* --- 2. BODY --- */
 .report-body {
   flex: 1 0 auto; /* Permite que o corpo cresça e empurre o footer */
