@@ -4,12 +4,7 @@ module NotificationsHelper
   # alguém ou se a pessoa estiver invisível / tiver desligado o compartilhamento.
   # suffix: false devolve só "~150 m" (pílula dos cards borrados do plano grátis).
   def approx_distance_from_you(viewer, other, suffix: true)
-    return nil if other.invisible? || other.share_location == false
-    return nil if [viewer.latitude, viewer.longitude, other.latitude, other.longitude].any?(&:blank?)
-
-    km = Geocoder::Calculations.distance_between(
-      [viewer.latitude, viewer.longitude], [other.latitude, other.longitude], units: :km
-    )
+    km = shared_distance_km(viewer, other) or return nil
     meters = ((km * 1000) / 50.0).round * 50
 
     label =
@@ -19,6 +14,24 @@ module NotificationsHelper
       end
 
     suffix ? "#{label} de você" : label
+  end
+
+  # Card do /lead: dentro do raio do GeoMatch (300 m) diz só "Menos de 300 m de você";
+  # mais longe, a distância aproximada acima. Mesmas regras de privacidade.
+  def nearby_distance_label(viewer, other)
+    km = shared_distance_km(viewer, other) or return nil
+    km < 0.3 ? "Menos de 300 m de você" : approx_distance_from_you(viewer, other)
+  end
+
+  # Distância em km — nil se faltar localização ou se a pessoa estiver invisível /
+  # tiver desligado o compartilhamento
+  def shared_distance_km(viewer, other)
+    return nil if other.invisible? || other.share_location == false
+    return nil if [ viewer.latitude, viewer.longitude, other.latitude, other.longitude ].any?(&:blank?)
+
+    Geocoder::Calculations.distance_between(
+      [ viewer.latitude, viewer.longitude ], [ other.latitude, other.longitude ], units: :km
+    )
   end
 
   # Preço do painel de upgrade: "R$ 49,90/mês" (ou "a cada N meses").

@@ -1,3 +1,10 @@
+<%# Card e botões no layout do mockup (fonte Inter, estilos .lead-* em lead.scss).
+    Logo e barra de navegação de baixo seguem como eram. %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<% end %>
+
 <div class="geomatch-screen-wrapper" data-controller="lead-swipe filters">
   
   <%# --- 1. HEADER (Fixo) --- %>
@@ -5,17 +12,11 @@
     <div class="header-left">
       <%= image_tag "logo-geomatch-dourada.png", class: "header-logo", alt: "GeoMatch" %>
     </div>
+    <%# Só filtros, como no mockup — o tema claro/escuro fica em Meu Perfil → Aparência %>
     <div class="header-right">
-      <button class="header-btn" data-action="click->filters#open">
-        <%= image_tag "filtro-dourado.svg", alt: "Filtros" %>
+      <button type="button" class="header-btn lead-filter-btn" aria-label="Filtros" data-action="click->filters#open">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="15" cy="8" r="2.4"/><circle cx="9" cy="16" r="2.4"/></svg>
       </button>
-     <button class="header-btn" 
-        data-controller="theme" 
-        data-action="click->theme#toggle"
-        data-theme-sol-icon="<%= asset_path('sol-dourado.svg') %>"
-        data-theme-lua-icon="<%= asset_path('lua-dourado.svg') %>">
-  <%= image_tag "sol-dourado.svg", alt: "Tema", data: { theme_target: "icon" } %>
-</button>
     </div>
   </div>
 

@@ -1,7 +1,7 @@
 <% if next_user %>
 
-  <%# --- CARD DO USUÁRIO --- %>
-  <div class="gold-card-frame" data-lead-swipe-target="card" data-user-id="<%= next_user.id %>">
+  <%# --- CARD DO USUÁRIO (layout do mockup; fotos no carrossel compartilhado) --- %>
+  <div class="lead-card" data-lead-swipe-target="card" data-user-id="<%= next_user.id %>">
 
     <div class="card-gallery">
       <div class="swipe-overlay swipe-like" data-lead-swipe-target="like">
@@ -13,71 +13,74 @@
 
       <%= render "shared/profile_carousel", user: next_user %>
 
-      <div class="card-user-info clickable-info" data-action="click->lead-swipe#openProfile">
-        <div class="info-header">
-          <div class="location-badge">
-            <i class="fas fa-map-marker-alt"></i> Perto de mim
-          </div>
-          <div class="info-up-indicator">
-            <i class="fas fa-chevron-up"></i>
-          </div>
-        </div>
+      <%# "Ativa agora" só para quem está online de verdade %>
+      <% if (online_label = online_now_label(next_user)) %>
+        <span class="lead-online"><i></i><%= online_label %></span>
+      <% end %>
 
-        <h2 class="user-title" style="display: flex; align-items: center; gap: 5px;">
-          <%= next_user.display_name %> <span class="age"><%= next_user.age %></span>
-          <% if next_user&.verified? %>
-            <%= image_tag "icone-verificar.png", style: "width: 20px; height: 20px;", title: "Perfil Verificado" %>
+      <%# Tocar nas informações (ou na seta) abre o perfil completo %>
+      <div class="lead-info clickable-info" data-action="click->lead-swipe#openProfile">
+        <h2 class="lead-name">
+          <strong><%= next_user.display_name.split.first %></strong>
+          <% if next_user.age %><span><%= next_user.age %></span><% end %>
+          <% if next_user.verified? %>
+            <svg class="lead-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
           <% end %>
         </h2>
-
-        <p class="user-distance">
-          <i class="fas fa-location-arrow"></i> a <%= distance || 1 %> km de distância
-        </p>
-
-        <% if next_user.respond_to?(:bio) && next_user.bio.present? %>
-          <p class="user-bio-preview" style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-            <%= next_user.bio %>
+        <% if (distance_label = nearby_distance_label(current_user, next_user)) %>
+          <p class="lead-place">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <%= distance_label %>
           </p>
         <% end %>
+        <% if next_user.bio.present? %>
+          <p class="lead-bio"><%= next_user.bio %></p>
+        <% end %>
+        <% if next_user.hobbies_list.any? %>
+          <ul class="lead-tags">
+            <% next_user.hobbies_list.first(3).each do |hobby| %>
+              <li><%= hobby %></li>
+            <% end %>
+          </ul>
+        <% end %>
+        <button type="button" class="lead-open-profile" aria-label="Ver perfil completo"
+                data-action="lead-swipe#openProfile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+        </button>
       </div>
     </div>
   </div>
 
-  <%# --- BOTÕES DE AÇÃO --- %>
-  <div class="action-buttons-container">
+  <%# --- BOTÕES DE AÇÃO (classes lead-*: as .btn-reject/.btn-like de lead.scss também
+      vestem os botões do perfil público e do mapa, então não são usadas aqui) --- %>
+  <div class="lead-actions">
+    <%# Toast para "sem dislike para desfazer" (Turbo Stream de rewind) %>
+    <div id="rewind-flash" class="rewind-flash-container"></div>
+
     <%# Rewind (desfazer último nope) — primeiro à esquerda %>
     <%= button_to rewind_lead_path, method: :post,
-          class: "action-btn btn-rewind", form_class: "btn-form",
+          class: "lead-btn lead-btn--rewind", form_class: "btn-form", aria: { label: "Desfazer" },
           data: { lead_swipe_target: "btnRewind" } do %>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="1 4 1 10 7 10"></polyline>
-        <path d="M3.51 15a9 9 0 1 0 .49-3.51"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
     <% end %>
 
     <%= button_to reject_user_path(user_id: next_user.id), method: :post,
-          class: "action-btn btn-reject", form_class: "btn-form",
+          class: "lead-btn lead-btn--reject", form_class: "btn-form", aria: { label: "Passar" },
           data: { lead_swipe_target: "btnReject" } do %>
-      <%= image_tag "botao-rejeitar.svg", alt: "Rejeitar" %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     <% end %>
 
     <%= button_to start_chat_path(user_id: next_user.id), method: :post,
-          class: "action-btn btn-chat", form_class: "btn-form" do %>
-      <%= image_tag "mensagem-prata.svg", alt: "Chat" %>
+          class: "lead-btn lead-btn--chat", form_class: "btn-form", aria: { label: "Mandar mensagem" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     <% end %>
 
     <%= button_to likes_path(user_id: next_user.id), method: :post,
-          class: "action-btn btn-like", form_class: "btn-form",
+          class: "lead-btn lead-btn--like", form_class: "btn-form", aria: { label: "Curtir" },
           data: { lead_swipe_target: "btnLike" } do %>
-      <div class="heart-icon-wrapper">
-        <%= image_tag "coracao-chapada.png", alt: "Curtir" %>
-      </div>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
     <% end %>
   </div>
-
-  <%# Toast para "sem dislike para desfazer" %>
-  <div id="rewind-flash" class="rewind-flash-container"></div>
 
   <%# --- PERFIL COMPLETO --- %>
   <div class="full-profile-sheet" data-lead-swipe-target="profileModal">

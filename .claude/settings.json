@@ -45,7 +45,9 @@
       "Bash(ruby -c app/services/mercado_pago/webhook_service.rb app/models/payment.rb app/models/mimo_transaction.rb)",
       "Bash(ruby -c app/services/withdrawal_service.rb)",
       "Bash(sed -n '/create_table \"wallet_reconciliations\"/,/^  end/p' db/schema.rb)",
-      "Bash(sed -n '/create_table \"withdrawal_requests\"/,/^  end/p' db/schema.rb)"
+      "Bash(sed -n '/create_table \"withdrawal_requests\"/,/^  end/p' db/schema.rb)",
+      "PowerShell(ruby bin/rails dartsass:build 2>&1 | Select-Object -Last 3; $D = \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatchtest\\\\f10f0d83-d725-43b5-9228-02475c7aa7b5\\\\scratchpad\\\\editp\"; ruby bin/rails runner \"$D\\\\render_lead.rb\" \"$D\\\\body_lead.html\" 2>&1 | Select-String -Pattern \"^status=|Error|error\" | Select-Object -First 5)",
+      "PowerShell(ruby bin/rails runner 'b = User.where.not\\(id: 1\\).order\\(:id\\).first; m = User.find\\(1\\); puts \"brenda?=#{b.username == %q\\(Brenda Souza\\)} hobbies=#{b.hobbies.inspect} fake_blobs=#{ActiveStorage::Blob.where\\(filename: %w[principal.jpg b0.jpg b1.jpg]\\).count} me_lat=#{m.latitude}\"' 2>&1)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Brendo\\Documents\\DEV\\geomatch ruby\\geomatch\\db\\migrate"
