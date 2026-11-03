@@ -60,6 +60,8 @@ Rails.application.routes.draw do
 
   get "/discover_3d",         to: "users#discover_3d",     as: :discover_3d
   get "/discover_3d/gallery", to: "discover_3d#gallery",    as: :discover_3d_gallery
+  # Olho de "Explorar cidades": some só da busca por cidades (o mapa tem o seu)
+  post "/discover_3d/gallery/visibility", to: "discover_3d#toggle_city_search_visibility", as: :discover_3d_gallery_visibility
 
 
   # Lead/Swipe

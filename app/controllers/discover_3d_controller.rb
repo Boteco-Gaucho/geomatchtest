@@ -13,6 +13,7 @@ class Discover3dController < ApplicationController
 
   def gallery
     base = User.visible
+               .findable_in_city_search
                .where.not(id: current_user.excluded_user_ids + [current_user.id])
 
     @filters = {
@@ -46,6 +47,20 @@ class Discover3dController < ApplicationController
     @favorites_map = current_user.favorites
                                   .where(favorited_user_id: @users.map(&:id))
                                   .each_with_object({}) { |f, h| h[f.favorited_user_id] = f.id }
+  end
 
+  # POST /discover_3d/gallery/visibility — olho da tela Explorar cidades (recurso Gold).
+  # Some só desta busca: o mapa continua mostrando a pessoa (lá vale users.invisible).
+  def toggle_city_search_visibility
+    unless current_user.can_use_invisible_mode?
+      return render json: { upgrade_required: true, plan: "Gold" }, status: :forbidden
+    end
+    unless User.city_search_hiding?
+      return render json: { error: "Recurso indisponível no momento." }, status: :service_unavailable
+    end
+
+    hidden = !current_user.hidden_from_city_search?
+    current_user.update_column(:hidden_from_city_search, hidden)
+    render json: { hidden: hidden }
   end
 end

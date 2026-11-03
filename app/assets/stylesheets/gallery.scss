@@ -1,6 +1,6 @@
 // =================================================================
-// Galeria de Perfis (Discover 3D — Gallery)
-// Estética dourada / premium — consistente com o restante do app
+// Favoritos (/favorites) — topo, contagem, grade e vazio. O card de perfil e a
+// tela Explorar cidades (/discover_3d/gallery) estão mais abaixo
 // =================================================================
 
 .gallery-screen {
@@ -58,176 +58,6 @@
 // No app nativo iOS o wrapper nativo já gerencia o safe area — remove o inset extra
 body.turbo-native .gallery-header { padding-top: 14px; }
 
-// ----- FILTROS -----
-.gallery-filters {
-  padding: 18px 20px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.gallery-filter-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.filter-group-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--color-accent);
-  margin: 0 0 6px;
-
-  img { height: 16px; width: auto; }
-}
-
-// Pílulas de Sexo
-// Linha 1: 3 opções lado a lado | Linha 2: "Todos" em largura total
-.gender-pills {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-
-  // "Todos" é sempre o último pill e ocupa as 3 colunas
-  .gender-pill:last-child {
-    grid-column: 1 / -1;
-  }
-}
-
-.gender-pill {
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: var(--color-section-light);
-  border: 1.5px solid var(--color-border);
-  color: var(--color-text);
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  user-select: none;
-
-  &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-dark);
-  }
-
-  input { display: none; }
-
-  &.is-active {
-    background: linear-gradient(135deg, #d4be91, #b8975a);
-    border-color: transparent;
-    color: #1a1a1a;
-    box-shadow: 0 4px 12px rgba(180, 140, 70, 0.35);
-  }
-}
-
-// Selects hierárquicos
-.location-selects {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-
-  &.two-cols { grid-template-columns: repeat(2, 1fr); }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-
-    &.two-cols { grid-template-columns: 1fr; }
-  }
-}
-
-.gallery-select-wrapper {
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid var(--color-accent);
-    border-bottom: 2px solid var(--color-accent);
-    transform: translateY(-70%) rotate(45deg);
-    pointer-events: none;
-  }
-}
-
-.gallery-select {
-  width: 100%;
-  padding: 8px 36px 8px 12px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-section-light);
-  color: var(--color-text);
-  font-size: 0.92rem;
-  font-family: inherit;
-  font-weight: 500;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.filter-actions-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.filter-apply-btn {
-  flex: 2;
-  padding: 9px 16px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #d4be91, #b8975a);
-  color: #1a1a1a;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(180, 140, 70, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-  &:hover  { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(180, 140, 70, 0.45); }
-  &:active { transform: translateY(0); }
-}
-
-.filter-clear-btn {
-  flex: 1;
-  padding: 9px 16px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1.5px solid var(--color-border);
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  font-size: 0.92rem;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  &:hover { border-color: var(--color-primary); color: var(--color-dark); }
-}
-
 // ----- CONTAGEM -----
 .gallery-meta {
   padding: 4px 22px 14px;
@@ -272,173 +102,6 @@ body.turbo-native .gallery-header { padding-top: 14px; }
   }
 }
 
-.profile-card {
-  position: relative;
-  aspect-ratio: 3 / 4;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #1a1a1a;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(212, 175, 55, 0.18);
-  isolation: isolate;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(212, 175, 55, 0.35);
-  }
-}
-
-.profile-card-link {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  text-decoration: none;
-  color: inherit;
-}
-
-.profile-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.4s ease;
-
-  .profile-card:hover & { transform: scale(1.04); }
-}
-
-.profile-card-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.profile-card-info {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 12px;
-  z-index: 3;
-  pointer-events: none;
-  color: #fff;
-
-  .name-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.2px;
-    line-height: 1.2;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-
-    .verified-badge { width: 14px; height: 14px; }
-  }
-
-  .location-row {
-    margin-top: 4px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    opacity: 0.9;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-
-    i { font-size: 0.72rem; color: var(--color-primary); }
-  }
-}
-
-// Distintivo de plano premium (canto superior esquerdo)
-.profile-card-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 3;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #d4be91, #b8975a);
-  color: #1a1a1a;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  pointer-events: none;
-}
-
-// Botões de ação (coração + balão de mensagem)
-.profile-card-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.card-action-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  &:hover  { background: rgba(0, 0, 0, 0.65); transform: scale(1.08); }
-  &:active { transform: scale(0.95); }
-
-  img { width: 20px; height: 20px; object-fit: contain; }
-}
-
-.card-action-form { margin: 0; }
-
-// Botão Ver Favoritos (ao lado de Aplicar e Limpar)
-.filter-favorites-btn {
-  flex: 1;
-  padding: 9px 12px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1.5px solid rgba(212, 175, 55, 0.55);
-  color: var(--color-accent);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: none;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-
-  svg { flex-shrink: 0; }
-  &:hover { background: rgba(212, 175, 55, 0.12); border-color: var(--color-primary); color: var(--color-dark); }
-}
-
-// Botão estrela no card
-.card-action-star {
-  color: rgba(255, 255, 255, 0.9);
-  svg { width: 18px; height: 18px; }
-  &:hover { background: rgba(212, 175, 55, 0.65); color: #fff; }
-
-  &--active {
-    background: linear-gradient(135deg, #d4be91, #b8975a);
-    color: #1a1a1a;
-    &:hover { background: linear-gradient(135deg, #c8a870, #9a7040); }
-  }
-}
-
 // Botão explorar galeria (empty state de favoritos)
 .favorites-explore-btn {
   display: inline-block;
@@ -470,35 +133,394 @@ body.turbo-native .gallery-header { padding-top: 14px; }
   p  { font-size: 0.92rem; color: var(--color-text-secondary); margin: 0; }
 }
 
-// ----- MODO INVISÍVEL (navegação 100% oculta) -----
-.gallery-header-right {
+// =================================================================
+// EXPLORAR CIDADES (/discover_3d/gallery) — layout do mockup
+// (print de iPhone Pro Max: 567px → ×0,758 para 430px; medidas nessa escala)
+// =================================================================
+.city-explorer {
+  --ce-bg: #f8f2e8;
+  --ce-surface: #fff;
+  --ce-line: #e7dfd2;
+  --ce-text: #111;
+  --ce-muted: #55524d;
+  --ce-segment: #ede5d6;
+  --ce-gold-top: #b8914f;
+  --ce-gold-bottom: #7f633a;
+
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 18px calc(110px + env(safe-area-inset-bottom, 0px)); // a área segura do topo vem do .authenticated-layout
+  overflow-x: hidden;
+  background: var(--ce-bg);
+  color: var(--ce-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
+
+  svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+/* --- TOPO --- */
+.ce-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 48px;
+  margin-top: -2px;
 }
 
-// Verde = visível | Vermelho = invisível (mesmas cores do FAB do mapa 3D)
-.gallery-visibility-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.ce-back {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  margin-left: -3px;
+  color: #1c1c1c;
+  svg { width: 22px; height: 22px; stroke-width: 2.6; }
+}
+
+.ce-heading { flex: 1; min-width: 0; }
+
+.ce-title {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px;
+  margin: 0;
+  font-size: 24px; font-weight: 800; line-height: 29px;
+}
+
+.ce-title-text {
+  background: linear-gradient(180deg, var(--ce-gold-top), var(--ce-gold-bottom));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+.ce-gold-badge {
+  display: inline-flex; align-items: center;
+  height: 21px; padding: 0 9px;
+  border-radius: 999px;
+  background: #1c1c1e; color: #e2c58a;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.5px; line-height: 1;
+}
+
+.ce-subtitle { margin: 2px 0 0; font-size: 14px; line-height: 18px; color: var(--ce-muted); }
+
+// Olho: verde = aparecendo na busca; vermelho com olho riscado = oculto nela
+.ce-eye {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 48px; height: 48px;
+  border: 0; border-radius: 50%;
+  background: #22a45c; color: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  background: rgba(15, 209, 24, 0.12);
-  border: 1.5px solid #0fd118;
-  color: #0aa812;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s, box-shadow 0.25s, transform 0.15s;
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
+  &:active { transform: scale(0.94); }
+  svg { width: 24px; height: 24px; }
+  .ce-eye-closed { display: none; }
 
-  svg { flex-shrink: 0; }
-  &:active { transform: scale(0.93); }
+  &.is-hidden { background: #e5484d; }
+  &.is-hidden .ce-eye-open { display: none; }
+  &.is-hidden .ce-eye-closed { display: block; }
 
-  &.is-invisible {
-    background: rgba(255, 77, 77, 0.14);
-    border-color: #ff4d4d;
-    color: #ff4d4d;
+  &.is-pinged { box-shadow: 0 0 0 6px rgba(34, 164, 92, 0.25), 0 4px 14px rgba(0, 0, 0, 0.12); }
+  &.is-hidden.is-pinged { box-shadow: 0 0 0 6px rgba(229, 72, 77, 0.25), 0 4px 14px rgba(0, 0, 0, 0.12); }
+}
+
+/* --- AVISO DO OLHO --- */
+.ce-toast {
+  position: fixed; z-index: 1000;
+  left: 18px; right: 18px; top: calc(63px + env(safe-area-inset-top, 0px));
+  max-width: 604px; margin: 0 auto;
+  display: flex; align-items: center; gap: 13px;
+  padding: 11px 20px 11px 12px;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &.is-visible { opacity: 1; transform: none; }
+  &[hidden] { display: none; }
+}
+.ce-toast__icon {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  color: #fff;
+  svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  &[data-tone="red"]   { background: #e5484d; }
+  &[data-tone="green"] { background: #22a45c; }
+  &[data-tone="dark"]  { background: #1c1c1e; color: #e2c58a; }
+  &[data-tone="sand"]  { background: #ece5d5; color: #615b4f; }
+}
+.ce-toast__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ce-toast__title { font-size: 16px; font-weight: 700; line-height: 20px; color: #111; }
+.ce-toast__body { font-size: 14px; line-height: 18px; color: #55524d; }
+.ce-toast__action {
+  flex-shrink: 0; height: 38px; padding: 0 18px;
+  border: 0; border-radius: 999px;
+  background: linear-gradient(180deg, #d6c086 0%, #cba55c 100%);
+  color: #1c1a14; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+  &[hidden] { display: none; }
+}
+
+/* --- ESTADO / CIDADE --- */
+.ce-form { margin: 22px 0 0; }
+
+.ce-selects {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  gap: 12px;
+}
+
+.ce-select {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: center;
+  height: 53px; padding: 0 40px 0 16px;
+  border: 1px solid var(--ce-line);
+  border-radius: 20px;
+  background: var(--ce-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+
+  > svg { position: absolute; right: 16px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: #1c1c1c; pointer-events: none; }
+}
+
+.ce-select-label { font-size: 11px; line-height: 14px; color: var(--ce-muted); }
+
+// O <select> nativo vira só o valor em negrito (a lista abre no sistema)
+.ce-select-input {
+  width: 100%; min-width: 0; margin: 0; padding: 0;
+  border: 0; background: transparent;
+  -webkit-appearance: none; appearance: none;
+  color: var(--ce-text); font: inherit; font-size: 15px; font-weight: 700; line-height: 19px;
+  text-overflow: ellipsis; cursor: pointer;
+  &:focus { outline: none; }
+  &:disabled { color: var(--ce-muted); cursor: default; }
+}
+
+/* --- CAPITAIS (carrossel contínuo, de ponta a ponta) --- */
+.ce-capitals {
+  margin: 15px -18px 0;
+  overflow: hidden;
+  border-top: 2px solid #c9a052;
+  border-bottom: 2px solid #c9a052;
+  background: #1c1c1e;
+}
+
+.ce-capitals-track {
+  display: flex;
+  width: max-content;
+  animation: ce-capitals-scroll 90s linear infinite;
+}
+
+.ce-capitals-list {
+  display: flex; align-items: center;
+  margin: 0; padding: 0;
+  list-style: none;
+
+  li {
+    display: flex; align-items: center;
+    &::after { content: ""; width: 6px; height: 6px; margin: 0 19px; border-radius: 50%; background: #c9a052; }
   }
+
+  a {
+    display: block;
+    padding: 15.5px 0;
+    color: #fff; font-size: 15px; font-weight: 700; line-height: 18px;
+    text-decoration: none; white-space: nowrap;
+  }
+}
+
+// As duas cópias da lista são iguais: andar metade da faixa emenda sem pulo
+@keyframes ce-capitals-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* --- GÊNERO --- */
+.ce-segment {
+  display: flex; justify-content: space-between;
+  margin-top: 16px; padding: 4px 5px;
+  border-radius: 999px;
+  background: var(--ce-segment);
+}
+
+.ce-segment-opt {
+  position: relative;
+  cursor: pointer;
+
+  input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+
+  span {
+    display: flex; align-items: center;
+    height: 40px; padding: 0 18px;
+    border-radius: 999px;
+    color: #3a3530; font-size: 15px; font-weight: 600; white-space: nowrap;
+  }
+
+  input:checked + span { background: #1c1c1e; color: #fff; font-weight: 700; }
+  input:focus-visible + span { outline: 2px solid var(--ce-gold-top); outline-offset: 2px; }
+}
+
+/* --- CONTAGEM + FAVORITOS --- */
+.ce-meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 23px;
+}
+
+.ce-count {
+  margin: 0;
+  font-size: 15px; color: var(--ce-muted);
+  strong { color: var(--ce-text); font-weight: 700; }
+}
+
+.ce-favorites {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 37px; padding: 0 16px;
+  border: 1px solid var(--ce-line);
+  border-radius: 999px;
+  background: var(--ce-surface);
+  color: var(--ce-text); font-size: 14px; font-weight: 700;
+  text-decoration: none;
+  svg { width: 16px; height: 16px; }
+}
+
+/* --- CARDS --- */
+.ce-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 13px;
+}
+
+.ce-empty {
+  margin-top: 40px; text-align: center; color: var(--ce-muted);
+  h3 { margin: 0 0 6px; font-size: 17px; color: var(--ce-text); }
+  p { margin: 0; font-size: 14px; }
+}
+
+.ce-empty-btn {
+  display: inline-flex; margin-top: 16px; padding: 10px 18px;
+  border-radius: 999px; background: #1c1c1e; color: #fff;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+}
+
+// =================================================================
+// CARD DE PERFIL (Explorar cidades e Favoritos)
+// =================================================================
+.profile-card {
+  position: relative;
+  aspect-ratio: 193 / 276;
+  border-radius: 21px;
+  overflow: hidden;
+  background: #4a4038;
+  isolation: isolate;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.profile-card-link { position: absolute; inset: 0; z-index: 1; }
+
+.profile-card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.profile-card-overlay {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(24, 19, 15, 0.55) 70%, rgba(24, 19, 15, 0.92) 100%);
+}
+
+.profile-card-badge {
+  position: absolute; z-index: 3; top: 10px; left: 11px;
+  display: inline-flex; align-items: center;
+  height: 25px; padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(28, 28, 30, 0.85); color: #e2c58a;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.6px;
+  pointer-events: none;
+}
+
+.profile-card-star { position: absolute; z-index: 3; top: 9px; right: 9px; }
+
+.profile-card-info {
+  position: absolute; z-index: 3; left: 13px; right: 104px; bottom: 13px; // à direita ficam os dois botões
+  color: #fff;
+  pointer-events: none;
+}
+
+.profile-card-name {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px;
+  margin: 0;
+  font-size: 17px; line-height: 20px;
+  // nome longo: no máximo 2 linhas (só quebra a palavra se ela sozinha não couber)
+  strong {
+    max-width: 100%; overflow: hidden; overflow-wrap: break-word; font-weight: 700;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .verified-badge { width: 14px; height: 14px; align-self: center; }
+}
+
+.profile-card-age { font-weight: 400; }
+
+.profile-card-online {
+  align-self: center;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #22c55e; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+.profile-card-location {
+  margin: 3px 0 0;
+  font-size: 13px; line-height: 16px; color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.profile-card-actions {
+  position: absolute; z-index: 3; right: 15px; bottom: 13px;
+  display: flex; gap: 6px;
+}
+
+.card-action-form { margin: 0; }
+
+.card-action-btn {
+  display: grid; place-items: center;
+  width: 40px; height: 40px; padding: 0;
+  border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  &:active { transform: scale(0.92); }
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.card-action-chat { background: #fff; color: #1c1c1e; }
+
+// Estrela (favoritos/_favorite_button): círculo escuro; marcada = estrela dourada cheia
+.card-action-star {
+  background: rgba(40, 34, 28, 0.55);
+  svg { width: 18px; height: 18px; }
+  &--active { color: #e2c58a; svg { fill: currentColor; stroke: none; } }
+}
+
+/* --- MODO ESCURO --- */
+.dark-mode .city-explorer,
+html.dark:not(.light-mode) .city-explorer {
+  --ce-bg: var(--color-background);
+  --ce-surface: var(--color-section-gray);
+  --ce-line: var(--color-border);
+  --ce-text: var(--color-text);
+  --ce-muted: var(--color-text-secondary);
+  --ce-segment: #2a2621;
+  --ce-gold-top: #e6c993;
+  --ce-gold-bottom: #b88e52;
+
+  .ce-back, .ce-select > svg { color: var(--color-text); }
+  .ce-segment-opt span { color: var(--color-text-secondary); }
+  .ce-segment-opt input:checked + span { background: var(--color-text); color: #121212; }
+  .ce-empty-btn { background: var(--color-text); color: #121212; }
+}
+
+.dark-mode .ce-toast,
+html.dark:not(.light-mode) .ce-toast {
+  background: #222;
+  .ce-toast__title { color: #f8f2e7; }
+  .ce-toast__body { color: #c9c4bc; }
 }

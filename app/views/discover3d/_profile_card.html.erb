@@ -1,3 +1,4 @@
+<%# Card de perfil de "Explorar cidades" e de Favoritos (layout do mockup) %>
 <% photo_url = user.avatar_url %>
 <% location_text = [user.city, user.state].compact_blank.join(", ").presence || user.country.presence || "Localização oculta" %>
 <% _parts = user.display_name.to_s.split; short_name = _parts.size > 1 ? "#{_parts.first} #{_parts.last}" : _parts.first.to_s %>
@@ -10,11 +11,29 @@
   <div class="profile-card-overlay"></div>
 
   <% if user.plan&.name && %w[Plus Gold].include?(user.plan.name) %>
-    <span class="profile-card-badge"><%= user.plan.name %></span>
+    <span class="profile-card-badge"><%= user.plan.name.upcase %></span>
   <% end %>
 
+  <%# Favoritar — o Turbo Stream troca o div#favorite-btn-N inteiro, por isso a posição fica no pai %>
+  <div class="profile-card-star">
+    <div id="<%= "favorite-btn-#{user.id}" %>">
+      <%= render "favorites/favorite_button", user: user, favorite_id: (favorites_map || {})[user.id] %>
+    </div>
+  </div>
+
+  <div class="profile-card-info">
+    <p class="profile-card-name">
+      <% if user.online? && !user.invisible? %><span class="profile-card-online" title="Online agora"></span><% end %>
+      <strong><%= short_name %></strong>
+      <% if user.age %><span class="profile-card-age"><%= user.age %></span><% end %>
+      <% if user.respond_to?(:verified?) && user.verified? %>
+        <%= image_tag "icone-verificar.png", class: "verified-badge", alt: "Verificado" %>
+      <% end %>
+    </p>
+    <p class="profile-card-location"><%= location_text %></p>
+  </div>
+
   <div class="profile-card-actions">
-    <%# Curtir %>
     <%= button_to likes_path(user_id: user.id),
           method: :post,
           class: "card-action-btn card-action-fav",
@@ -22,35 +41,16 @@
           title: "Curtir #{user.display_name}",
           aria: { label: "Curtir" } do %>
       <%= hidden_field_tag :source, "gallery" %>
-      <%= image_tag "coracao-vazada.svg", alt: "" %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
     <% end %>
 
-    <%# Mensagem %>
     <%= button_to start_chat_path(user_id: user.id),
           method: :post,
           class: "card-action-btn card-action-chat",
           form: { class: "card-action-form" },
           title: "Conversar com #{user.display_name}",
           aria: { label: "Enviar mensagem" } do %>
-      <%= image_tag "mensagem-vazada.svg", alt: "" %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     <% end %>
-
-    <%# Favoritar — Turbo Stream substitui apenas este wrapper %>
-    <div id="<%= "favorite-btn-#{user.id}" %>">
-      <%= render "favorites/favorite_button", user: user, favorite_id: (favorites_map || {})[user.id] %>
-    </div>
-  </div>
-
-  <div class="profile-card-info">
-    <div class="name-row">
-      <span><%= short_name %><% if user.age %>, <%= user.age %><% end %></span>
-      <% if user.respond_to?(:verified?) && user.verified? %>
-        <%= image_tag "icone-verificar.png", class: "verified-badge", alt: "Verificado" %>
-      <% end %>
-    </div>
-    <div class="location-row">
-      <i class="fas fa-map-marker-alt"></i>
-      <span><%= location_text %></span>
-    </div>
   </div>
 </article>

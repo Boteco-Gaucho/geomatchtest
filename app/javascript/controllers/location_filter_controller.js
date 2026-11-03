@@ -11,11 +11,11 @@ export default class extends Controller {
   async fetchCities() {
     const uf = this.stateTarget.value  // value já é a sigla UF (ex: "BA")
 
-    this.cityTarget.innerHTML = '<option value="">Carregando...</option>'
+    this.cityTarget.innerHTML = '<option value="">Carregando…</option>'
     this.cityTarget.disabled  = true
 
     if (!uf) {
-      this.cityTarget.innerHTML = '<option value="">Cidade</option>'
+      this.cityTarget.innerHTML = '<option value="">Todas</option>'
       return
     }
 
@@ -29,7 +29,7 @@ export default class extends Controller {
         return `<option value="${name}"${selected}>${name}</option>`
       }).join("")
 
-      this.cityTarget.innerHTML = `<option value="">Cidade</option>${opts}`
+      this.cityTarget.innerHTML = `<option value="">Todas</option>${opts}`
       this.cityTarget.disabled  = false
     } catch (err) {
       console.warn("[LocationFilter] Erro ao consultar IBGE:", err)

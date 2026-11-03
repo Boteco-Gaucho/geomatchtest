@@ -131,6 +131,8 @@ class User < ApplicationRecord
   }
 
   scope :visible,       -> { where(invisible: [false, nil]) }
+  # "Explorar cidades": tira quem ligou o olho daquela tela (só dela — o mapa usa :visible)
+  scope :findable_in_city_search, -> { city_search_hiding? ? where(hidden_from_city_search: false) : all }
   # Filtra utilizadores ativos no mapa: só aparecem quem atualizou a localização
   # nos últimos 5 minutos. O heartbeat (presence.js) bate a cada 60s; o threshold
   # de 5 min tolera bloqueios breves de ecrã e quedas de rede temporárias.
@@ -377,6 +379,16 @@ class User < ApplicationRecord
   def profile_completion_percentage
     checks = profile_completion_checks
     ((checks.count { |_, done| done } * 100.0) / checks.size).round
+  end
+
+  # Em produção a coluna é criada à mão (migrations desligadas); até lá o olho de
+  # "Explorar cidades" fica indisponível em vez de quebrar a galeria
+  def self.city_search_hiding?
+    column_names.include?("hidden_from_city_search")
+  end
+
+  def hidden_from_city_search?
+    has_attribute?(:hidden_from_city_search) && self[:hidden_from_city_search]
   end
 
   def online?

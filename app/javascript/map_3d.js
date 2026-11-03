@@ -1,4 +1,5 @@
 import { toggleLiveTracking, startLiveTracking, resetTracking, isCurrentlyTracking } from "./live_location";
+import { openUpgradeModal } from "./upgrade_modal";
 // Turf.js é esperado estar disponível globalmente (ex: via CDN)
 // import * as turf from '@turf/turf'; // Removido para evitar erro de build se não instalado
 
@@ -1373,25 +1374,7 @@ document.addEventListener("turbo:load", () => {
     updateVisibilityUI(initialInvisible);
 
     // "Ver Gold" do aviso: abre o mesmo modal de upgrade de antes
-    const openInvisibleUpgrade = async () => {
-      const modalResponse = await fetch('/plans/modal?type=invisible');
-      const modalHtml = await modalResponse.text();
-      const container = document.getElementById("upgrade-modal-container");
-      container.innerHTML = modalHtml;
-      const backdrop = container.querySelector(".upgrade-modal-backdrop");
-      const fecharModalGeoMatch = () => {
-        if (backdrop) {
-          backdrop.style.opacity = '0';
-          setTimeout(() => { container.innerHTML = ""; }, 300);
-        }
-      };
-      container.querySelectorAll(".close-modal-btn").forEach(btn => {
-        btn.onclick = (e) => { e.preventDefault(); fecharModalGeoMatch(); };
-      });
-      if (backdrop) {
-        backdrop.onclick = (e) => { if (e.target === backdrop) fecharModalGeoMatch(); };
-      }
-    };
+    const openInvisibleUpgrade = () => openUpgradeModal("invisible");
 
     toggleVisibilityBtn.addEventListener("click", async () => {
       pingFab(toggleVisibilityBtn);

@@ -7,9 +7,9 @@ export default class extends Controller {
     const el = event.target
     const form = this.element
 
-    if (el.name === "estado") {
-      const cidadeSel = form.querySelector('select[name="cidade"]')
-      if (cidadeSel) cidadeSel.value = ""
+    if (el.name === "state") {
+      const citySelect = form.querySelector('select[name="city"]')
+      if (citySelect) citySelect.value = ""
     }
 
     form.requestSubmit()
