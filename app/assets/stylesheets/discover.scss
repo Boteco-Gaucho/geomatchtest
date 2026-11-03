@@ -58,7 +58,7 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
   pointer-events: none;
 }
-.header-logo-img { height: 28px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events: auto; }
+.header-logo-img { height: 42px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events: auto; }
 // Filtro de gênero segmentado (pílula de vidro) — 4 opções com estado ativo dourado.
 // pointer-events: auto é obrigatório: o .discover-header-floating tem pointer-events: none.
 .gm-gender-filter {
@@ -108,56 +108,79 @@
 
 .gm-gender-filter__opt::after { content: ""; position: absolute; inset: -5px; }
 
-// 3. CONTROLE DE RADAR
+// 3. CONTROLE DE RADAR — pílula de vidro clara (valor em cima, trilho vertical).
+// Medidas do mockup (print de iPhone Pro Max, 430px de largura).
 .radar-control-floating {
-  position: absolute; left: 15px; top: 280px; z-index: 500;
-  display: flex; flex-direction: column; align-items: center; gap: 0px;
+  --radar-fill: #1c1c1e;              // trilho até o polegar
+  --radar-rest: rgba(28, 28, 30, 0.14); // resto do trilho
+  position: absolute; left: 21px; top: calc(205px + env(safe-area-inset-top, 0px)); z-index: 500;
+  width: 39px; height: 188px;
+  display: flex; flex-direction: column; align-items: center;
+  padding-top: 11px;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(214, 214, 217, 0.82) 0%, rgba(240, 240, 242, 0.88) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
   // Sem cursor:grab e sem touch-action:none — o container é fixo,
   // só o input interno deve capturar interações de slide.
   cursor: default;
   user-select: none;
 }
-.radar-badge-box {
-  position: relative; width: 50px; height: auto;
-  display: flex; justify-content: center; align-items: center;
-  margin-bottom: -8px; z-index: 3; pointer-events: none;
+.radar-value {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px; font-weight: 700; line-height: 13px; color: #1c1c1e;
+  pointer-events: none;
+
+  strong { font-size: 12px; font-weight: 800; line-height: 14px; }
 }
-.radar-badge-img { width: 100%; height: auto; object-fit: contain; }
-.dynamic-value-text {
-  position: absolute; font-size: 0.7rem; font-weight: 800; color: #3e2723;
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-}
-.slider-track-container { position: relative; width: 40px; height: 160px; display: flex; justify-content: center; align-items: center; }
-.slider-track-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 0; pointer-events: none; }
+.slider-track-container { position: relative; width: 35px; height: 132px; margin-top: 6px; }
 .range-slider-custom {
   -webkit-appearance: none; appearance: none;
-  width: 160px; height: 40px; 
+  width: 132px; height: 35px;
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%) rotate(-90deg); transform-origin: center;
   background: transparent; margin: 0; padding: 0; z-index: 2; cursor: pointer; accent-color: transparent;
-  background-image: linear-gradient(to right, #f4e4bc 0%, #f4e4bc 0%, transparent 0%, transparent 100%);
-  background-repeat: no-repeat; background-position: center; background-size: 100% 4px;
+  background-image: linear-gradient(to right, var(--radar-fill) 0%, var(--radar-fill) 50%, var(--radar-rest) 50%, var(--radar-rest) 100%);
+  background-repeat: no-repeat; background-position: center; background-size: 100% 3px;
   &::-webkit-slider-runnable-track { background: transparent; border: none; height: 100%; }
   &::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
-    background: #f4e4bc; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.4); margin-top: 9px;
+    background: #fff; border: 2.5px solid #1c1c1e; box-shadow: 0 1px 4px rgba(0,0,0,0.25); margin-top: 6.5px;
   }
+  &::-moz-range-thumb { width: 17px; height: 17px; border-radius: 50%; background: #fff; border: 2.5px solid #1c1c1e; }
 }
 
-// 4. FAB ACTIONS
-.map-fab-container { position: absolute; right: 20px; bottom: 240px; z-index: 500; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
+// 4. FAB ACTIONS — círculos brancos encostados na gaveta (25vh)
+.map-fab-container {
+  position: absolute; right: 18px; bottom: max(25vh, 120px); z-index: 500;
+  display: flex; flex-direction: column; gap: 12px; pointer-events: auto;
+}
 .fab-button {
-  width: 50px; height: 50px; border-radius: 50%; border: none;
+  width: 52px; height: 52px; border-radius: 50%; border: none;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s;
+  background: #fff; color: #1c1c1e;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.25s, background-color 0.2s;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   &:active { transform: scale(0.95); }
-  &.fab-visibility { background: #0fd118; color: #fff; }
-  &.fab-visibility.active { background-color: #ff4d4d; color: white; }
-  &[title="Centralizar no meu local"] { background: #b1a57f; color: #000; }
-  svg { width: 22px; height: 22px; }
+  svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hidden { display: none; } // olho aberto/riscado (a view usa a classe hidden)
+
+  // Modo oculto: verde = aparecendo no mapa; escuro com olho riscado = oculto
+  &.fab-visibility { background: #22a45c; color: #fff; }
+  &.fab-visibility.active { background: #1c1c1e; color: #e2c58a; }
+  &.fab-visibility.is-pinged { box-shadow: 0 0 0 7px rgba(34, 164, 92, 0.28), 0 4px 14px rgba(0, 0, 0, 0.14); }
+
+  // Tempo real: seta cheia ligado; seta riscada + anel cinza desligado
+  .icon-off { display: none; }
+  &.is-off .icon-on { display: none; }
+  &.is-off .icon-off { display: block; color: #8e8a84; stroke-width: 1.8; }
+  &.is-off { box-shadow: 0 0 0 6px rgba(140, 140, 140, 0.4), 0 4px 14px rgba(0, 0, 0, 0.14); }
 }
 
 // 5. BOTTOM SHEET
@@ -847,49 +870,61 @@
 }
 
 
-/* Feedback visual quando o rastreamento contínuo está ativado */
-#fab-live-tracking.active-tracking {
-  background-color: #b6a87a; /* Cor dourada do seu tema */
-  color: #1a1a1a; /* Cor escura para contrastar */
-  border: 2px solid #fff;
-  animation: pulse-tracking 0.85s ease-out infinite;
+/* Aviso dos botões do mapa (#map-toast — showMapToast em map_3d.js) */
+.map-toast {
+  position: absolute; z-index: 700;
+  left: 18px; right: 18px; top: calc(77px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; gap: 13px;
+  min-height: 64px; padding: 12px 12px 12px 12px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: auto;
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &.is-visible { opacity: 1; transform: none; }
+  &[hidden] { display: none; }
+}
+.map-toast__icon {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  &[data-tone="sand"]  { background: #ece5d5; color: #615b4f; }
+  &[data-tone="dark"]  { background: #1c1c1e; color: #e2c58a; }
+  &[data-tone="green"] { background: #e2f3e9; color: #1d8a4d; }
+}
+.map-toast__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.map-toast__title { font-size: 16px; font-weight: 700; line-height: 20px; color: #111; }
+.map-toast__body { font-size: 14px; line-height: 18px; color: #55524d; }
+.map-toast__action {
+  flex-shrink: 0; height: 38px; padding: 0 18px;
+  border: 0; border-radius: 999px;
+  background: linear-gradient(180deg, #d6c086 0%, #cba55c 100%);
+  color: #1c1a14; font: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  &[hidden] { display: none; }
 }
 
-@keyframes pulse-tracking {
-  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.9), 0 0 10px rgba(212, 175, 55, 0.6); }
-  60%  { box-shadow: 0 0 0 14px rgba(212, 175, 55, 0), 0 0 10px rgba(212, 175, 55, 0.15); }
-  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0),  0 0 0 rgba(212, 175, 55, 0); }
+/* Modo escuro: botões, raio e aviso em superfícies escuras */
+.dark-mode,
+html.dark:not(.light-mode) {
+  .fab-button:not(.fab-visibility) { background: #222; color: #f8f2e7; }
+  .fab-button.is-off .icon-off { color: #a8a39c; }
+  .radar-control-floating {
+    --radar-fill: #f8f2e7;
+    --radar-rest: rgba(248, 242, 231, 0.18);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(34, 34, 34, 0.85);
+  }
+  .radar-value { color: #f8f2e7; }
+  .range-slider-custom::-webkit-slider-thumb { background: #222; border-color: #f8f2e7; }
+  .map-toast { background: #222; }
+  .map-toast__title { color: #f8f2e7; }
+  .map-toast__body { color: #c9c4bc; }
 }
-
-/* Estilo do Popup de Aviso de Rastreamento */
-    #tracking-toast {
-      position: fixed;
-      bottom: 120px; /* Fica acima do Bottom Sheet e dos botões */
-      left: 50%;
-      transform: translateX(-50%); /* Centraliza na tela */
-      background-color: rgba(26, 26, 26, 0.95); /* Fundo escuro levemente transparente */
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: 1px solid #d4af37; /* Bordinha dourada combinando com o tema */
-      font-size: 14px;
-      line-height: 1.4;
-      text-align: center;
-      width: 90%;
-      max-width: 350px;
-      z-index: 999999;
-      
-      /* Animação suave */
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    /* Classe que faz o toast aparecer */
-    #tracking-toast.show {
-      opacity: 1;
-      visibility: visible;
-    }
 
 // =========================================================
 // MINI CARD CINEMATOGRÁFICO (GLASSMORPHISM)

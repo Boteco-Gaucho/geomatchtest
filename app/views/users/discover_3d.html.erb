@@ -36,56 +36,41 @@
     </div>
   </div>
 
+  <%# Raio da busca: pílula branca com o valor em cima e o trilho vertical %>
   <div class="radar-control-floating">
-    <div class="radar-badge-box">
-      <%= image_tag "icone-300m.png", class: "radar-badge-img" %>
-      <span id="range-value-text" class="dynamic-value-text">150m</span>
-    </div>
-    
+    <span class="radar-value"><strong id="range-value-text">150</strong>m</span>
     <div class="slider-track-container">
-      <%= image_tag "icone-raio.png", class: "slider-track-bg" %>
-      <input type="range" id="radar-range" min="1" max="300" value="150" step="1" class="range-slider-custom">
+      <input type="range" id="radar-range" min="1" max="300" value="150" step="1"
+             class="range-slider-custom" aria-label="Raio da busca em metros">
     </div>
   </div>
 
+  <%# Avisos dos botões (tempo real, modo oculto) — preenchido por showMapToast em map_3d.js %>
+  <div id="map-toast" class="map-toast" role="status" aria-live="polite" hidden>
+    <span class="map-toast__icon"></span>
+    <span class="map-toast__text"><strong class="map-toast__title"></strong><span class="map-toast__body"></span></span>
+    <button type="button" class="map-toast__action" hidden></button>
+  </div>
+
   <div class="map-fab-container">
-    <button class="fab-button" id="fab-live-tracking" title="Seguir em Tempo Real">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-      </svg>
+    <%# Tempo real: seta cheia = ligado; seta riscada (.is-off) = desligado %>
+    <button type="button" class="fab-button" id="fab-live-tracking" title="Visibilidade em tempo real" aria-label="Visibilidade em tempo real">
+      <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11" fill="currentColor"/></svg>
+      <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.43 8.43 3 11l8 2 2 8 2.57-5.43"/><path d="M17.39 11.73 22 2l-9.73 4.61"/><path d="M2 2l20 20"/></svg>
     </button>
 
-    <button id="toggle-visibility-btn" class="fab-button fab-visibility" title="Modo Invisível">
-      <svg class="eye-open" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-      <svg class="eye-closed hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-        <line x1="1" y1="1" x2="23" y2="23"></line>
-      </svg>
+    <%# Modo oculto (Gold): olho = visível no mapa; olho riscado = oculto %>
+    <button type="button" id="toggle-visibility-btn" class="fab-button fab-visibility" title="Modo oculto" aria-label="Modo oculto">
+      <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg class="eye-closed hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
     </button>
 
-    <button class="fab-button" id="fab-center-map" title="Centralizar no meu local">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="1"></circle>
-        <path d="M12 8v-2"></path>
-        <path d="M12 18v2"></path>
-        <path d="M8 12H6"></path>
-        <path d="M18 12h2"></path>
-      </svg>
+    <button type="button" class="fab-button" id="fab-center-map" title="Centralizar no meu local" aria-label="Centralizar no meu local">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
     </button>
 
-    <%= link_to discover_3d_gallery_path,
-        class: "fab-button fab-gallery",
-        title: "Busca por cidade",
-        style: "background: linear-gradient(135deg,#d4be91,#b8975a); color:#1a1a1a; box-shadow: 0 4px 15px rgba(180,140,70,0.45);" do %>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3"  y="3"  width="7" height="7" rx="1.5"></rect>
-        <rect x="14" y="3"  width="7" height="7" rx="1.5"></rect>
-        <rect x="3"  y="14" width="7" height="7" rx="1.5"></rect>
-        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-      </svg>
+    <%= link_to discover_3d_gallery_path, class: "fab-button fab-gallery", title: "Busca por cidade", aria: { label: "Busca por cidade" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
     <% end %>
   </div>
 
