@@ -28,4 +28,14 @@ json.reports @reports do |r|
   else
     json.reporter nil
   end
+  # Perfil denunciado ("Sobre quem?") — nil se não indicado ou se a coluna ainda não existir
+  reported = r.has_attribute?(:reported_user_id) ? r.reported_user : nil
+  if reported
+    json.reported_user do
+      json.id   reported.id
+      json.name reported.display_name
+    end
+  else
+    json.reported_user nil
+  end
 end

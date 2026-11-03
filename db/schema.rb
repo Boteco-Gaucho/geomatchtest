@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_02_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -344,10 +344,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_120000) do
     t.string "category", default: "other", null: false
     t.datetime "created_at", null: false
     t.text "description"
+    t.bigint "reported_user_id"
     t.bigint "reporter_id"
     t.datetime "resolved_at"
     t.datetime "updated_at", null: false
     t.index ["category"], name: "index_reports_on_category"
+    t.index ["reported_user_id"], name: "index_reports_on_reported_user_id"
     t.index ["reporter_id"], name: "index_reports_on_reporter_id"
     t.index ["resolved_at"], name: "index_reports_on_resolved_at"
   end

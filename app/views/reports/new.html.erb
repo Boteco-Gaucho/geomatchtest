@@ -1,0 +1,124 @@
+<%# Fazer uma denúncia — layout do mockup. Usa o topo, as cores e o painel da
+    Central de Segurança (.safety-center / .sc-*); o resto é .ri-* (report_incident.scss).
+    "Sobre quem?" e as fotos: report_form_controller.js %>
+<div class="safety-center report-incident" data-controller="report-form"
+     data-action="turbo:before-cache@document->report-form#closePicker keydown.esc@window->report-form#closePicker">
+
+  <%# --- TOPO --- %>
+  <div class="sc-header">
+    <%= link_to safety_center_path, class: "sc-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
+    <div class="sc-heading">
+      <h1 class="sc-title"><span>Fazer uma denúncia</span></h1>
+      <p class="sc-subtitle">Nossa equipe analisa cada relato com atenção.</p>
+    </div>
+  </div>
+
+  <%= form_with model: @report, url: reports_path, multipart: true, class: "ri-form" do |f| %>
+    <% if @report.errors.any? %>
+      <div class="ri-errors" role="alert">
+        <% @report.errors.map(&:message).uniq.each do |message| %>
+          <p><%= message %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# --- O QUE ACONTECEU? --- %>
+    <fieldset class="ri-group ri-group--first">
+      <legend class="ri-label">O que aconteceu?</legend>
+      <div class="ri-chips">
+        <% Report::FORM_CATEGORIES.each do |value, label| %>
+          <label class="ri-chip">
+            <%= f.radio_button :category, value, required: true %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+
+    <%# --- SOBRE QUEM? (opcional) --- %>
+    <% if Report.reported_user_column? %>
+      <% chosen = @report.reported_user %>
+      <div class="ri-group">
+        <p class="ri-label" id="ri-who-label">Sobre quem? <span>(opcional)</span></p>
+        <button type="button" class="ri-person<%= ' is-chosen' if chosen %>" data-action="report-form#openPicker"
+                aria-haspopup="dialog" aria-labelledby="ri-who-label ri-person-name">
+          <span class="ri-person-avatar" data-report-form-target="personAvatar">
+            <% if chosen %>
+              <%= image_tag chosen.avatar_url, alt: "" %>
+            <% else %>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <% end %>
+          </span>
+          <span class="ri-person-name" id="ri-person-name" data-report-form-target="personName"><%= chosen ? chosen.display_name : "Escolher um perfil das suas conversas" %></span>
+          <svg class="sc-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        <div class="sc-sheet" data-report-form-target="picker" hidden>
+          <div class="sc-sheet-backdrop" data-action="click->report-form#closePicker"></div>
+          <div class="sc-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="ri-picker-title">
+            <h3 class="sc-sheet-title" id="ri-picker-title">Sobre quem?</h3>
+            <div class="ri-picker-list">
+              <label class="ri-pick">
+                <%= f.radio_button :reported_user_id, "", data: { action: "report-form#pick" } %>
+                <span class="ri-pick-avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <span class="ri-pick-name">Não quero indicar um perfil</span>
+              </label>
+              <% @contacts.each do |user| %>
+                <label class="ri-pick">
+                  <%= f.radio_button :reported_user_id, user.id,
+                                     data: { action: "report-form#pick", name: user.display_name, avatar: user.avatar_url } %>
+                  <%= image_tag user.avatar_url, class: "ri-pick-avatar", alt: "" %>
+                  <span class="ri-pick-name"><%= user.display_name %></span>
+                </label>
+              <% end %>
+            </div>
+            <% if @contacts.empty? %>
+              <p class="ri-picker-empty">Você ainda não tem conversas. Para denunciar alguém, use "Denunciar" no perfil da pessoa.</p>
+            <% end %>
+            <button type="button" class="sc-sheet-cancel" data-action="report-form#closePicker">Fechar</button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <%# --- CONTE O QUE HOUVE --- %>
+    <div class="ri-group" data-controller="char-counter">
+      <div class="ri-label-row">
+        <%= f.label :description, "Conte o que houve", class: "ri-label" %>
+        <span class="ri-meta" data-char-counter-target="count">0/<%= Report::DESCRIPTION_MAX %></span>
+      </div>
+      <%= f.text_area :description, class: "ri-textarea", maxlength: Report::DESCRIPTION_MAX, required: true,
+                                    placeholder: "Com suas palavras: o que aconteceu, quando e onde.",
+                                    data: { char_counter_target: "input", action: "input->char-counter#update" } %>
+    </div>
+
+    <%# --- PRINTS OU FOTOS (opcional) --- %>
+    <div class="ri-group ri-group--photos">
+      <div class="ri-label-row">
+        <p class="ri-label">Prints ou fotos <span>(opcional)</span></p>
+        <span class="ri-meta">Até <%= Report::MAX_PHOTOS %></span>
+      </div>
+      <%= f.file_field :photos, multiple: true, accept: "image/*", id: "ri-photos-input", class: "ri-file",
+                                data: { report_form_target: "photoInput", action: "change->report-form#addPhotos" } %>
+      <div class="ri-photos" data-report-form-target="photoSlots">
+        <label class="ri-photo ri-photo--add" for="ri-photos-input">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          <span>Adicionar</span>
+        </label>
+        <span class="ri-photo ri-photo--empty"></span>
+        <span class="ri-photo ri-photo--empty"></span>
+      </div>
+    </div>
+
+    <div class="ri-notice">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <p>A pessoa denunciada não fica sabendo que foi você. Depois de enviada, a denúncia não pode ser editada.</p>
+    </div>
+
+    <div class="ri-footer">
+      <%= f.button "Enviar denúncia", type: "submit", class: "ri-submit", data: { turbo_submits_with: "Enviando..." } %>
+    </div>
+  <% end %>
+</div>

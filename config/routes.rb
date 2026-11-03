@@ -117,7 +117,7 @@ Rails.application.routes.draw do
   # Funcionalidades extras de usuário
   get "/safety_center",         to: "users#safety_center",   as: :safety_center
   get "/safety_center/history", to: "users#safety_history",  as: :safety_history
-  get "/report_incident",       to: "users#report_incident", as: :report_incident
+  get "/report_incident",       to: "reports#new",           as: :report_incident # "Fazer uma denúncia"
   get "/meu-perfil",      to: "users#me_profile",      as: :my_profile
   get  "/onboarding",    to: "users#onboarding",          as: :onboarding
   patch "/onboarding",   to: "users#complete_onboarding"

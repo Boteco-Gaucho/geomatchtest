@@ -8,6 +8,7 @@ module Api
 
         def index
           base = Report.includes(:reporter).order(created_at: :desc)
+          base = base.includes(:reported_user) if Report.reported_user_column?
           base = base.by_category(params[:category]) if params[:category].present?
 
           case params[:status]

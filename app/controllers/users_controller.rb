@@ -136,14 +136,6 @@ class UsersController < ApplicationController
     end
   end
 
-  # Página de Denúncia
-  def report_incident
-    @reported_user = User.find_by(id: params[:user_id]) if params[:user_id].present?
-    respond_to do |format|
-      format.html
-    end
-  end
-
   # Mesma tela de Editar Perfil, abrindo na aba "Pré-visualizar"
   def preview
     @user = current_user

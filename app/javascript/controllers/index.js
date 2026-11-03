@@ -90,3 +90,6 @@ application.register("profile-tabs", ProfileTabsController)
 
 import SafetyCenterController from "./safety_center_controller"
 application.register("safety-center", SafetyCenterController)
+
+import ReportFormController from "./report_form_controller"
+application.register("report-form", ReportFormController)

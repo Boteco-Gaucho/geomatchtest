@@ -1,202 +1,386 @@
 // =========================================================
-// TELA DE DENÚNCIA RÁPIDA (CORRIGIDA - BOTÃO MAIS ALTO)
+// FAZER UMA DENÚNCIA (/report_incident) — layout do mockup
+// (529px de largura → ×0,737 para 390px; Inter em tamanhos inteiros).
+// Topo, cores e painel vêm da Central de Segurança (.safety-center / .sc-*,
+// em safety_center.scss); aqui só o formulário.
 // =========================================================
 
-html, body {
-  height: auto;
-  overflow-y: auto; /* Garante que o scroll do navegador funcione */
+.report-incident {
+  --ri-line: #e7e3da;
+  --ri-chip-line: #e6dcd0;
+  --ri-dash: #c2b7a5;
+  --ri-dash-soft: #ddd6ca;
+  --ri-soft: #fbf8f3;
+  --ri-notice: #ece4d5;
+  --ri-notice-text: #3f372e;
+  --ri-placeholder: #6f6b67;
+  --ri-chosen: #1a1a1a;
+  --ri-footer-line: #efeadf;
+
+  padding-top: 8px;
+  // espaço da barra fixa do botão (+ área segura / tab bar do app)
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+
+  .sc-subtitle { margin-top: 3px; }
 }
 
-.report-wrapper {
-  background-color: #050507; 
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  /* Garante que o fundo preto cubra tudo, mesmo no scroll */
-  position: relative; 
-}
+/* --- GRUPOS E RÓTULOS --- */
+.ri-form { margin: 0; }
 
-/* --- 1. HEADER --- */
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 25px;
-  padding-top: calc(20px + env(safe-area-inset-top));
-}
-
-.btn-back {
-  background: none;
-  border: none;
+.ri-group {
+  margin: 22px 0 0;
   padding: 0;
-  cursor: pointer;
+  border: 0;
+  min-width: 0;
 }
 
-.icon-arrow {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+.ri-group--first { margin-top: 24.5px; }
+
+.ri-group--photos {
+  margin-top: 24px;
+
+  .ri-label-row .ri-label { margin-bottom: 6.5px; }
 }
 
-.header-title-container {
-  display: flex;
-  justify-content: center;
-  flex: 1;
-  padding: 0 15px;
-}
-
-.title-img-report {
-  height: 45px;
-  width: auto;
-  object-fit: contain;
-}
-
-.icon-shield-gray {
-  width: 28px;
-  height: 28px;
-  opacity: 0.8;
-}
-
-// Escudo à direita do topo (a regra morava no CSS antigo da Central de Segurança)
-.header-icon-right {
-  flex-shrink: 0;
-  margin-top: 6px;
-}
-
-/* --- 2. BODY --- */
-.report-body {
-  flex: 1 0 auto; /* Permite que o corpo cresça e empurre o footer */
-  padding: 10px 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-/* Área de Texto */
-.form-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.section-label {
-  font-size: 1rem;
+.ri-label {
+  display: block;
+  margin: 0 0 8.5px;
+  padding: 0;
+  font-size: 15px;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 2px;
+  line-height: 20px;
+  color: var(--sc-text);
+
+  span { font-weight: 400; color: var(--sc-muted); }
 }
 
-.section-sublabel {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin-bottom: 10px;
-}
-
-.report-textarea {
+// <legend> sai do posicionamento especial do fieldset
+legend.ri-label {
+  float: left;
   width: 100%;
-  height: 120px;
-  background-color: #1a1a1d;
-  border: 1px solid #444;
-  border-radius: 12px;
-  color: #fff;
-  padding: 15px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: none;
-  box-sizing: border-box;
-  outline: none;
-  
-  &:focus {
-    border-color: #d4af37;
+
+  + * { clear: both; }
+}
+
+.ri-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  .ri-label { margin-bottom: 8.5px; }
+}
+
+.ri-meta {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--sc-muted);
+}
+
+.ri-errors {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #fde2e1;
+  color: #8f1d14;
+  font-size: 13.5px;
+  line-height: 1.45;
+
+  p { margin: 0; }
+}
+
+/* --- O QUE ACONTECEU? (chips) --- */
+.ri-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ri-chip {
+  position: relative;
+  cursor: pointer;
+
+  // o rádio fica invisível por cima do chip (continua focável e "required")
+  input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
   }
+
+  span {
+    display: flex;
+    align-items: center;
+    height: 41px;
+    padding: 0 16px;
+    border: 1.5px solid var(--ri-chip-line);
+    border-radius: 999px;
+    background: var(--sc-surface);
+    color: var(--sc-text);
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  input:checked + span {
+    border-color: var(--ri-chosen);
+    background: var(--ri-chosen);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  input:focus-visible + span { outline: 2px solid var(--sc-gold-top); outline-offset: 2px; }
 }
 
-/* Área de Fotos */
-.photos-section-container {
-  border: 1px solid #d4af37;
-  border-radius: 15px;
-  padding: 15px;
-  background-color: #0a0a0c;
-}
-
-.photos-header-box {
+/* --- SOBRE QUEM? --- */
+.ri-person {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 15px;
+  width: 100%;
+  min-height: 57px;
+  margin-top: 0.5px;
+  padding: 8.5px 14px;
+  border: 1.5px solid var(--ri-line);
+  border-radius: 18px;
+  background: var(--sc-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.camera-icon-circle {
-  width: 40px;
-  height: 40px;
+.ri-person-avatar,
+.ri-pick-avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
   border-radius: 50%;
-  background-color: #2a2a2d;
-  border: 1px solid #d4af37;
+  background: var(--ri-notice);
+  color: #4f4126;
+  object-fit: cover;
+  overflow: hidden;
+
+  svg { width: 18px; height: 18px; stroke-width: 1.9; }
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.ri-person-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 19px;
+  color: #4a4a4a;
+}
+
+.ri-person.is-chosen .ri-person-name { color: var(--sc-text); font-weight: 600; }
+
+.ri-picker-list {
+  max-height: 50vh;
+  margin: 12px -4px 4px;
+  overflow-y: auto;
+}
+
+.ri-pick {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    right: 8px;
+    margin: 0;
+    accent-color: var(--ri-chosen);
+  }
+
+  &:has(input:checked) { background: var(--sc-bg); }
 }
 
-.icon-camera-png {
-  width: 22px;
-  height: auto;
+.ri-pick-name {
+  flex: 1;
+  min-width: 0;
+  padding-right: 28px;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ri-picker-empty {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sc-muted);
+}
+
+/* --- CONTE O QUE HOUVE --- */
+.ri-textarea {
   display: block;
+  width: 100%;
+  height: 139px;
+  margin-top: -1px;
+  padding: 13px 15px;
+  border: 1.5px solid var(--ri-line);
+  border-radius: 18px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 22px;
+  resize: none;
+
+  &::placeholder { color: var(--ri-placeholder); }
+  &:focus { outline: none; border-color: var(--sc-gold-top); }
 }
 
-.photos-text {
+/* --- PRINTS OU FOTOS --- */
+.ri-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ri-photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ri-photo {
+  position: relative;
+  height: 108px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.ri-photo--add {
   display: flex;
   flex-direction: column;
-  
-  strong { font-size: 0.95rem; font-weight: 700; }
-  span { font-size: 0.7rem; color: #aaa; }
-}
-
-.report-photos-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.photo-placeholder-box {
-  aspect-ratio: 3 / 4;
-  background-color: #1a1a1d;
-  border: 1px dashed #444;
-  border-radius: 10px;
-  display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  
-  .plus-sign {
-    color: #555;
-    font-size: 1.5rem;
-    font-weight: 300;
-  }
-}
-
-/* --- 3. FOOTER (CORREÇÃO DE POSIÇÃO) --- */
-.report-footer {
-  flex-shrink: 0; /* Impede o botão de amassar */
-  padding: 20px 25px 80px 25px; /* O padding de 80px evita que o botão fique atrás do menu inferior */
-  display: flex;
-  justify-content: center;
-  background-color: #050507; /* Garante que não apareça branco aqui */
-}
-
-.btn-submit-report {
-  background-color: #e61919;
-  color: #fff;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 25px;
-  font-size: 1rem;
+  gap: 6px;
+  border: 1.5px dashed var(--ri-dash);
+  background: var(--sc-surface);
+  color: #4d4131;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+
+  svg { width: 20px; height: 20px; stroke-width: 1.9; }
+}
+
+.ri-photo--empty {
+  border: 1.5px dashed var(--ri-dash-soft);
+  background: var(--ri-soft);
+}
+
+.ri-photo--filled img {
   width: 100%;
-  max-width: 300px; /* Controla a largura máxima */
-  box-shadow: 0 4px 10px rgba(230, 25, 25, 0.3);
-  transition: transform 0.2s;
-  
-  &:active {
-    transform: scale(0.98);
+  height: 100%;
+  object-fit: cover;
+}
+
+.ri-photo-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* --- AVISO --- */
+.ri-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 12px 14px 12px 16px;
+  border-radius: 16px;
+  background: var(--ri-notice);
+  color: var(--ri-notice-text);
+
+  svg { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; stroke-width: 1.9; }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 20px;
   }
+}
+
+/* --- BOTÃO FIXO EMBAIXO --- */
+.ri-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  padding: 17px 20px max(17px, calc(env(safe-area-inset-bottom, 0px) + 1px));
+  border-top: 1px solid var(--ri-footer-line);
+  background: var(--sc-surface);
+}
+
+// No navegador a barra de navegação do app continua embaixo: o botão fica logo acima dela
+body:not(.turbo-native) .ri-footer {
+  bottom: max(70px, calc(57px + env(safe-area-inset-bottom, 0px)));
+  padding-bottom: 17px;
+}
+
+.ri-submit {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: 51px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 14px;
+  background: #c9a052;
+  color: #1c1a14;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:active { transform: scale(0.99); }
+  &:disabled { opacity: 0.7; }
+}
+
+/* --- MODO ESCURO --- */
+.dark-mode .report-incident,
+html.dark:not(.light-mode) .report-incident {
+  --ri-line: var(--color-border);
+  --ri-chip-line: var(--color-border);
+  --ri-dash: #5a5248;
+  --ri-dash-soft: #3a3631;
+  --ri-soft: #1a1a1a;
+  --ri-notice: #2a2621;
+  --ri-notice-text: var(--color-text-secondary);
+  --ri-placeholder: #8f8a84;
+  --ri-chosen: var(--color-text);
+  --ri-footer-line: var(--color-border);
+
+  .ri-chip input:checked + span { color: #121212; }
+  .ri-person-avatar, .ri-pick-avatar { color: var(--color-text); }
+  .ri-person-name { color: var(--color-text-secondary); }
+  .ri-person.is-chosen .ri-person-name { color: var(--color-text); }
+  .ri-photo--add { color: var(--color-text); }
+  .ri-footer { background: var(--color-background); }
+  .ri-errors { background: rgba(239, 83, 80, 0.16); color: #ff9a90; }
 }

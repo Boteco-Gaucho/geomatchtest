@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { showToast } from "../show_toast"
 
 // Central de Segurança: "Compartilhar local" e "Modo Pânico".
 // O GPS só responde depois do toque, e alguns navegadores (Safari/iOS) só abrem a
@@ -24,7 +25,7 @@ export default class extends Controller {
   shareLocation() {
     this._locate(this.shareStatusTarget, "Obtendo localização...", (mapUrl, error) => {
       if (!mapUrl) {
-        this._toast(LOCATION_ERRORS[error?.code] || "Seu navegador não suporta geolocalização.", true)
+        showToast(LOCATION_ERRORS[error?.code] || "Seu navegador não suporta geolocalização.", true)
         return
       }
 
@@ -39,7 +40,7 @@ export default class extends Controller {
   // Sem GPS o alerta sai do mesmo jeito, só sem o link do mapa
   panic() {
     this._locate(this.panicStatusTarget, "Preparando alerta...", (mapUrl) => {
-      if (!mapUrl) this._toast("Não conseguimos sua localização. O alerta vai sem o mapa.", true)
+      if (!mapUrl) showToast("Não conseguimos sua localização. O alerta vai sem o mapa.", true)
 
       const name = this.nameValue || "Um usuário do GeoMatch"
       const contact = mapUrl
@@ -72,7 +73,7 @@ export default class extends Controller {
       await navigator.share(this._pending.data)
       this.closeSheet()
     } catch (error) {
-      if (error.name !== "AbortError") this._toast("Não foi possível abrir as opções de compartilhamento.", true)
+      if (error.name !== "AbortError") showToast("Não foi possível abrir as opções de compartilhamento.", true)
     }
   }
 
@@ -82,7 +83,7 @@ export default class extends Controller {
     const text = this._pending.text
     const done = () => {
       this.closeSheet()
-      this._toast("Mensagem copiada. Cole na conversa com quem você confia.")
+      showToast("Mensagem copiada. Cole na conversa com quem você confia.")
     }
     const fallback = () => {
       const area = document.createElement("textarea")
@@ -94,7 +95,7 @@ export default class extends Controller {
       let copied = false
       try { copied = document.execCommand("copy") } catch (_) { copied = false }
       area.remove()
-      copied ? done() : this._toast("Não foi possível copiar.", true)
+      copied ? done() : showToast("Não foi possível copiar.", true)
     }
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -153,21 +154,5 @@ export default class extends Controller {
     this.whatsappTarget.href = `https://wa.me/?text=${encodeURIComponent(text)}`
     this.moreOptionsTarget.hidden = !navigator.share
     this.sheetTarget.hidden = false
-  }
-
-  _toast(text, isError = false) {
-    const container = document.getElementById("toast-container")
-    if (!container) return
-
-    const toast = document.createElement("div")
-    toast.className = `toast toast--${isError ? "alert" : "notice"}`
-    toast.setAttribute("data-controller", "toast")
-    toast.setAttribute("role", "alert")
-    toast.setAttribute("aria-live", "polite")
-    toast.innerHTML =
-      `<span class="toast__message"></span>` +
-      `<button class="toast__close" data-action="toast#close" aria-label="Fechar">✕</button>`
-    toast.querySelector(".toast__message").textContent = text
-    container.prepend(toast)
   }
 }
