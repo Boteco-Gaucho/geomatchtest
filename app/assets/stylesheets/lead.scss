@@ -12,8 +12,6 @@ html, body {
   --gold-dark: #c7b268;
   --bg-dark: var(--color-background);
   --card-bg: var(--color-section-light);
-  --sheet-bg: var(--color-background);
-  --card-inner-bg: var(--color-section-light);
   --text-white: #ffffff;
   --text-gray: var(--color-text-secondary);
   --header-height: 60px;
@@ -503,17 +501,17 @@ html, body {
 }
 
 // =========================================
-// 4. PERFIL COMPLETO (PREMIUM STYLE)
+// 4. PERFIL COMPLETO (sheet da seta do card) — o conteúdo é o de /users/:id
+//    (users/_full_profile, estilos .up-* em user_profile.scss)
 // =========================================
 
 .full-profile-sheet {
   position: fixed;
   top: 100%; left: 0; width: 100%;
   
-  /* Tela cheia para o estilo premium */
-  height: 100%; 
-  
-  background: var(--sheet-bg); 
+  height: 100%;
+
+  background: #f9f2e8; /* mesmo fundo de /users/:id (.user-profile) */
   z-index: 10000; /* Acima de tudo */
   
   transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -523,74 +521,15 @@ html, body {
   &.open { top: 0; }
 }
 
-/* Botão Fechar (Círculo Flutuante) */
-.close-profile-btn {
-  position: absolute;
-  top: calc(20px + env(safe-area-inset-top));
-  right: 20px;
-  width: 40px; height: 40px;
-  background: linear-gradient(135deg, #b9ae88, #aa9f76);
-  border: none; border-radius: 50%;
-  color: #000; font-size: 1.2rem;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  cursor: pointer;
-  &:active { transform: scale(0.9); }
-}
-
 .profile-scroll-content {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  background: var(--sheet-bg);
-  padding-bottom: 50px; 
 }
 
-/* --- Capa Imersiva --- */
-.profile-cover-section {
-  position: relative; width: 100%; height: 65vh;
-  .profile-cover-img { width: 100%; height: 100%; object-fit: cover; }
-  .profile-cover-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0, 1) 98%);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 20px;
-  }
-  .cover-info {
-    margin-bottom: 10px;
-    .cover-name {
-      font-size: 2.2rem; font-weight: 700; color: #fff; margin: 0;
-      display: flex; align-items: center; gap: 8px;
-      .cover-age { font-weight: 400; font-size: 1.8rem; }
-      .cover-verified { width: 22px; height: 22px; }
-    }
-    .cover-job { color: #fff; font-size: 0.95rem; margin: 5px 0; display: flex; align-items: center; gap: 8px; }
-    .cover-distance { color: #ccc; font-size: 0.9rem; margin: 0; display: flex; align-items: center; gap: 8px; }
-  }
-}
-
-/* --- Container dos Cards --- */
-.profile-body-container {
-  padding: 0 16px;
-  margin-top: -15px; /* Sobrepõe levemente a capa */
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column; gap: 16px;
-}
-
-/* Card Genérico (Cinza Escuro) */
-.profile-info-card {
-  background: var(--card-inner-bg);
-  border-radius: 12px; padding: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  
-  .card-header {
-    font-size: 1rem; font-weight: 600; color: var(--color-text);
-    margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-}
-
-/* Tipografia e Listas */
-.profile-bio-text { color: var(--color-text-secondary); font-size: 1rem; line-height: 1.5; white-space: pre-wrap; }
+.dark-mode .full-profile-sheet,
+html.dark:not(.light-mode) .full-profile-sheet { background: #121212; }
 
 // --- Pills (shared: public profile page + swipe modal) ---
 .info-pills-container {
@@ -633,23 +572,6 @@ html, body {
     .gallery-img { width: 100%; height: 100%; object-fit: cover; }
   }
 }
-
-/* Botões de Segurança (Rodapé) */
-.profile-safety-actions {
-  display: flex; flex-direction: column; align-items: center;
-  margin-top: 30px; padding: 20px 0;
-  
-  .safety-divider { width: 100%; height: 1px; background: var(--color-border); margin: 15px 0; }
-  .btn-safety-block {
-    background: transparent; border: none; color: var(--color-text-secondary);
-    font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-    padding: 15px; width: 100%; cursor: pointer; transition: color 0.2s;
-    &:hover { color: #ff4b4b; background: rgba(255, 75, 75, 0.05); }
-  }
-  .safety-separator { width: 80%; height: 1px; background: var(--color-border); margin: 0 auto; }
-}
-
-.bottom-spacer { height: 80px; }
 
 // =========================================
 // 5. FILTROS MODAL

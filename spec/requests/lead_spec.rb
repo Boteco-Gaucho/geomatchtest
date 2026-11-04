@@ -32,6 +32,26 @@ RSpec.describe "Lead (/lead)", type: :request do
     expect(card.at_css("button.lead-open-profile")["data-action"]).to eq("lead-swipe#openProfile")
   end
 
+  it "a seta abre o perfil completo com o mesmo layout de /users/:id; X e coração jogam o card" do
+    page = open_lead(brenda)
+    sheet = page.at_css(".full-profile-sheet")
+
+    profile = sheet.at_css(".user-profile.is-in-sheet")
+    expect(profile).to be_present
+    expect(profile["data-controller"]).to be_nil # nada de voltar no histórico: a seta fecha o sheet
+    expect(profile.at_css(".up-name strong").text).to eq("Brenda")
+    expect(profile.at_css(".up-back")["data-action"]).to eq("lead-swipe#closeProfile")
+    expect(profile.at_css(".up-pass")["data-action"]).to eq("lead-swipe#rejectFromProfile")
+    expect(profile.at_css(".up-like")["data-action"]).to eq("lead-swipe#likeFromProfile")
+    expect(profile.at_css(".up-message-form")["action"]).to eq("/start_chat/#{brenda.id}")
+    expect(profile.css(".up-label").map(&:text)).to eq(%w[Sobre Informações Interesses])
+    expect(profile.css(".up-tags li").map(&:text)).to eq(%w[Praia Cinema Trilhas Pets])
+    expect(profile.css(".up-safety-btn").map { |b| b.text.squish }).to eq(%w[Denunciar Bloquear])
+    expect(profile.at_css("#favorite-btn-#{brenda.id}")).to be_present
+    expect(page.css("#upgrade-modal-container").size).to eq(1) # o do /lead; o sheet não duplica
+    expect(sheet.css(".close-profile-btn, .profile-info-card")).to be_empty # layout antigo saiu
+  end
+
   it "mantém a logo, tira o botão de tema e mostra os 4 botões de ação" do
     page = open_lead(brenda)
 

@@ -379,6 +379,16 @@
   background: var(--up-safety-sep);
 }
 
+// ---------- Dentro do sheet "perfil completo" do /lead ----------
+// O sheet (lead.scss) cobre a tela toda, inclusive atrás da barra de status:
+// botões e indicadores descem pela área segura do topo.
+.user-profile.is-in-sheet {
+  .up-back,
+  .up-fav { top: calc(30px + env(safe-area-inset-top, 0px)); }
+
+  .up-hero .pc-indicators { top: calc(14px + env(safe-area-inset-top, 0px)); }
+}
+
 // ---------- Modo escuro (a foto fica igual) ----------
 .dark-mode .user-profile,
 html.dark:not(.light-mode) .user-profile {

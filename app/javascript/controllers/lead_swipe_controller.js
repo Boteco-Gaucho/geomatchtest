@@ -84,6 +84,17 @@ export default class extends Controller {
     }
   }
 
+  // X e coração do perfil completo: fecham o sheet e fazem o mesmo que os do card
+  rejectFromProfile(event) {
+    this.closeProfile(event)
+    this._throwCard('reject')
+  }
+
+  likeFromProfile(event) {
+    this.closeProfile(event)
+    this._throwCard('like')
+  }
+
   // ============================================================
   // POINTER EVENTS — DRAG
   // ============================================================

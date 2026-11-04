@@ -82,97 +82,10 @@
     <% end %>
   </div>
 
-  <%# --- PERFIL COMPLETO --- %>
+  <%# --- PERFIL COMPLETO (seta do card) — mesmo layout de /users/:id --- %>
   <div class="full-profile-sheet" data-lead-swipe-target="profileModal">
-
-    <button class="close-profile-btn" data-action="click->lead-swipe#closeProfile">
-      <i class="fas fa-arrow-down"></i>
-    </button>
-
     <div class="profile-scroll-content">
-
-      <div class="profile-cover-section">
-        <%= render "shared/profile_carousel", user: next_user, show_gradient: false %>
-        <div class="profile-cover-overlay">
-          <div class="cover-info">
-            <h2 class="cover-name">
-              <%= next_user.display_name %>
-              <span class="cover-age"><%= next_user.age %></span>
-              <% if next_user.respond_to?(:verified) && next_user.verified %>
-                <%= image_tag "verificado.svg", class: "cover-verified" rescue nil %>
-              <% end %>
-            </h2>
-            <% if next_user.respond_to?(:job_title) && next_user.job_title.present? %>
-              <p class="cover-job"><i class="fas fa-briefcase"></i> <%= next_user.job_title %></p>
-            <% end %>
-            <p class="cover-distance"><i class="fas fa-location-arrow"></i> a <%= distance || 1 %> km de distância</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-body-container">
-
-        <div class="profile-info-card">
-          <h3 class="card-header">Sobre mim</h3>
-          <p class="profile-bio-text">
-            <%= next_user.bio.present? ? next_user.bio : "Sem biografia." %>
-          </p>
-        </div>
-
-        <div class="profile-info-card">
-          <h3 class="card-header">Informações básicas</h3>
-          <div class="info-pills-container">
-            <% if next_user.gender.present? %>
-              <span class="info-pill">
-                <i class="fas fa-venus-mars"></i> <%= next_user.gender.capitalize %>
-              </span>
-            <% end %>
-            <% if next_user.interested_in.present? %>
-              <span class="info-pill">
-                <i class="fas fa-search"></i> Busca: <%= next_user.interested_in.capitalize %>
-              </span>
-            <% end %>
-            <% if next_user.city.present? %>
-              <span class="info-pill">
-                <i class="fas fa-map-marker-alt"></i> <%= next_user.city %>
-              </span>
-            <% end %>
-          </div>
-        </div>
-
-        <% if next_user.respond_to?(:hobbies_list) && next_user.hobbies_list.any? %>
-          <div class="profile-info-card">
-            <h3 class="card-header">Interesses</h3>
-            <div class="tags-container">
-              <% next_user.hobbies_list.each do |hobby| %>
-                <span class="tag-pill"><%= hobby %></span>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-
-        <div class="profile-safety-actions">
-          <div class="safety-divider"></div>
-
-          <%= button_to report_incident_path(user_id: next_user.id),
-              method: :get,
-              class: "btn-safety-block" do %>
-            DENUNCIAR <%= next_user.display_name.upcase %>
-          <% end %>
-
-          <div class="safety-separator"></div>
-
-          <button type="button"
-                  class="btn-safety-block"
-                  onclick="openBlockConfirm('<%= j next_user.display_name %>', '<%= block_user_path(next_user) %>')">
-            BLOQUEAR <%= next_user.display_name.upcase %>
-          </button>
-
-          <div class="safety-divider"></div>
-        </div>
-
-        <div class="bottom-spacer"></div>
-      </div>
+      <%= render "users/full_profile", user: next_user, in_sheet: true %>
     </div>
   </div>
 
