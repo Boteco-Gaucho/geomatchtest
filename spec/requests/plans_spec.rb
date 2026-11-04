@@ -1,75 +1,99 @@
 require "rails_helper"
 
-RSpec.describe "Plans", type: :request do
-  describe "GET /plans" do
-    context "when not authenticated" do
-      it "redirects to sign in" do
-        get "/plans"
-        expect(response).to have_http_status(:found)
-        expect(response).to redirect_to(new_user_session_path)
-      end
+RSpec.describe "Planos (/plans)", type: :request do
+  let(:plus_features) do
+    { "likes_right_unlimited" => true, "see_who_liked_me" => true, "see_who_i_liked" => true,
+      "unlimited_messages" => true, "allow_invisible" => false, "search_by_distance" => false,
+      "rewind_profile" => false }
+  end
+  let(:gold_features) { plus_features.merge("allow_invisible" => true, "search_by_distance" => true, "rewind_profile" => true) }
+
+  let!(:free) { create(:plan, :free, description: "Plano gratuito") }
+  let!(:plus) { create(:plan, code: "plus", name: "Plus", price_cents: 1999, features: plus_features) }
+  let!(:gold) { create(:plan, code: "gold", name: "Gold", price_cents: 4799, features: gold_features) }
+
+  def card(page, code)
+    page.at_css("#plano-#{code}")
+  end
+
+  context "sem login" do
+    # PlansController libera o index (vitrine); o /checkout é que pede login
+    it "abre a vitrine sem 'Seu plano' e com Assinar nos planos pagos" do
+      get "/plans"
+      expect(response).to have_http_status(:ok)
+      page = Nokogiri::HTML(response.body)
+
+      expect(page.css(".pl-tag--current")).to be_empty
+      expect(page.css("button.pl-cta--buy").map(&:text)).to eq([ "Assinar Gold", "Assinar Plus" ])
+    end
+  end
+
+  context "com login" do
+    let(:user) { create(:user, onboarding_completed: true, plan: free) }
+
+    before { sign_in user, scope: :user }
+
+    it "monta a tela do mockup: título, do mais caro ao mais barato, preço e aviso do checkout" do
+      get "/plans"
+      expect(response).to have_http_status(:ok)
+      page = Nokogiri::HTML(response.body)
+
+      expect(page.at_css(".pl-title").text.squish).to eq("Desbloqueie o melhor do GeoMatch")
+      expect(page.css(".pl-trust li").map { |li| li.text.squish }).to eq([ "Pagamento seguro via Mercado Pago", "Cancele quando quiser" ])
+      expect(page.css(".pl-card").map { |c| c["id"] }).to eq(%w[plano-gold plano-plus plano-free])
+      expect(card(page, "gold")["class"]).to include("pl-card--gold")
+      expect(card(page, "gold").at_css(".pl-price").text.squish).to eq("R$ 47,99 /mês")
+      expect(card(page, "free").at_css(".pl-price").text.squish).to eq("R$ 0 para sempre")
+      expect(card(page, "plus").at_css(".pl-tagline").text).to eq("Descubra quem curtiu você e aproveite o mapa sem limites.")
+      expect(card(page, "free").css(".pl-perks")).to be_empty
+      expect(page.at_css(".pl-footnote").text).to include("checkout seguro do Mercado Pago")
     end
 
-    context "when authenticated" do
-      let(:user) { create(:user) }
+    it "marca os recursos pelo que o plano tem de fato (o que não existe ainda aparece como Em breve)" do
+      get "/plans"
+      page = Nokogiri::HTML(response.body)
 
-      before do
-        sign_in user, scope: :user
-      end
+      plus_perks = card(page, "plus").css(".pl-perks li")
+      expect(plus_perks.size).to eq(8)
+      expect(plus_perks.select { |li| li["class"] == "is-yes" }.map { |li| li.text.squish })
+        .to eq([ "Interação ilimitada no mapa", "Ver quem curtiu você", "Ver quem você curtiu", "Mensagens ilimitadas" ])
+      expect(card(page, "gold").css(".pl-perks li.is-no")).to be_empty
+      expect(card(page, "gold").at_css(".pl-soon").parent.text.squish).to eq("Esconder minha idade Em breve")
+    end
 
-      it "renders plans" do
-        free = create(:plan, :free, name: "Free", price_cents: 0, duration_days: 36500)
-        plus = create(:plan, code: "plus", name: "Plus", price_cents: 2990, duration_days: 30, active: true)
+    it "no Free: 'Seu plano' no Free e Assinar indo ao checkout nos pagos; Recomendado no Plus" do
+      get "/plans"
+      page = Nokogiri::HTML(response.body)
 
-        get "/plans"
+      expect(card(page, "free").at_css(".pl-tag--current")).to be_present
+      expect(card(page, "free").at_css(".pl-cta").text).to eq("Seu plano atual")
+      expect(card(page, "plus").at_css(".pl-tag--recommended").text).to eq("Recomendado")
+      expect(card(page, "plus").at_css("form")["action"]).to eq("/checkout?plan_id=#{plus.id}")
+      expect(card(page, "plus").at_css("form")["data-turbo"]).to eq("false")
+      expect(card(page, "gold").at_css("button.pl-cta--buy").text).to eq("Assinar Gold")
+    end
 
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include(free.name, plus.name)
-      end
+    it "o plano marcado como recomendado no banco ganha a etiqueta no lugar do Plus" do
+      gold.update!(is_recommended: true)
 
-      it "orders plans from cheapest to most expensive" do
-        free = create(:plan, :free, name: "Free", price_cents: 0)
-        plus = create(:plan, code: "plus", name: "Plus", price_cents: 2990)
+      get "/plans"
+      page = Nokogiri::HTML(response.body)
 
-        get "/plans"
+      expect(card(page, "gold").at_css(".pl-tag--recommended")).to be_present
+      expect(card(page, "plus").at_css(".pl-tag--recommended")).to be_nil
+    end
 
-        expect(response.body.index(free.name)).to be < response.body.index(plus.name)
-      end
+    it "no Gold: 'Ativo até' no Gold, nada para assinar abaixo dele" do
+      user.update!(plan: gold, premium_until: Time.zone.local(2126, 6, 2, 12))
 
-      it "shows recommended tag only for the plan flagged as recommended" do
-        create(:plan, :free)
-        recommended = create(:plan, :recommended, code: "plus", name: "Plus", price_cents: 2990)
+      get "/plans"
+      page = Nokogiri::HTML(response.body)
 
-        get "/plans"
-
-        expect(response.body).to include("Recomendado")
-        expect(response.body).to include(recommended.name)
-      end
-
-      it "shows 'Seu Plano Atual' only for the user's current plan" do
-        current_plan = create(:plan, code: "plus", name: "Plus", price_cents: 2990)
-        other_paid = create(:plan, code: "premium", name: "Premium", price_cents: 4990)
-        user.update!(plan: current_plan)
-
-        get "/plans"
-
-        expect(response.body).to include("Seu Plano Atual")
-        expect(response.body).to include(other_paid.name)
-        expect(response.body).to include("Assinar")
-      end
-
-      it "does not show duration for free plan in the header row" do
-        free = create(:plan, :free, name: "Free", duration_days: 36500)
-        create(:plan, code: "plus", name: "Plus", duration_days: 30, price_cents: 2990)
-
-        get "/plans"
-
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include(free.name)
-        expect(response.body).not_to include("/ 36500 dias")
-      end
+      expect(card(page, "gold").at_css(".pl-tag--current").text.squish).to eq("Seu plano")
+      expect(card(page, "gold").at_css(".pl-cta").text).to eq("Ativo até 02/06/2126")
+      expect(card(page, "plus").at_css(".pl-cta").text).to eq("Incluído no seu plano")
+      expect(card(page, "free").at_css(".pl-cta").text).to eq("Plano gratuito")
+      expect(response.body).not_to include('action="/checkout')
     end
   end
 end
-
-

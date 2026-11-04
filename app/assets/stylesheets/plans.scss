@@ -1,503 +1,315 @@
-/* =========================================================
-   PLANS / PRICING - DARK PREMIUM (DESKTOP & MOBILE FIXED)
-   ========================================================= */
+// =================================================================
+// Planos (/plans) — app/views/plans/index.html.erb
+// Tela escura com brilho dourado no topo; um card por plano (Gold dourado,
+// Plus roxo, Free cinza). Medidas do mockup em 390px. Sempre escura (não muda
+// no modo claro/escuro).
+// =================================================================
 
-.pricing-page {
-  /* Variáveis Dark Premium */
-  --p-bg: #0e0e10;
-  --p-surface: #18181b;
-  --p-surface-2: #27272a;
-  --p-border: #333;
-  --p-text: #ffffff;
-  --p-text-muted: #a1a1aa;
-  
-  --p-accent: #bba96f; /* Dourado */
-  --p-accent-glow: rgba(212, 175, 55, 0.4);
-  
-  --p-success: #4cd964;
-  --p-danger: #ff453a;
-  
-  background-color: var(--p-bg);
-  color: var(--p-text);
-  font-family: 'Poppins', sans-serif;
-  min-height: 100vh;
-  padding: 40px 16px 80px;
+// A tela escura vai até as bordas (inclusive atrás da área segura do topo)
+body:has(.plans-screen) {
+  background: #141210;
 
-  .pricing-container {
-    max-width: 1100px;
-    margin: 0 auto;
+  .authenticated-layout,
+  .site-content { background: transparent; }
+}
+
+.plans-screen {
+  position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 8px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
+
+  // brilho dourado atrás do título
+  &::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    z-index: -1;
+    width: 520px;
+    height: 420px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(176, 138, 70, 0.32), rgba(176, 138, 70, 0));
+    pointer-events: none;
   }
 
-  /* --- HEADER --- */
-  .pricing-hero {
-    text-align: center;
-    margin-bottom: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
+  svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  .pricing-title {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700;
-    /* Gradiente no texto do título */
-    background: linear-gradient(135deg, #fff 30%, var(--p-accent) 100%);
+  :where(h1, h2, p, ul) { margin: 0; }
+  :where(ul) { padding: 0; list-style: none; }
+}
+
+// ---------- Topo ----------
+.pl-header { padding: 0 8px; }
+
+.pl-back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 20px; height: 20px; stroke-width: 2.4; }
+}
+
+.pl-title {
+  margin-top: 18px;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 38px;
+  letter-spacing: -0.9px;
+
+  span {
+    background: linear-gradient(180deg, #ecd9a8 0%, #c9a052 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: -1px;
+    color: transparent;
   }
+}
 
-  .pricing-subtitle {
-    margin: 0;
-    color: var(--p-text-muted);
-    font-size: 1.1rem;
-    max-width: 600px;
-    line-height: 1.5;
-  }
+.pl-subtitle {
+  margin-top: 8px;
+  color: #cfc8be;
+  font-size: 15px;
+  line-height: 22px;
+}
 
-  .pricing-badges {
+.pl-trust {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 9px;
+
+  li {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 10px;
-  }
-
-  .pricing-badge {
-    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 16px;
-    border-radius: 50px;
-    border: 1px solid var(--p-border);
-    background: rgba(255, 255, 255, 0.03);
-    font-size: 0.85rem;
-    color: var(--p-text);
+    color: #a59e95;
+    font-size: 12px;
+    line-height: 19px;
   }
 
-  /* =========================================================
-     DESKTOP TABLE (O Grid CSS Poderoso)
-     ========================================================= */
-  .pricing-compare {
-    display: block; /* Visível no Desktop */
-    background: var(--p-surface);
-    border: 1px solid var(--p-border);
-    border-radius: 20px;
-    /* Sombra suave */
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-    overflow: hidden; /* Arredonda cantos */
-    position: relative;
-  }
+  svg { flex-shrink: 0; width: 12px; height: 12px; }
+}
 
-  .pricing-grid {
-    display: grid;
-    /* Grid columns definido inline no HTML */
-  }
-
-  /* Células Gerais */
-  .pricing-cell {
-    padding: 20px;
-    border-bottom: 1px solid var(--p-border);
-    border-right: 1px solid var(--p-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 0.95rem;
-    transition: background 0.2s;
-  }
-
-  /* Tira borda direita da última coluna */
-  .pricing-grid .pricing-cell:nth-child(n) {
-    /* Lógica complexa de nth-child não necessária se usarmos borda no container */
-  }
-
-  /* Coluna 1: Nome da Feature */
-  .feature-name-cell, .head-empty {
-    justify-content: flex-start;
-    text-align: left;
-    color: var(--p-text-muted);
-    font-weight: 500;
-    padding-left: 30px;
-    background: rgba(255,255,255,0.01);
-  }
-  
-  .head-empty {
-    border-bottom: none; /* O header cell já tem borda */
-    align-items: flex-end;
-    padding-bottom: 25px;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
-  }
-
-  /* Header Cell (Nomes dos Planos) */
-  .pricing-header-cell {
-    flex-direction: column;
-    gap: 10px;
-    padding-top: 30px;
-    padding-bottom: 30px;
-    background: var(--p-surface-2);
-    position: relative;
-  }
-
-  .desktop-plan-name {
-    margin: 0;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 2px;
-    color: var(--p-text-muted);
-  }
-
-  .desktop-plan-price {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--p-text);
-  }
-  
-  .desktop-plan-price .period {
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: var(--p-text-muted);
-  }
-
-  /* Coluna Recomendada (Desktop) */
-  .pricing-cell.recommended-col {
-    background: rgba(212, 175, 55, 0.03); /* Fundo Dourado Muito Sutil */
-    position: relative;
-  }
-  
-  /* Header da Recomendada */
-  .pricing-header-cell.recommended-col {
-    background: linear-gradient(to bottom, rgba(212,175,55,0.15), rgba(212,175,55,0.02));
-    border-top: 3px solid var(--p-accent);
-  }
-
-  .desktop-tag-recommended {
-    position: absolute;
-    top: -15px; /* Sai pra fora da célula */
-    background: var(--p-accent);
-    color: #000;
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 12px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 15px var(--p-accent-glow);
-  }
-
-  /* Ícones e Valores */
-  .icon-yes { color: var(--p-success); }
-  .icon-no { color: #333; opacity: 0.5; }
-  .icon-neutral { color: #444; }
-  .text-value { font-weight: 600; }
-
-  /* Célula de Ação (Botões) */
-  .action-cell {
-    padding: 30px 20px;
-    border-bottom: none; /* Última linha */
-  }
-  .action-empty { border-bottom: none; border-right: 1px solid var(--p-border); }
-
-
-  /* =========================================================
-     BOTÕES
-     ========================================================= */
-  .pricing-btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    border: 1px solid var(--p-accent);
-    background: transparent;
-    color: var(--p-accent);
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .pricing-btn:hover {
-    background: var(--p-accent);
-    color: #000;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
-  }
-
-  .pricing-btn--glow {
-    background: var(--p-accent);
-    color: #000;
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-  }
-  .pricing-btn--glow:hover {
-    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
-  }
-
-  .pricing-btn--disabled {
-    border-color: #333;
-    color: #555;
-    cursor: not-allowed;
-    background: rgba(255,255,255,0.02);
-  }
-  .pricing-btn--disabled:hover {
-    transform: none;
-    box-shadow: none;
-    background: rgba(255,255,255,0.02);
-    color: #555;
-  }
-  
-  .pricing-btn--outline {
-    border-color: #555;
-    color: #aaa;
-  }
-
-
-  /* =========================================================
-     MOBILE: CARDS
-     ========================================================= */
-  .pricing-mobile-cards {
-  display: none;
+// ---------- Cards ----------
+.pl-list {
+  display: flex;
   flex-direction: column;
-  gap: 35px; /* Aumentei o gap para dar espaço à tag do próximo card */
-  padding-top: 20px; /* Adiciona um espaço no topo da lista */
+  gap: 17px;
+  margin-top: 26px;
 }
 
-  .mobile-plan-card {
-    background: var(--p-surface);
-    border: 1px solid var(--p-border);
-    border-radius: 20px;
-    padding: 30px 24px;
-    position: relative;
-    margin-top: 15px; /* Garante que a tag não suba para fora da área clicável */
-  }
-
-  /* Card Recomendado Mobile */
-  .mobile-plan-card.recommended {
-    border: 1px solid var(--p-accent);
-    box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
-  }
-
-  .mobile-tag-recommended {
-  position: absolute;
-  /* 3. Posicionamento fixo no topo, centralizado */
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%); 
-  
-  /* 4. Garante que fique acima de qualquer degradê */
-  z-index: 20; 
-
-  /* Estilização para garantir visibilidade */
-  background: #7e20d6; 
-  color: #fff !important;
-  padding: 6px 20px;
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-  .mobile-card-header {
-    text-align: center;
-    border-bottom: 1px solid var(--p-border);
-    padding-bottom: 20px;
-    margin-bottom: 20px;
-  }
-
-  .mobile-plan-name {
-    color: var(--p-text);
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0 0 5px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .mobile-plan-price {
-    color: var(--p-accent);
-    font-size: 2rem;
-    font-weight: 700;
-  }
-
-  .mobile-features-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-bottom: 30px;
-  }
-
-  .mobile-feature-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-  }
-
-  .mobile-feature-row .feature-label {
-    color: var(--p-text-muted);
-  }
-
-  .mobile-feature-row .feature-value {
-    font-weight: 600;
-  }
-
-  .pricing-footnote {
-    margin-top: 40px;
-    text-align: center;
-    font-size: 0.85rem;
-    color: #555;
-  }
-
-  /* =========================================================
-     MEDIA QUERY - O PULO DO GATO
-     ========================================================= */
-  @media (max-width: 900px) {
-    .pricing-page {
-      padding: 30px 16px;
-    }
-
-    /* ESCONDE A TABELA NO MOBILE */
-    .pricing-compare {
-      display: none !important;
-    }
-
-    /* MOSTRA OS CARDS NO MOBILE */
-    .pricing-mobile-cards {
-      display: flex;
-    }
-  }
-}
-
-/* =========================================================
-   TEMAS DOS PLANOS (GRADIENTES)
-   ========================================================= */
-
-/* Mixin para facilitar a criação dos cards com degradê */
-@mixin plan-gradient($color-start, $color-mid, $text-color: #ffffff) {
-  /* 1. O Fundo Degradê */
-  background: linear-gradient(180deg, 
-    $color-start 0%, 
-    $color-mid 40%, 
-    var(--p-surface) 100%
-  );
-  border: 1px solid rgba($color-start, 0.3);
-
-  /* 2. FORÇAR TUDO BRANCO */
-  /* Aplica branco em todos os textos diretos e internos */
-  &, h1, h2, h3, h4, p, span, div, strong, small, li {
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Leve sombra para leitura */
-  }
-
-  /* 3. ÍCONES BRANCOS */
-  /* Sobrescreve cores de SVGs (checks, locks) */
-  svg {
-    stroke: #ffffff !important;
-    fill: none; /* Ou white se seus ícones forem preenchidos */
-  }
-  
-  path, circle, line, rect {
-    stroke: #ffffff !important;
-  }
-
-  /* Se você usa classes de ícones como .icon-yes ou FontAwesome */
-  .icon-yes, .icon-no, .fa, .fas, .far {
-    color: #ffffff !important;
-  }
-
-  /* 4. DETALHES ESPECÍFICOS */
-  /* Preço com fundo translúcido escuro para destacar */
-  .desktop-plan-price, .mobile-plan-price {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 5px 15px;
-    border-radius: 50px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    width: fit-content;
-    display: inline-block;
-  }
-
-  /* Texto "/mês" levemente transparente para hierarquia, mas ainda branco */
-  .period, .pricing-plan-status {
-    opacity: 0.9;
-    font-weight: 400;
-  }
-
-  /* Botão Transparente Branco */
-  .pricing-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.6);
-    color: #ffffff !important;
-    
-    &:hover {
-      background: #ffffff;
-      color: $color-mid !important; /* Texto ganha a cor do plano no hover */
-      border-color: #ffffff;
-    }
-    
-    &[disabled] {
-        opacity: 0.6;
-        background: transparent;
-        border-color: rgba(255,255,255, 0.3);
-    }
-  }
-}
-
-/* APLICAÇÃO DOS TEMAS */
-
-.pricing-page {
-
-  /* --- 1. PLANO FREE (PRATA) --- */
-  .plan-theme-free { 
-    @include plan-gradient(
-      #9ca3af, /* Prata Claro */
-      #4b5563  /* Prata Escuro */
-    );
-  }
-
-  /* --- 2. PLANO PLUS (VIOLETA) --- */
-  .plan-theme-plus {
-    @include plan-gradient(
-      #c084fc, /* Roxo Claro/Lilás */
-      #7e22ce  /* Roxo Intenso */
-    );
-    box-shadow: 0 -10px 40px -10px rgba(168, 85, 247, 0.3) inset;
-  }
-
-  /* --- 3. PLANO GOLD (DOURADO) --- */
-  .plan-theme-gold {
-    @include plan-gradient(
-      #332500, /* Ouro Amarelo */
-      #684c00  /* Bronze */
-    );
-    border: 1px solid rgba(251, 191, 36, 0.6);
-    box-shadow: 0 0 25px rgba(251, 191, 36, 0.2);
-  }
-
-
-  /* =========================================================
-     AJUSTES FINAIS DE LAYOUT
-     ========================================================= */
-  
-  /* Arredondar topo das colunas da tabela no desktop para parecer cards */
-  .pricing-header-cell {
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    border-bottom: none; /* Remove borda inferior para fundir com a tabela */
-    padding-bottom: 40px; /* Espaço extra para o degradê morrer suavemente */
-    margin-bottom: -1px; /* Hack para colar na célula de baixo */
-  }
-
-  /* Ajuste para o Mobile Card ficar igual à imagem */
-  .mobile-plan-card {
-    padding-top: 45px;
-    /* overflow: hidden;  Garante que o gradiente respeite as bordas */
-    position: relative;
+.pl-card {
+  position: relative;
+  padding: 21px 22px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 24px;
+  scroll-margin-top: 16px;
+
+  // tokens de cada tema
+  --pl-eyebrow: #d8d8d8;
+  --pl-text: rgba(255, 255, 255, 0.82);
+  --pl-check-bg: #fff;
+  --pl-check-mark: #3a3a3a;
+}
+
+.pl-card--gold {
+  --pl-eyebrow: #d9b56d;
+  --pl-text: rgba(255, 245, 228, 0.8);
+  --pl-check-bg: #d9bd7f;
+  --pl-check-mark: #2a2114;
+
+  border-color: rgba(214, 178, 108, 0.55);
+  background: linear-gradient(180deg, #5a4930 0%, #2e2619 45%, #1b1712 100%);
+  box-shadow: 0 0 60px rgba(201, 160, 82, 0.2);
+}
+
+.pl-card--plus {
+  --pl-eyebrow: #ddd0ff;
+  --pl-text: rgba(255, 255, 255, 0.85);
+  --pl-check-bg: #fff;
+  --pl-check-mark: #5b21b6;
+
+  border-color: rgba(176, 140, 255, 0.55);
+  background: linear-gradient(180deg, #8448e0 0%, #5b2bb4 45%, #2b1460 100%);
+  box-shadow: 0 0 70px rgba(124, 58, 237, 0.32);
+}
+
+.pl-card--free {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, #4a4a4d 0%, #333335 55%, #29292b 100%);
+}
+
+.pl-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 27px;
+}
+
+.pl-name {
+  padding-top: 3px;
+  color: var(--pl-eyebrow);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 16px;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+}
+
+.pl-tag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  margin-top: -6px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  svg { width: 11px; height: 11px; stroke-width: 3; }
+}
+
+.pl-tag--current {
+  border: 1px solid rgba(232, 214, 173, 0.6);
+  background: rgba(0, 0, 0, 0.18);
+  color: #efe2c3;
+}
+
+.pl-tag--recommended {
+  background: #fff;
+  color: #4c1d95;
+  font-weight: 800;
+}
+
+.pl-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+
+  strong {
+    font-size: 33px;
+    font-weight: 800;
+    line-height: 38px;
+    letter-spacing: -0.5px;
   }
+
+  span { color: var(--pl-text); font-size: 13.5px; }
+}
+
+.pl-tagline {
+  margin-top: 12px;
+  color: var(--pl-text);
+  font-size: 13px;
+  line-height: 16.5px;
+}
+
+.pl-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 21px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
+
+    &.is-no { color: rgba(255, 255, 255, 0.42); }
+  }
+
+  svg { flex-shrink: 0; width: 16px; height: 16px; }
+
+  .pl-perk-check {
+    circle { fill: var(--pl-check-bg); stroke: none; }
+    path { stroke: var(--pl-check-mark); stroke-width: 3; }
+  }
+
+  .pl-perk-lock { width: 15px; height: 15px; margin: 0 0.5px; stroke-width: 2.2; }
+}
+
+.pl-soon {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.pl-cta-form { margin: 18px 0 0; }
+
+.pl-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 53px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pl-cta--static {
+  margin-top: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.pl-card--free .pl-cta--static {
+  margin-top: 22px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pl-cta--buy {
+  border: 0;
+  background: #fff;
+  color: #4c1d95;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+}
+
+.pl-card--gold .pl-cta--buy {
+  background: linear-gradient(180deg, #e3cd91 0%, #c9a052 100%);
+  color: #1c1a14;
+}
+
+.pl-footnote {
+  margin: 30px 20px 0;
+  color: #a59e95;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.pl-empty {
+  margin-top: 40px;
+  color: #cfc8be;
+  text-align: center;
 }

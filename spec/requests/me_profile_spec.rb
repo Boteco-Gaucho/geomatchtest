@@ -41,7 +41,7 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(body).not_to include('action="/checkout')
   end
 
-  it "plano grátis sem verificação: convite para verificar e assinatura indo direto ao checkout" do
+  it "plano grátis sem verificação: convite para verificar e os cards de plano abrindo /plans" do
     user = create(:user, onboarding_completed: true, plan: free_plan)
 
     body = open_profile(user)
@@ -49,8 +49,10 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(body).to include('<a class="me-badge me-badge--verify" href="/verificacao">Verificar identidade</a>')
     expect(body).to include("Plano gratuito")
     expect(offer_card(body, "free")).to include("Seu plano atual")
-    expect(offer_card(body, "plus")).to include(%(action="/checkout?plan_id=#{plus.id}"))
-    expect(offer_card(body, "gold")).to include("Assinar Gold")
+    expect(offer_card(body, "plus")).to include('class="me-offer-link"', 'href="/plans#plano-plus"', "Assinar Plus")
+    expect(offer_card(body, "gold")).to include('href="/plans#plano-gold"', "Assinar Gold")
+    expect(offer_card(body, "free")).to include('href="/plans#plano-free"')
+    expect(body).not_to include('action="/checkout') # o checkout fica em /plans
   end
 
   it "mantém carteira, cupom, tema, sair e encerrar conta" do

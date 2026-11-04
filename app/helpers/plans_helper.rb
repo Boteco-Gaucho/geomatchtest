@@ -1,70 +1,65 @@
 module PlansHelper
-  def render_plan_feature(plan, feature_key)
-    features = plan.features || {}
-    value = features[feature_key]
+  # Lista de recursos dos cards de /plans (rótulo do mockup => chave em plans.features).
+  # :soon = recurso que ainda não existe: aparece como "Em breve" e conta só no Gold.
+  PLANS_PAGE_PERKS = [
+    [ "Interação ilimitada no mapa", "likes_right_unlimited" ],
+    [ "Ver quem curtiu você",        "see_who_liked_me" ],
+    [ "Ver quem você curtiu",        "see_who_i_liked" ],
+    [ "Mensagens ilimitadas",        "unlimited_messages" ],
+    [ "Modo oculto",                 "allow_invisible" ],
+    [ "Esconder minha idade",        :soon ],
+    [ "Explorar outras cidades",     "search_by_distance" ],
+    [ "Voltar perfil não curtido",   "rewind_profile" ]
+  ].freeze
 
-    # 1. Filtro de Segurança: Garante que 'likes_right_limit' não apareça visualmente
-    return nil if feature_key.to_s == "likes_right_limit"
+  # Frase de cada card; plano novo sem frase aqui usa plans.description
+  PLAN_TAGLINES = {
+    "gold" => "Tudo liberado. Veja sem ser visto e fale com quem quiser.",
+    "plus" => "Descubra quem curtiu você e aproveite o mapa sem limites.",
+    "free" => "Para começar: apareça no mapa e converse com quem está perto."
+  }.freeze
 
-    # Decide qual renderizador usar baseado na chave (feature)
-    case feature_key.to_s
-    when "direct_messages"
-      render_direct_messages(value)
-    when "unlimited_messages", "invisible_mode", "hide_age", "unlimited_map_interaction", "see_who_i_liked", "see_who_liked_me", "likes_right_unlimited", "likes_left_unlimited", "rewind_profile", "search_by_distance"
-      # Lógica Booleana: True = Check, False/Nil = Cadeado
-      value === true ? render_check : render_lock
-    else
-      render_generic_feature(value)
-    end
+  # Cores do card: gold / plus / free; outro plano pago usa as do Plus
+  def plan_theme(plan)
+    return plan.code if %w[gold plus free].include?(plan.code)
+
+    plan.price_cents.to_i.zero? ? "free" : "plus"
   end
 
-  private
+  def plan_tagline(plan)
+    PLAN_TAGLINES[plan.code] || plan.description
+  end
 
-  # Renderiza o ícone de Check (✅) - Substitui o antigo render_infinity/generic true
-  def render_check
-    content_tag(:span, class: "icon-yes", style: "color: #10b981; display: inline-flex; align-items: center; justify-content: center;") do
-      tag.svg(width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: 3, stroke_linecap: "round", stroke_linejoin: "round") do
-        tag.polyline(points: "20 6 9 17 4 12")
+  # "R$ 47,99" / "R$ 0"
+  def plan_price_label(plan)
+    cents = plan.price_cents.to_i
+    return "R$ 0" if cents.zero?
+
+    number_to_currency(cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".", format: "%u%n")
+  end
+
+  def plan_page_perk?(plan, key)
+    return plan.code == "gold" if key == :soon
+
+    (plan.features || {})[key] == true
+  end
+
+  # Botão do rodapé do card: [:texto, rótulo] (contorno, sem ação) ou [:checkout, rótulo]
+  def plan_page_cta(plan, user)
+    current_plan = user&.plan
+
+    if current_plan && plan.id == current_plan.id
+      if user.premium_until.present? && user.premium_until.future? && !plan.price_cents.to_i.zero?
+        [ :text, "Ativo até #{user.premium_until.strftime('%d/%m/%Y')}" ]
+      else
+        [ :text, "Seu plano atual" ]
       end
-    end
-  end
-
-  # Renderiza o ícone de Cadeado (🔒) - Substitui o antigo render_dash
-  def render_lock
-    content_tag(:span, class: "icon-lock", style: "color: #ef4444; opacity: 0.7; display: inline-flex; align-items: center; justify-content: center;") do
-      tag.svg(width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: 2, stroke_linecap: "round", stroke_linejoin: "round") do
-        tag.rect(x: 3, y: 11, width: 18, height: 11, rx: 2, ry: 2) +
-        tag.path(d: "M7 11V7a5 5 0 0 1 10 0v4")
-      end
-    end
-  end
-
-  def render_direct_messages(dm)
-    # Se for nulo ou desabilitado -> Cadeado
-    return render_lock if dm.nil? || !dm["enabled"]
-
-    # Caso 1: Ilimitado (Gold) -> Agora é Check (antes era infinito)
-    if dm["daily_limit"].nil?
-      return render_check
-    end
-
-    # Caso 2: Com limite (Plus) -> Mantém o texto informativo
-    content_tag(
-      :span,
-      "#{dm['daily_limit']} por dia",
-      class: "text-value",
-      style: "font-weight: 500;"
-    )
-  end
-
-  def render_generic_feature(value)
-    if value == true
-      render_check
-    elsif value == false || value.nil?
-      render_lock
+    elsif plan.price_cents.to_i.zero?
+      [ :text, "Plano gratuito" ]
+    elsif current_plan && plan.price_cents.to_i < current_plan.price_cents.to_i
+      [ :text, "Incluído no seu plano" ]
     else
-      # Texto genérico (números, strings)
-      content_tag(:span, value.to_s, class: "text-value")
+      [ :checkout, "Assinar #{plan.name}" ]
     end
   end
 end

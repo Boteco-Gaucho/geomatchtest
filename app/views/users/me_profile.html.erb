@@ -156,6 +156,9 @@
         <div class="me-plans-track" data-plans-carousel-target="track" data-action="scroll->plans-carousel#sync">
           <% @plans.each do |offer| %>
             <article class="me-offer me-offer--<%= offer.code %>">
+              <%# O card inteiro abre /plans (lá fica o checkout), já no plano tocado %>
+              <%= link_to plans_path(anchor: "plano-#{offer.code}"), class: "me-offer-link",
+                          aria: { label: "Ver o plano #{offer.name}" } do %><% end %>
               <div class="me-offer-head">
                 <span class="me-offer-brand">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -191,10 +194,7 @@
               <% elsif current_plan && offer.price_cents < current_plan.price_cents %>
                 <span class="me-offer-cta is-static">Incluído no seu plano</span>
               <% else %>
-                <%# Mesmo fluxo da página de planos: POST /checkout sem Turbo -> Mercado Pago %>
-                <%= button_to "Assinar #{offer.name}", checkout_path(plan_id: offer.id),
-                              method: :post, form: { data: { turbo: false } },
-                              class: "me-offer-cta", form_class: "me-offer-form" %>
+                <span class="me-offer-cta">Assinar <%= offer.name %></span>
               <% end %>
             </article>
           <% end %>

@@ -495,6 +495,7 @@
 }
 
 .me-offer {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 0 0 299px;
@@ -594,7 +595,14 @@
   }
 }
 
-.me-offer-form { margin: auto 0 0; }
+// Link "esticado": o card todo leva a /plans
+.me-offer-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
 
 .me-offer-cta {
   display: flex;
@@ -610,10 +618,10 @@
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
+  margin-top: auto;
   -webkit-tap-highlight-color: transparent;
 
   &.is-static {
-    margin-top: auto;
     border: 1.5px solid rgba(255, 255, 255, 0.75);
     background: rgba(0, 0, 0, 0.15);
     color: #fff;
