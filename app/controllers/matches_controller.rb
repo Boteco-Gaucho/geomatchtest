@@ -57,6 +57,9 @@ class MatchesController < ApplicationController
                       .includes(:reactions, reply_to: :sender).order(created_at: :asc)
     @message  = Message.new
     @other_user = @match.other_user(current_user)
+    # Sugestões de mensagem só no começo: somem depois da primeira mensagem
+    # enviada por quem está vendo (mesmo que depois ela tenha apagado)
+    @show_quick_replies = !@match.messages.where(sender_id: current_user.id).exists?
 
     if @other_user.nil?
       redirect_to matches_path, alert: "Usuário não encontrado."

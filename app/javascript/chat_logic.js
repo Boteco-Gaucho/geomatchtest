@@ -68,6 +68,7 @@ document.addEventListener('turbo:load', () => {
         // -------------------------
         if (data.message) {
           if (data.message.sender_id !== currentUserId) updateTypingIndicator(false);
+          else hideQuickReplies(); // a primeira mensagem saiu (deste ou de outro aparelho)
           appendMessageToDOM(data.message);
 
           if (data.message.sender_id !== currentUserId) {
@@ -306,6 +307,12 @@ document.addEventListener('turbo:load', () => {
   // =======================================================
   //   RESPOSTAS RÁPIDAS E "+" (ENVIAR UM MIMO)
   // =======================================================
+  // As sugestões são só para puxar assunto: saem depois da primeira mensagem enviada
+  function hideQuickReplies() {
+    const quickReplies = document.getElementById('chat-quick-replies');
+    if (quickReplies) quickReplies.remove();
+  }
+
   document.querySelectorAll('.chat-quick-reply').forEach((chip) => {
     chip.addEventListener('mousedown', (e) => e.preventDefault()); // não tira o foco do campo
     chip.addEventListener('click', () => {
@@ -368,6 +375,8 @@ document.addEventListener('turbo:load', () => {
       if (!response.ok) {
         console.error("Erro ao enviar mensagem", response.status);
         restoreUnsent();
+      } else {
+        hideQuickReplies();
       }
     })
     .catch((error) => {

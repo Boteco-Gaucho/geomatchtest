@@ -146,12 +146,15 @@
     </button>
   </div>
 
-  <%# --- RESPOSTAS RÁPIDAS (tocar preenche o campo) --- %>
-  <div class="chat-quick-replies" id="chat-quick-replies">
-    <% MatchesHelper::QUICK_REPLIES.each do |text| %>
-      <button type="button" class="chat-quick-reply" data-text="<%= text %>"><%= text %></button>
-    <% end %>
-  </div>
+  <%# --- RESPOSTAS RÁPIDAS (tocar preenche o campo) — só até a pessoa mandar a
+      primeira mensagem nesta conversa; o chat_logic.js tira ao enviar --- %>
+  <% if @show_quick_replies %>
+    <div class="chat-quick-replies" id="chat-quick-replies">
+      <% MatchesHelper::QUICK_REPLIES.each do |text| %>
+        <button type="button" class="chat-quick-reply" data-text="<%= text %>"><%= text %></button>
+      <% end %>
+    </div>
+  <% end %>
 
   <%# --- 3. CAMPO (Barra inferior) --- %>
   <%# <div> em vez de <form>: o envio é feito via JS (chat_logic.js). Isso NÃO remove

@@ -57,7 +57,7 @@ RSpec.describe "Mensagens (/matches)", type: :request do
     let(:felipe) { person("Felipe", gender: "Homem", verified: true, last_seen_at: Time.current) }
     let(:match)  { Match.create!(user: me, matched_user: felipe) }
 
-    it "monta topo, aviso de segurança, chip da conexão, balões, respostas rápidas e campo" do
+    it "monta topo, aviso de segurança, chip da conexão, balões e campo" do
       match.messages.create!(sender: felipe, content: "Oi! Vi que você também curte praia")
       sent = match.messages.create!(sender: me, content: "Curto demais!", status: :read, read_at: Time.current)
 
@@ -76,9 +76,22 @@ RSpec.describe "Mensagens (/matches)", type: :request do
       expect(row["data-read-at"]).to be_present
       expect(row.at_css(".message-status.status-read")).to be_present
 
-      expect(page.css(".chat-quick-reply").map(&:text)).to eq([ "Oi! Tudo bem?", "E aí, beleza?", "Como tá seu dia?" ])
+      expect(page.css("#chat-quick-replies")).to be_empty # já mandei mensagem: sem sugestões
       expect(page.at_css(".chat-plus-item")["href"]).to eq("/mimos/catalogo?receiver_id=#{felipe.id}")
       expect(page.at_css("#message-input")["placeholder"]).to eq("Mensagem")
+    end
+
+    it "sugestões de mensagem só até mandar a primeira (receber não conta)" do
+      match.messages.create!(sender: felipe, content: "Oi! Vi que você também curte praia")
+
+      get "/matches/#{match.id}"
+      page = Nokogiri::HTML(response.body)
+      expect(page.css(".chat-quick-reply").map(&:text)).to eq([ "Oi! Tudo bem?", "E aí, beleza?", "Como tá seu dia?" ])
+
+      match.messages.create!(sender: me, content: "Oi! Tudo bem?")
+
+      get "/matches/#{match.id}"
+      expect(Nokogiri::HTML(response.body).css("#chat-quick-replies")).to be_empty
     end
 
     it "menu dos três pontinhos na ordem do mockup" do
