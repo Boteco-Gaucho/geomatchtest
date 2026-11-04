@@ -46,6 +46,9 @@
 // ---------- Foto ----------
 .up-hero {
   position: relative;
+  // width explícito: sem ele, quando o max-height corta a altura (iPhone com as
+  // barras do Safari), o aspect-ratio encolhe a largura e sobra faixa à direita
+  width: 100%;
   aspect-ratio: 390 / 560;
   max-height: 74svh;
   min-height: 420px;
