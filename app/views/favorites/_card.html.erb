@@ -1,0 +1,46 @@
+<%# Card de Favoritos: foto (ou silhueta numa cor fixa da pessoa), estrela, nome e
+    mensagem. O id do article é o que o destroy.turbo_stream remove. %>
+<% user      = favorite.favorited_user %>
+<% has_photo = user.has_real_avatar? || user.album_photos.attached? %>
+<% parts = user.display_name.to_s.split %>
+<% short_name = parts.size > 1 ? "#{parts.first} #{parts.last}" : parts.first.to_s %>
+<% place = [ user.city, user.state ].compact_blank.join(", ").presence %>
+
+<article class="fv-card" id="<%= "favorite-card-#{user.id}" %>"
+         style="--fv-card-bg: <%= favorite_placeholder_color(user) %>">
+  <%= link_to user_path(user), class: "fv-card-link", aria: { label: "Ver perfil de #{user.display_name}" } do %>
+    <% if has_photo %>
+      <%= image_tag user.avatar_url, class: "fv-card-img", alt: "", loading: "lazy" %>
+    <% else %>
+      <svg class="fv-card-placeholder" viewBox="0 0 114 118" aria-hidden="true">
+        <circle cx="57" cy="28.5" r="25.5"/>
+        <path d="M3 115A54 51 0 0 1 111 115"/>
+      </svg>
+    <% end %>
+  <% end %>
+
+  <div class="fv-card-shade" aria-hidden="true"></div>
+
+  <%# O Turbo Stream de favoritos troca o div#favorite-btn-N inteiro; a posição fica no pai %>
+  <div class="fv-card-star">
+    <div id="<%= "favorite-btn-#{user.id}" %>">
+      <%= render "favorites/favorite_button", user: user, favorite_id: favorite.id, source: "favorites" %>
+    </div>
+  </div>
+
+  <div class="fv-card-info">
+    <p class="fv-card-name">
+      <% if user.online? && !user.invisible? %><span class="fv-card-online" title="Online agora"></span><% end %>
+      <strong><%= short_name %></strong>
+      <% if user.age %><span class="fv-card-age"><%= user.age %></span><% end %>
+    </p>
+    <% if place %><p class="fv-card-place"><%= place %></p><% end %>
+  </div>
+
+  <%= button_to start_chat_path(user_id: user.id), method: :post,
+        class: "card-action-btn card-action-chat fv-card-chat",
+        form: { class: "card-action-form fv-card-chat-form" },
+        title: "Conversar com #{user.display_name}", aria: { label: "Enviar mensagem" } do %>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <% end %>
+</article>

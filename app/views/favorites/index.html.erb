@@ -1,45 +1,30 @@
-<div class="gallery-screen">
-
-  <div class="gallery-header">
-    <%= link_to discover_3d_gallery_path, class: "gallery-back-btn", title: "Voltar à galeria" do %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"></path>
-      </svg>
+<%# Favoritos (/favorites) — layout do mockup: topo com contagem, grade de cards
+    (só estrela e mensagem) ou o vazio com "Explorar cidades". Estilos: .fv-* em
+    favorites.scss. Tirar a estrela aqui remove o card (destroy.turbo_stream). %>
+<div class="favorites-screen">
+  <div class="fv-header">
+    <%= link_to discover_3d_gallery_path, class: "fv-back", aria: { label: "Voltar para Explorar cidades" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     <% end %>
-
-    <h1 class="gallery-header-title">Meus Favoritos</h1>
-
-    <%= image_tag "logo-geomatch-dourada.png", class: "gallery-header-logo", alt: "GeoMatch" %>
+    <div class="fv-heading">
+      <h1 class="fv-title">Favoritos</h1>
+      <p class="fv-subtitle" id="favorites-count"><%= favorites_count_label(@favorites.size) %></p>
+    </div>
   </div>
 
-  <div class="gallery-meta">
-    <span class="meta-count">
-      <strong><%= @favorited_users.size %></strong>
-      <%= @favorited_users.size == 1 ? "perfil salvo" : "perfis salvos" %>
-    </span>
-    <span class="meta-tag">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11" style="vertical-align: middle; margin-right: 3px;">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
-      Favoritos
-    </span>
+  <div class="fv-body" id="favorites-body">
+    <% if @favorites.any? %>
+      <div class="fv-grid">
+        <% @favorites.each do |favorite| %>
+          <%= render "favorites/card", favorite: favorite %>
+        <% end %>
+      </div>
+      <p class="fv-hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Toque na estrela para tirar alguém dos favoritos.
+      </p>
+    <% else %>
+      <%= render "favorites/empty" %>
+    <% end %>
   </div>
-
-  <% if @favorited_users.any? %>
-    <div class="gallery-grid">
-      <% @favorited_users.each do |user| %>
-        <%= render "discover3d/profile_card", user: user, favorites_map: @favorites_map %>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="gallery-empty">
-      <div class="empty-icon">⭐</div>
-      <h3>Nenhum favorito ainda</h3>
-      <p>Salve perfis que você curte tocando na estrela nos cards da galeria.</p>
-      <%= link_to discover_3d_gallery_path, class: "favorites-explore-btn" do %>
-        Explorar galeria
-      <% end %>
-    </div>
-  <% end %>
-
 </div>

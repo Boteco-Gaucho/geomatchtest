@@ -1,5 +1,6 @@
+<%# source: "favorites" (opcional) — na tela de Favoritos o destroy tira o card da lista %>
 <% if favorite_id.present? %>
-  <%= button_to favorite_path(favorite_id),
+  <%= button_to favorite_path(favorite_id, source: local_assigns[:source]),
         method: :delete,
         class: "card-action-btn card-action-star card-action-star--active",
         form: { class: "card-action-form" },
