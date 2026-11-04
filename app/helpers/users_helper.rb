@@ -114,6 +114,34 @@ module UsersHelper
     [ photos, verification, *todos ]
   end
 
+  # Perfil de outra pessoa (/users/:id) — pílulas de "Informações"
+  PROFILE_SEEKING_LABELS = {
+    "homem" => "homens", "homens" => "homens",
+    "mulher" => "mulheres", "mulheres" => "mulheres",
+    "todos" => "todo mundo", "todas" => "todo mundo", "ambos" => "todo mundo"
+  }.freeze
+
+  # "Homem", "Não binário"… (o banco guarda "Não Binário" com B maiúsculo)
+  def profile_gender_label(user)
+    value = user.gender.to_s.strip
+    return if value.empty?
+
+    PROFILE_GENDER_OPTIONS.find { |_label, saved| saved.casecmp?(value) }&.first || value.capitalize
+  end
+
+  # "Quer conhecer mulheres" / "Quer conhecer todo mundo"
+  def profile_seeking_label(user)
+    value = user.interested_in.to_s.strip
+    return if value.empty?
+
+    "Quer conhecer #{PROFILE_SEEKING_LABELS.fetch(value.downcase, value.downcase)}"
+  end
+
+  # "Itabuna, BA" — só cidade/estado; o perfil não mostra distância
+  def profile_place(user)
+    [ user.city, user.state ].compact_blank.join(", ").presence
+  end
+
   def interest_suggestions(user)
     chosen = user.hobbies_list.map { |hobby| hobby.strip.downcase }
     INTEREST_SUGGESTIONS.reject { |suggestion| chosen.include?(suggestion.downcase) }

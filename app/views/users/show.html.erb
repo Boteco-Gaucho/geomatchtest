@@ -1,124 +1,150 @@
-<div class="v-view-sheet">
+<%# Perfil de uma pessoa (/users/:id) — layout do mockup: foto com nome por cima,
+    X / Mandar mensagem / curtir na borda da foto, cartão com Sobre, Informações e
+    Interesses, e Denunciar | Bloquear no fim. Estilos: .up-* em user_profile.scss.
+    No próprio perfil somem as ações, a estrela e Denunciar/Bloquear. %>
+<% own_profile = @user == current_user %>
+<% has_photos  = @user.has_real_avatar? || @user.album_photos.attached? %>
+<% first_name  = @user.display_name.to_s.split.first %>
+<% place       = profile_place(@user) %>
+<% facts = [
+     [ "person", profile_gender_label(@user) ],
+     [ "heart",  profile_seeking_label(@user) ],
+     [ "pin",    place ]
+   ].select { |_icon, text| text.present? } %>
+<% hobbies = @user.hobbies_list.map(&:to_s).map(&:strip).compact_blank %>
 
-  <%# Botão Fechar Exclusivo %>
-  <button class="v-view-close-btn" onclick="history.back()">
-    <i class="fas fa-arrow-down"></i>
-  </button>
-
-  <div class="v-view-scroll-content">
-
-    <%# --- TOPO: CARROSSEL IMERSIVO --- %>
-    <div class="v-view-carousel-wrapper">
+<div class="user-profile" data-controller="user-profile" data-user-profile-fallback-value="<%= lead_path %>">
+  <section class="up-hero <%= has_photos ? 'has-photos' : 'is-empty' %>">
+    <% if has_photos %>
       <%= render "shared/profile_carousel", user: @user, show_gradient: false %>
+    <% else %>
+      <svg class="up-placeholder" viewBox="0 0 114 118" aria-hidden="true">
+        <circle cx="57" cy="28.5" r="25.5"/>
+        <path d="M3 115A54 51 0 0 1 111 115"/>
+      </svg>
+    <% end %>
+    <div class="up-shade" aria-hidden="true"></div>
 
-      <%# Overlay de Informações %>
-      <div class="v-view-cover-overlay">
-        <div class="v-view-cover-info">
-          <h2 class="v-view-cover-name" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <%= @user.display_name %>, <span class="v-view-cover-age"><%= @user.age %></span>
-            <% if @user&.verified? %>
-              <%= image_tag "icone-verificar.png", style: "width: 20px; height: 20px;", title: "Perfil Verificado" %>
-            <% end %>
-          </h2>
-          <p class="v-view-cover-distance">
-            <i class="fas fa-location-arrow"></i> a <%= @distance || 2.0 %> km de distância
-          </p>
+    <%= link_to lead_path, class: "up-round up-back", aria: { label: "Voltar" },
+                data: { action: "user-profile#back" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
+
+    <% unless own_profile %>
+      <%# O Turbo Stream de favoritos troca o div#favorite-btn-N inteiro; a posição fica no pai %>
+      <div class="up-fav">
+        <div id="<%= "favorite-btn-#{@user.id}" %>">
+          <%= render "favorites/favorite_button", user: @user, favorite_id: @favorite_id %>
         </div>
       </div>
-    </div>
+    <% end %>
 
-    <div class="v-view-body-container">
-
-      <%# --- BARRA DE AÇÕES --- %>
-      <% if @user != current_user %>
-        <div class="v-view-action-bar">
-          <%= button_to reject_user_path(user_id: @user.id), method: :post,
-              class: "dsc-action-btn btn-reject",
-              form: { class: "dsc-action-form" } do %>
-            <%= image_tag "botao-rejeitar.svg", alt: "Rejeitar" %>
-          <% end %>
-
-          <%= button_to start_chat_path(user_id: @user.id), method: :post,
-              class: "dsc-action-btn btn-chat",
-              form: { class: "dsc-action-form" } do %>
-            <%= image_tag "mensagem-prata.svg", alt: "Chat" %>
-          <% end %>
-
-          <%= button_to likes_path(user_id: @user.id), method: :post,
-              class: "dsc-action-btn btn-like",
-              form: { class: "dsc-action-form" } do %>
-            <div class="dsc-heart-icon-wrapper">
-              <%= image_tag "coracao-chapada.png", alt: "Curtir" %>
-            </div>
-          <% end %>
-        </div>
+    <div class="up-info">
+      <% if @user.online? && !@user.invisible? %>
+        <span class="up-online"><i></i>Online agora</span>
       <% end %>
-
-      <%# --- CARD: SOBRE MIM --- %>
-      <div class="v-view-info-card">
-        <h3 class="v-view-card-header">SOBRE MIM</h3>
-        <p class="v-view-bio-text">
-          <%= @user.bio.present? ? @user.bio : "Sem biografia." %>
+      <h1 class="up-name">
+        <strong><%= first_name %></strong>
+        <% if @user.age %><span class="up-age"><%= @user.age %></span><% end %>
+        <% if @user.verified? %>
+          <svg class="up-verified" viewBox="0 0 24 24" role="img" aria-label="Perfil verificado"><circle cx="12" cy="12" r="12"/><path d="M7.2 12.4l3.2 3.1 6.4-6.6"/></svg>
+        <% end %>
+      </h1>
+      <% if place %>
+        <p class="up-place">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <%= place %>
         </p>
-      </div>
-
-      <%# --- CARD: INFORMAÇÕES BÁSICAS (PILLS) --- %>
-      <div class="v-view-info-card">
-        <h3 class="v-view-card-header">INFORMAÇÕES BÁSICAS</h3>
-        <div class="info-pills-container">
-          <% if @user.gender.present? %>
-            <span class="info-pill">
-              <i class="fas fa-venus-mars"></i> <%= @user.gender.capitalize %>
-            </span>
-          <% end %>
-          <% if @user.interested_in.present? %>
-            <span class="info-pill">
-              <i class="fas fa-search"></i> Busca: <%= @user.interested_in.capitalize %>
-            </span>
-          <% end %>
-          <% if @user.city.present? %>
-            <span class="info-pill">
-              <i class="fas fa-map-marker-alt"></i> <%= @user.city %>
-            </span>
-          <% end %>
-        </div>
-      </div>
-
-      <%# --- CARD: INTERESSES --- %>
-      <% if @user.respond_to?(:hobbies_list) && @user.hobbies_list.any? %>
-        <div class="v-view-info-card">
-          <h3 class="v-view-card-header">INTERESSES</h3>
-          <div class="tags-container">
-            <% @user.hobbies_list.each do |hobby| %>
-              <span class="tag-pill"><%= hobby %></span>
-            <% end %>
-          </div>
-        </div>
       <% end %>
-
-      <%# --- SEGURANÇA --- %>
-      <% if @user != current_user %>
-        <div class="v-view-safety-area">
-          <div class="v-view-safety-divider"></div>
-
-          <%= button_to report_incident_path(user_id: @user.id), method: :get,
-              class: "v-view-btn-safety" do %>
-            DENUNCIAR <%= @user.display_name.upcase %>
-          <% end %>
-
-          <div class="v-view-safety-separator"></div>
-
-          <button type="button"
-                  class="v-view-btn-safety"
-                  onclick="openBlockConfirm('<%= j @user.display_name %>', '<%= block_user_path(@user) %>')">
-            BLOQUEAR <%= @user.display_name.upcase %>
-          </button>
-
-          <div class="v-view-safety-divider"></div>
-        </div>
-      <% end %>
-
-      <div class="v-view-bottom-spacer"></div>
     </div>
-  </div>
+  </section>
+
+  <% unless own_profile %>
+    <div class="up-actions">
+      <%= button_to reject_user_path(user_id: @user.id, source: "profile"), method: :post,
+            class: "up-action up-pass", aria: { label: "Agora não" }, title: "Agora não",
+            form: { class: "up-action-form", data: { action: "submit->user-profile#pass" } } do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      <% end %>
+
+      <%= button_to start_chat_path(user_id: @user.id), method: :post,
+            class: "up-message", form: { class: "up-action-form up-message-form" } do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Mandar mensagem
+      <% end %>
+
+      <% if @liked %>
+        <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        </button>
+      <% else %>
+        <%= button_to likes_path(user_id: @user.id, source: "profile"), method: :post,
+              class: "up-action up-like", aria: { label: "Curtir #{first_name}" }, title: "Curtir",
+              form: { class: "up-action-form" } do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @user.bio.present? || facts.any? || hobbies.any? %>
+    <section class="up-card <%= 'is-own' if own_profile %>">
+      <% if @user.bio.present? %>
+        <div class="up-section">
+          <h2 class="up-label">Sobre</h2>
+          <p class="up-bio"><%= @user.bio %></p>
+        </div>
+      <% end %>
+
+      <% if facts.any? %>
+        <div class="up-section">
+          <h2 class="up-label">Informações</h2>
+          <ul class="up-facts">
+            <% facts.each do |icon, text| %>
+              <li>
+                <% case icon %>
+                <% when "person" %>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                <% when "heart" %>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <% else %>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <% end %>
+                <%= text %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if hobbies.any? %>
+        <div class="up-section">
+          <h2 class="up-label">Interesses</h2>
+          <ul class="up-tags">
+            <% hobbies.each do |hobby| %>
+              <li><%= hobby %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% unless own_profile %>
+    <div class="up-safety">
+      <%= link_to report_incident_path(user_id: @user.id), class: "up-safety-btn" do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h14l-3 4.5 3 4.5H5"/></svg>
+        Denunciar
+      <% end %>
+      <span class="up-safety-sep" aria-hidden="true"></span>
+      <button type="button" class="up-safety-btn"
+              onclick="openBlockConfirm('<%= j @user.display_name %>', '<%= block_user_path(@user) %>')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        Bloquear
+      </button>
+    </div>
+  <% end %>
+
+  <%# Modal de limite (curtidas/mensagens do plano Free) — o Turbo Stream escreve aqui %>
+  <div id="upgrade-modal-container"></div>
 </div>

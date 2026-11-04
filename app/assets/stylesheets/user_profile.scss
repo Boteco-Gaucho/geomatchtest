@@ -1,0 +1,395 @@
+// =================================================================
+// Perfil de uma pessoa (/users/:id) — app/views/users/show.html.erb
+// Foto (ou silhueta) com nome por cima; X / Mandar mensagem / curtir na borda
+// de baixo da foto; cartão com Sobre, Informações e Interesses; Denunciar |
+// Bloquear. Medidas do mockup em 390px.
+// =================================================================
+
+.user-profile {
+  --up-bg: #f9f2e8;
+  --up-text: #1c1c1e;
+  --up-card: #fff;
+  --up-card-border: #ece5da;
+  --up-divider: #efe9df;
+  --up-label: #80652f;
+  --up-fact-bg: #f2eee6;
+  --up-fact-icon: #4a4038;
+  --up-tag-bg: #f5dfc4;
+  --up-round: #fff;
+  --up-round-shadow: 0 8px 20px rgba(70, 48, 22, 0.13);
+  --up-safety: #5c544b;
+  --up-safety-sep: #e6ddd1;
+
+  max-width: 560px; // no desktop a foto não estica na largura toda
+  min-height: 100%;
+  margin: 0 auto;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
+  background: var(--up-bg);
+  color: var(--up-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  // :where() não soma especificidade — as margens das classes .up-* abaixo valem
+  :where(h1, h2, p, ul) { margin: 0; }
+  :where(ul) { padding: 0; list-style: none; }
+}
+
+// ---------- Foto ----------
+.up-hero {
+  position: relative;
+  aspect-ratio: 390 / 560;
+  max-height: 74svh;
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: 0 0 28px 28px;
+  background: #7d6a5c;
+  color: #fff;
+
+  // Indicadores do carrossel (shared/profile_carousel)
+  .pc-indicators { top: 14px; left: 15px; right: 16px; gap: 4px; }
+  .pc-indicator { height: 3px; background: rgba(255, 255, 255, 0.42); box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
+  .pc-indicator.pc-indicator--active { background: #fff; }
+}
+
+// Sem foto: silhueta no lugar
+.up-placeholder {
+  position: absolute;
+  top: 29.8%;
+  left: 50%;
+  width: 114px;
+  height: 118px;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.44);
+
+  .user-profile & { stroke-width: 6; }
+}
+
+// Escurece a metade de baixo para o nome ficar legível (na silhueta e nas fotos)
+.up-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(28, 21, 17, 0) 52%, rgba(28, 21, 17, 0.9) 100%);
+}
+
+// Com foto, um véu leve no topo para os botões e indicadores aparecerem
+.up-hero.has-photos .up-shade {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0, rgba(0, 0, 0, 0) 110px),
+    linear-gradient(180deg, rgba(28, 21, 17, 0) 48%, rgba(28, 21, 17, 0.9) 100%);
+}
+
+.up-round,
+.up-fav .card-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.26);
+  color: #fff;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.up-back {
+  position: absolute;
+  top: 30px;
+  left: 14px;
+  z-index: 20;
+
+  svg { width: 22px; height: 22px; stroke-width: 2.4; }
+}
+
+.up-fav {
+  position: absolute;
+  top: 30px;
+  right: 14px;
+  z-index: 20;
+
+  .card-action-form { margin: 0; }
+  .card-action-btn svg { width: 20px; height: 20px; }
+  .card-action-star--active { color: #e9c46a; }
+  .card-action-star--active svg { fill: currentColor; stroke: none; }
+}
+
+.up-info {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 54px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.up-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 27px;
+  margin-bottom: 11px;
+  padding: 0 10px 0 7px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: 600;
+
+  i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #3bc175;
+  }
+}
+
+.up-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 33px;
+  line-height: 36px;
+  overflow-wrap: anywhere;
+
+  strong { font-weight: 800; }
+}
+
+.up-age { font-size: 28px; font-weight: 400; }
+
+.up-verified {
+  flex: 0 0 auto;
+  width: 21px;
+  height: 21px;
+
+  .user-profile & circle { fill: #3b82f6; stroke: none; }
+  .user-profile & path { stroke: #fff; stroke-width: 2.4; }
+}
+
+.up-place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 20px;
+
+  svg { flex: 0 0 auto; width: 14px; height: 14px; }
+}
+
+// ---------- X / Mandar mensagem / curtir ----------
+.up-actions {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: -29px 20px 0;
+}
+
+.up-action-form { margin: 0; }
+.up-message-form { flex: 1; min-width: 0; }
+
+.up-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--up-round);
+  box-shadow: var(--up-round-shadow);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.94); }
+  &:disabled { cursor: default; }
+}
+
+.up-pass {
+  color: #f2484a;
+
+  svg { width: 22px; height: 22px; stroke-width: 2.6; }
+}
+
+.up-like {
+  color: var(--up-text);
+
+  svg { width: 24px; height: 24px; fill: currentColor; stroke-width: 1.5; }
+
+  &.is-liked { color: #f2484a; transform: none; }
+}
+
+.up-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 58px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ddca92 0%, #c9a35a 100%);
+  box-shadow: 0 8px 20px rgba(160, 120, 50, 0.22);
+  color: #1c1c1e;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.97); }
+
+  svg { flex: 0 0 auto; width: 19px; height: 19px; stroke-width: 2; }
+}
+
+// ---------- Cartão ----------
+.up-card {
+  margin: 26px 20px 0;
+  padding: 0 20px;
+  border: 1px solid var(--up-card-border);
+  border-radius: 22px;
+  background: var(--up-card);
+
+  &.is-own { margin-top: 20px; }
+}
+
+.up-section {
+  padding: 21px 0 22px;
+
+  &:first-child { padding-top: 18px; }
+  & + & { border-top: 1px solid var(--up-divider); }
+  &:last-child { padding-bottom: 21px; }
+}
+
+.up-label {
+  margin-bottom: 8px;
+  color: var(--up-label);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.up-bio {
+  font-size: 15.5px;
+  line-height: 22px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.up-facts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 9px;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 6px 15px 6px 16px;
+    border-radius: 999px;
+    background: var(--up-fact-bg);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 18px;
+  }
+
+  svg { flex: 0 0 auto; width: 15px; height: 15px; color: var(--up-fact-icon); stroke-width: 1.9; }
+}
+
+.up-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 7px;
+  margin-top: 9px;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--up-tag-bg);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 18px;
+  }
+}
+
+// ---------- Denunciar | Bloquear ----------
+.up-safety {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 29px;
+}
+
+.up-safety-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 24px;
+  border: 0;
+  background: none;
+  color: var(--up-safety);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 17px; height: 17px; stroke-width: 1.9; }
+
+  &:active { opacity: 0.6; }
+}
+
+.up-safety-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--up-safety-sep);
+}
+
+// ---------- Modo escuro (a foto fica igual) ----------
+.dark-mode .user-profile,
+html.dark:not(.light-mode) .user-profile {
+  --up-bg: #121212;
+  --up-text: #f2f2f2;
+  --up-card: #1c1c1e;
+  --up-card-border: #2c2c2e;
+  --up-divider: #2c2c2e;
+  --up-label: #d4b06a;
+  --up-fact-bg: #2a2a2c;
+  --up-fact-icon: #c8c2ba;
+  --up-tag-bg: rgba(201, 160, 82, 0.22);
+  --up-round: #2a2a2c;
+  --up-round-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  --up-safety: #b5aea6;
+  --up-safety-sep: #3a3a3c;
+}

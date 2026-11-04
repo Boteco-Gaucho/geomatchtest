@@ -126,8 +126,13 @@ class LikesController < ApplicationController
   private
 
   # "Curtir de volta" pela tela de Curtidas (source=likes) volta para ela —
-  # inclusive ao fechar o modal de match. Os demais fluxos seguem para o Início.
+  # inclusive ao fechar o modal de match. Curtir pelo perfil (source=profile)
+  # fica no perfil. Os demais fluxos seguem para o Início.
   def return_path
-    params[:source] == "likes" ? notifications_path : lead_path
+    case params[:source]
+    when "likes"   then notifications_path
+    when "profile" then user_path(params[:user_id])
+    else lead_path
+    end
   end
 end

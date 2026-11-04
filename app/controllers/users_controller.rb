@@ -119,6 +119,10 @@ class UsersController < ApplicationController
       return
     end
 
+    # Coração já preenchido (vermelho) e estrela de favorito no estado certo
+    @liked       = current_user.likes.where(liked_id: @user.id, is_like: [ true, nil ]).exists?
+    @favorite_id = current_user.favorites.where(favorited_user_id: @user.id).pick(:id)
+
   rescue ActiveRecord::RecordNotFound
     redirect_to discover_3d_path, alert: "Usuário não encontrado."
   end
@@ -340,7 +344,8 @@ class UsersController < ApplicationController
 
     current_user.likes.create(liked_id: params[:user_id], is_like: false)
 
-    if params[:source] == "map"
+    # Mapa e perfil (/users/:id) chamam via fetch e cuidam da navegação no JS
+    if %w[map profile].include?(params[:source])
       return head :ok
     end
 
@@ -372,7 +377,7 @@ class UsersController < ApplicationController
     end
 
   rescue ActiveRecord::RecordNotFound
-    if params[:source] == "map"
+    if %w[map profile].include?(params[:source])
       head :not_found
     else
       redirect_to lead_path
