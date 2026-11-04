@@ -62,7 +62,14 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(body).to include('action="/apply_coupon"')
     expect(body).to include('data-controller="theme"')
     expect(body).to include("document.getElementById('logout-modal').classList.add('show')")
-    expect(body).to include("Encerrar minha conta")
+    page = Nokogiri::HTML(body)
+    expect(page.css(".me-settings .me-row-label").map(&:text))
+      .to eq([ "Privacidade e localização", "Aparência", "Ajuda e suporte", "Sair", "Encerrar conta" ])
+    expect(page.at_css(".me-settings a.me-row")["href"]).to eq("/politica-de-privacidade")
+    delete_form = page.at_css(".me-settings form.me-row-form")
+    expect(delete_form["action"]).to eq("/users")
+    expect(delete_form.at_css("input[name=_method]")["value"]).to eq("delete")
+    expect(delete_form.at_css("button.me-row--danger")["data-turbo-confirm"]).to include("excluir sua conta")
     expect(body).to include('id="upgrade-modal-container"')
   end
 

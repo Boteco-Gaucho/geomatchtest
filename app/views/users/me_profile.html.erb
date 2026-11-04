@@ -288,15 +288,19 @@
       <% end %>
 
       <%# Sair: abre o modal de confirmação abaixo %>
-      <button type="button" class="me-row me-row--logout" onclick="document.getElementById('logout-modal').classList.add('show')">
+      <button type="button" class="me-row" onclick="document.getElementById('logout-modal').classList.add('show')">
         <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span class="me-row-label">Sair</span>
       </button>
-    </section>
 
-    <%= button_to "Encerrar minha conta", user_registration_path, method: :delete,
-                  data: { turbo_confirm: "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita." },
-                  class: "me-delete-account", form_class: "me-delete-account-form" %>
+      <%# Encerrar conta: DELETE do Devise (registrations#destroy) com confirmação %>
+      <%= button_to user_registration_path, method: :delete,
+            data: { turbo_confirm: "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita." },
+            class: "me-row me-row--danger", form_class: "me-row-form" do %>
+        <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        <span class="me-row-label">Encerrar conta</span>
+      <% end %>
+    </section>
 
   </div>
 </div>
