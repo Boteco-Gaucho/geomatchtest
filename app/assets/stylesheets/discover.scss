@@ -58,7 +58,7 @@
   background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
   pointer-events: none;
 }
-.header-logo-img { height: 42px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events: auto; }
+.header-logo-img { height: 34px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events: auto; }
 // Filtro de gênero segmentado (pílula de vidro) — 4 opções com estado ativo dourado.
 // pointer-events: auto é obrigatório: o .discover-header-floating tem pointer-events: none.
 .gm-gender-filter {
@@ -114,9 +114,9 @@
   --radar-fill: #1c1c1e;              // trilho até o polegar
   --radar-rest: rgba(28, 28, 30, 0.14); // resto do trilho
   position: absolute; left: 21px; top: calc(205px + env(safe-area-inset-top, 0px)); z-index: 500;
-  width: 39px; height: 188px;
+  width: 33px; height: 158px;
   display: flex; flex-direction: column; align-items: center;
-  padding-top: 11px;
+  padding-top: 9px;
   border: 2px solid rgba(255, 255, 255, 0.95);
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(214, 214, 217, 0.82) 0%, rgba(240, 240, 242, 0.88) 100%);
@@ -132,15 +132,15 @@
 .radar-value {
   display: flex; flex-direction: column; align-items: center;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 12px; font-weight: 700; line-height: 13px; color: #1c1c1e;
+  font-size: 10.5px; font-weight: 700; line-height: 11px; color: #1c1c1e;
   pointer-events: none;
 
-  strong { font-size: 12px; font-weight: 800; line-height: 14px; }
+  strong { font-size: 10.5px; font-weight: 800; line-height: 12px; }
 }
-.slider-track-container { position: relative; width: 35px; height: 132px; margin-top: 6px; }
+.slider-track-container { position: relative; width: 29px; height: 110px; margin-top: 5px; }
 .range-slider-custom {
   -webkit-appearance: none; appearance: none;
-  width: 132px; height: 35px;
+  width: 110px; height: 29px;
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%) rotate(-90deg); transform-origin: center;
   background: transparent; margin: 0; padding: 0; z-index: 2; cursor: pointer; accent-color: transparent;
@@ -148,19 +148,19 @@
   background-repeat: no-repeat; background-position: center; background-size: 100% 3px;
   &::-webkit-slider-runnable-track { background: transparent; border: none; height: 100%; }
   &::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
-    background: #fff; border: 2.5px solid #1c1c1e; box-shadow: 0 1px 4px rgba(0,0,0,0.25); margin-top: 6.5px;
+    -webkit-appearance: none; appearance: none; width: 19px; height: 19px; border-radius: 50%;
+    background: #fff; border: 2.5px solid #1c1c1e; box-shadow: 0 1px 4px rgba(0,0,0,0.25); margin-top: 5px;
   }
-  &::-moz-range-thumb { width: 17px; height: 17px; border-radius: 50%; background: #fff; border: 2.5px solid #1c1c1e; }
+  &::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #fff; border: 2.5px solid #1c1c1e; }
 }
 
 // 4. FAB ACTIONS — círculos brancos encostados na gaveta (25vh)
 .map-fab-container {
   position: absolute; right: 18px; bottom: max(25vh, 120px); z-index: 500;
-  display: flex; flex-direction: column; gap: 12px; pointer-events: auto;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: auto;
 }
 .fab-button {
-  width: 52px; height: 52px; border-radius: 50%; border: none;
+  width: 44px; height: 44px; border-radius: 50%; border: none;
   display: flex; align-items: center; justify-content: center;
   background: #fff; color: #1c1c1e;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
@@ -168,7 +168,7 @@
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   &:active { transform: scale(0.95); }
-  svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .hidden { display: none; } // olho aberto/riscado (a view usa a classe hidden)
 
   // Modo oculto: verde = aparecendo no mapa; escuro com olho riscado = oculto
