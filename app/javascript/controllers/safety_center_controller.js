@@ -31,7 +31,7 @@ export default class extends Controller {
 
       this._share("Localização pronta", {
         title: "Minha localização",
-        text: "Estou aqui! Segue minha localização atual:",
+        text: "📍 Esta localização foi enviada pelo app GeoMatch. Estou me conectando com pessoas novas e, por segurança, estou compartilhando onde estou. Por favor, acompanhe minha localização:",
         url: mapUrl
       })
     })
