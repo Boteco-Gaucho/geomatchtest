@@ -1,0 +1,144 @@
+// =================================================================
+// "Sair da sua conta?" — folha inferior de Meu Perfil (users/me_profile.html.erb,
+// logout_sheet_controller.js). Mockup de 739px de largura → ×0,528 para 390px.
+// =================================================================
+
+.ls-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(46, 40, 32, 0.42);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+
+  &[hidden] { display: none; }
+  &.is-open { opacity: 1; }
+}
+
+.ls-sheet {
+  --ls-surface: #fff;
+  --ls-text: #161616;
+  --ls-muted: #5c5955;
+  --ls-icon-bg: #f4eee4;
+  --ls-icon: #8a6a3a;
+  --ls-handle: #e6dccb;
+  --ls-stay-bg: #1e1e20;
+  --ls-stay-text: #fff;
+  --ls-danger: #b8291f;
+
+  width: 100%;
+  max-width: 560px;
+  padding: 13px 24px calc(36px + env(safe-area-inset-bottom, 0px));
+  border-radius: 28px 28px 0 0;
+  background: var(--ls-surface);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.14);
+  color: var(--ls-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  touch-action: none; // o arrastar para baixo fecha (o JS cuida)
+
+  .ls-backdrop.is-open & { transform: translateY(0); }
+  &.is-dragging { transition: none; }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.ls-handle {
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--ls-handle);
+}
+
+.ls-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 23px auto 0;
+  border-radius: 50%;
+  background: var(--ls-icon-bg);
+  color: var(--ls-icon);
+
+  svg { width: 26px; height: 26px; stroke-width: 2; }
+}
+
+.ls-title {
+  margin: 18px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 27px;
+  letter-spacing: -0.3px;
+}
+
+.ls-text {
+  max-width: 320px;
+  margin: 7px auto 0;
+  color: var(--ls-muted);
+  font-size: 14.5px;
+  line-height: 22px;
+}
+
+.ls-stay,
+.ls-leave {
+  display: block;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ls-stay {
+  height: 54px;
+  margin-top: 27px;
+  border-radius: 999px;
+  background: var(--ls-stay-bg);
+  color: var(--ls-stay-text);
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+}
+
+.ls-leave {
+  height: 46px;
+  margin-top: 9px;
+  background: none;
+  color: var(--ls-danger);
+
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+// Página parada atrás da folha
+html.ls-lock,
+html.ls-lock body { overflow: hidden; }
+
+/* --- MODO ESCURO --- */
+.dark-mode .ls-sheet,
+html.dark:not(.light-mode) .ls-sheet {
+  --ls-surface: var(--color-section-gray, #1e1e1e);
+  --ls-text: var(--color-text, #f2f2f2);
+  --ls-muted: var(--color-text-secondary, #b3aea8);
+  --ls-icon-bg: rgba(201, 160, 82, 0.16);
+  --ls-icon: #e2c58a;
+  --ls-handle: rgba(255, 255, 255, 0.18);
+  --ls-stay-bg: #f2efe9;
+  --ls-stay-text: #161616;
+  --ls-danger: #f87171;
+}

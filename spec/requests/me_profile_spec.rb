@@ -61,8 +61,9 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(body).to include('data-controller="balance-visibility"')
     expect(body).to include('action="/apply_coupon"')
     expect(body).to include('data-controller="theme"')
-    expect(body).to include("document.getElementById('logout-modal').classList.add('show')")
     page = Nokogiri::HTML(body)
+    sair = page.css(".me-settings button.me-row").find { |b| b.text.squish == "Sair" }
+    expect(sair["data-action"]).to eq("logout-sheet#open")
     expect(page.css(".me-settings .me-row-label").map(&:text))
       .to eq([ "Privacidade e localização", "Aparência", "Ajuda e suporte", "Sair", "Encerrar conta" ])
     expect(page.at_css(".me-settings a.me-row")["href"]).to eq("/privacidade")
@@ -71,6 +72,24 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(delete_form.at_css("input[name=_method]")["value"]).to eq("delete")
     expect(delete_form.at_css("button.me-row--danger")["data-turbo-confirm"]).to include("excluir sua conta")
     expect(body).to include('id="upgrade-modal-container"')
+  end
+
+  it "Sair abre a folha do mockup, que fica escondida até o toque e sai pela sessão do Devise" do
+    page = Nokogiri::HTML(open_profile(create(:user, onboarding_completed: true, plan: free_plan)))
+
+    wrapper = page.at_css('[data-controller="logout-sheet"]')
+    expect(wrapper["data-logout-sheet-url-value"]).to eq("/users/sign_out")
+    expect(wrapper.at_css(".me-settings")).to be_present # o botão Sair fica dentro do controller
+
+    sheet = wrapper.at_css(".ls-backdrop")
+    expect(sheet.key?("hidden")).to be(true)
+    expect(sheet.at_css(".ls-title").text).to eq("Sair da sua conta?")
+    expect(sheet.at_css(".ls-text").text).to eq("Para ver quem está por perto de novo, é só entrar com seu e-mail e senha.")
+    expect(sheet.at_css("button.ls-stay").text).to eq("Continuar no GeoMatch")
+    expect(sheet.at_css("button.ls-stay")["data-action"]).to eq("logout-sheet#close")
+    expect(sheet.at_css("button.ls-leave").text).to eq("Sair")
+    expect(sheet.at_css("button.ls-leave")["data-action"]).to eq("logout-sheet#logout")
+    expect(page.at_css("#logout-modal")).to be_nil
   end
 
   describe "card de completude" do

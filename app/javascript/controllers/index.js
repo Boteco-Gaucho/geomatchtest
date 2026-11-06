@@ -102,3 +102,6 @@ application.register("user-profile", UserProfileController)
 
 import PrivacyToggleController from "./privacy_toggle_controller"
 application.register("privacy-toggle", PrivacyToggleController)
+
+import LogoutSheetController from "./logout_sheet_controller"
+application.register("logout-sheet", LogoutSheetController)
