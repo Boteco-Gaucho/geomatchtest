@@ -67,7 +67,7 @@
       <% end %>
       <h1 class="up-name">
         <strong><%= first_name %></strong>
-        <% if user.age %><span class="up-age"><%= user.age %></span><% end %>
+        <% if user.public_age %><span class="up-age"><%= user.public_age %></span><% end %>
         <% if user.verified? %>
           <svg class="up-verified" viewBox="0 0 24 24" role="img" aria-label="Perfil verificado"><circle cx="12" cy="12" r="12"/><path d="M7.2 12.4l3.2 3.1 6.4-6.6"/></svg>
         <% end %>

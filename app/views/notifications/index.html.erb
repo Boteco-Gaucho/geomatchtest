@@ -108,7 +108,7 @@
                     Ver quem você curtiu
                   </p>
                 <% else %>
-                  <p class="like-card-name"><strong><%= first_name %></strong> <%= target_user.age %></p>
+                  <p class="like-card-name"><strong><%= first_name %></strong> <%= target_user.public_age %></p>
                   <p class="like-card-meta">Enviado <%= time_ago_in_words(like.created_at) %> atrás</p>
                 <% end %>
               </div>

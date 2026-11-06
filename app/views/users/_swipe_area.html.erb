@@ -22,7 +22,7 @@
       <div class="lead-info clickable-info" data-action="click->lead-swipe#openProfile">
         <h2 class="lead-name">
           <strong><%= next_user.display_name.split.first %></strong>
-          <% if next_user.age %><span><%= next_user.age %></span><% end %>
+          <% if next_user.public_age %><span><%= next_user.public_age %></span><% end %>
           <% if next_user.verified? %>
             <svg class="lead-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
           <% end %>

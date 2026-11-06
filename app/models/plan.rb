@@ -32,6 +32,15 @@ class Plan < ApplicationRecord
 
   public
 
+  # "Esconder minha idade": vale a chave hide_age de features quando existir;
+  # sem ela, segue o modo oculto (allow_invisible) — ou seja, o Gold
+  def allows_hide_age?
+    flags = (features || {}).with_indifferent_access
+    return flags[:hide_age] == true if flags.key?(:hide_age)
+
+    flags[:allow_invisible] == true || code == "gold"
+  end
+
   # Soft delete - desativa o plano em vez de deletar
   def soft_delete
     update(active: false)

@@ -118,14 +118,19 @@
                   data-visibility-toggle-target="switch" data-action="visibility-toggle#toggle"></button>
         </div>
 
-        <%# Ainda não existe no backend — aparece como "Em breve" %>
-        <div class="me-toggle-row is-soon">
+        <%# Esconder a idade (Gold): privacy_toggle_controller — o mesmo da tela
+            Privacidade e localização; fora do Gold abre o modal de upgrade %>
+        <div class="me-toggle-row" data-controller="privacy-toggle"
+             data-privacy-toggle-url-value="<%= privacy_hide_age_path %>"
+             data-privacy-toggle-key-value="hide_age"
+             data-privacy-toggle-checked-value="<%= @user.age_hidden? %>">
           <div class="me-toggle-text">
-            <strong>Não mostrar minha idade <em class="me-soon">Em breve</em></strong>
+            <strong>Não mostrar minha idade</strong>
             <span>Sua idade some do seu perfil</span>
           </div>
-          <span class="me-switch" role="switch" aria-label="Não mostrar minha idade (em breve)"
-                aria-checked="false" aria-disabled="true"></span>
+          <button type="button" class="me-switch" role="switch" aria-label="Não mostrar minha idade"
+                  aria-checked="<%= @user.age_hidden? %>"
+                  data-privacy-toggle-target="switch" data-action="privacy-toggle#toggle"></button>
         </div>
       </div>
 
@@ -267,7 +272,7 @@
 
     <%# --- 8. CONFIGURAÇÕES --- %>
     <section class="me-card me-list me-settings">
-      <%= link_to privacy_path, class: "me-row" do %>
+      <%= link_to privacy_settings_path, class: "me-row" do %>
         <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span class="me-row-label">Privacidade e localização</span>
         <svg class="me-row-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>

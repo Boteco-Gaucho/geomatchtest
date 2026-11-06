@@ -30,7 +30,7 @@ module UsersHelper
     [ "Lista de quem você curtiu",   "see_who_i_liked" ],
     [ "Mensagens ilimitadas",        "unlimited_messages" ],
     [ "Modo oculto",                 "allow_invisible" ],
-    [ "Não mostrar minha idade",     nil ]
+    [ "Não mostrar minha idade",     :hide_age ] # Plan#allows_hide_age?
   ].freeze
 
   # Editar Perfil — chips de "Sobre você" (rótulo => valor gravado). "Não Binário"
@@ -190,6 +190,8 @@ module UsersHelper
   end
 
   def plan_has_perk?(plan, key)
+    return plan.present? && plan.allows_hide_age? if key == :hide_age
+
     key.present? && (plan&.features || {})[key] == true
   end
 

@@ -1,0 +1,128 @@
+<%# Privacidade e localização (/privacidade) — aberta por Meu Perfil. Layout do mockup;
+    estilos .prv-* em privacy_settings.scss. Os interruptores usam privacy_toggle_controller.js
+    com os endpoints de sempre (modo oculto, Explorar cidades) e os novos de localização e idade.
+    O "Em resumo" é o que o servidor garante: posição aproximada (User#approximate_coordinates)
+    e só quem está a até 300 m (User::MAP_RADIUS_KM). Tópicos da política: PrivacySettingsHelper. %>
+<%
+  controls = [
+    { title: "Localização em tempo real", text: "Aparecer no mapa para quem está perto",
+      url: privacy_share_location_path, key: "share_location", checked: @user.sharing_location? },
+    { title: "Modo oculto no mapa", text: "Ver todo mundo sem aparecer", gold: true, upgrade: "invisible",
+      url: toggle_visibility_users_path, key: "invisible", checked: @user.invisible? },
+    { title: "Oculto em Explorar cidades", text: "Não aparecer para quem busca de outras cidades", gold: true,
+      upgrade: "invisible", url: discover_3d_gallery_visibility_path, key: "hidden", checked: @user.hidden_from_city_search? },
+    { title: "Esconder minha idade", text: "Sua idade some do seu perfil", gold: true,
+      url: privacy_hide_age_path, key: "hide_age", checked: @user.age_hidden? }
+  ]
+%>
+<div class="privacy-settings">
+
+  <%# --- 1. TOPO --- %>
+  <div class="prv-header">
+    <%= link_to my_profile_path, class: "prv-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
+    <div class="prv-heading">
+      <h1 class="prv-title"><span>Privacidade e localização</span></h1>
+      <p class="prv-subtitle">Você no controle do que aparece.</p>
+    </div>
+  </div>
+
+  <%# --- 2. EM RESUMO --- %>
+  <section class="prv-summary" aria-labelledby="prv-summary-title">
+    <h2 class="prv-eyebrow" id="prv-summary-title">Em resumo</h2>
+    <ul>
+      <li>
+        <span class="prv-summary-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        </span>
+        <div>
+          <strong>Sua posição nunca é exata</strong>
+          <p>No mapa você aparece numa área aproximada, que muda a cada 5 minutos.</p>
+        </div>
+      </li>
+      <li>
+        <span class="prv-summary-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="9.5" stroke-dasharray="2.2 2.8"/></svg>
+        </span>
+        <div>
+          <strong>Só quem está perto te vê</strong>
+          <p>No mapa, você aparece só para quem está a até 300 m de você.</p>
+        </div>
+      </li>
+      <li>
+        <span class="prv-summary-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        </span>
+        <div>
+          <strong>Você decide quando aparecer</strong>
+          <p>Desligue a localização ou fique oculto quando quiser, aqui embaixo.</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <%# --- 3. SEUS CONTROLES --- %>
+  <h2 class="prv-section-title">Seus controles</h2>
+  <div class="prv-card prv-controls">
+    <% controls.each do |control| %>
+      <div class="prv-control <%= 'is-on' if control[:checked] %>" data-controller="privacy-toggle"
+           data-privacy-toggle-url-value="<%= control[:url] %>"
+           data-privacy-toggle-key-value="<%= control[:key] %>"
+           data-privacy-toggle-checked-value="<%= control[:checked] %>"
+           <% if control[:upgrade] %>data-privacy-toggle-upgrade-value="<%= control[:upgrade] %>"<% end %>>
+        <div class="prv-control-text">
+          <strong>
+            <%= control[:title] %>
+            <% if control[:gold] %><span class="prv-gold">Gold</span><% end %>
+          </strong>
+          <span><%= control[:text] %></span>
+        </div>
+        <button type="button" class="prv-switch" role="switch" aria-label="<%= control[:title] %>"
+                aria-checked="<%= control[:checked] %>"
+                data-privacy-toggle-target="switch" data-action="privacy-toggle#toggle"></button>
+      </div>
+    <% end %>
+  </div>
+
+  <%# --- 4. POLÍTICA DE PRIVACIDADE (tópicos) --- %>
+  <div class="prv-policy-head">
+    <h2 class="prv-section-title">Política de privacidade</h2>
+    <span class="prv-updated">Atualizada em <%= PrivacySettingsHelper::PRIVACY_POLICY_UPDATED_ON.strftime("%d/%m/%Y") %></span>
+  </div>
+  <div class="prv-card prv-policy">
+    <% PrivacySettingsHelper::PRIVACY_POLICY_TOPICS.each_with_index do |(title, body), index| %>
+      <details class="prv-topic" name="privacy-topic" <%= "open" if index == 1 %>>
+        <summary>
+          <span><%= title %></span>
+          <svg class="prv-topic-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <% if body.is_a?(Array) %>
+          <ul class="prv-topic-list">
+            <% body.each do |label, text| %>
+              <li><strong><%= label %></strong> <%= text %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p><%= body %></p>
+        <% end %>
+      </details>
+    <% end %>
+  </div>
+
+  <%= link_to privacy_path, class: "prv-full-policy" do %>
+    <span>Ler a política completa</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+  <% end %>
+
+  <%# --- 5. CONTATO --- %>
+  <div class="prv-note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>
+    <p>
+      Quer ver, corrigir ou apagar seus dados? Escreva para
+      <%= mail_to PrivacySettingsHelper::PRIVACY_CONTACT_EMAIL, subject: "Meus dados (LGPD)" %>.
+    </p>
+  </div>
+
+  <div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>
+</div>

@@ -27,6 +27,14 @@ const STORAGE_KEYS = {
 let map;
 let mapResizeObserver = null;
 let mapResizeInterval = null;
+// Quem está fora do mapa dos outros (modo oculto / localização desligada) não recebe
+// posições em tempo real (o servidor só avisa quem tem posição até 300 m) — então
+// a lista é recarregada de tempos em tempos
+let hiddenRefreshInterval = null;
+const HIDDEN_REFRESH_MS = 60000;
+// O servidor manda posições aproximadas (até ~110 m do ponto real) e só de quem está
+// de fato até 300 m: a folga evita tirar do radar quem está perto da borda
+const APPROX_POSITION_TOL_M = 110;
 let fixedUserLat = null;
 let fixedUserLng = null;
 let currentRangeMeters = parseInt(localStorage.getItem(STORAGE_KEYS.RANGE)) || INITIAL_RANGE_METERS;
@@ -275,17 +283,29 @@ function calculateAge(birthdate) {
   return age;
 }
 
+// Idade vem pronta do servidor (null quando a pessoa escondeu a idade — Gold)
+function userAge(user) {
+  if (user.age !== undefined) return user.age;
+  return user.birthdate ? calculateAge(user.birthdate) : null;
+}
+
+// Fora do mapa dos outros: modo oculto ou "Localização em tempo real" desligada
+function hiddenFromOthers() {
+  const data = document.getElementById('current-user-data')?.dataset;
+  return !!data && (data.invisible === 'true' || data.sharingLocation === 'false');
+}
+
 function openCinematicPopup(user) {
   const overlay = document.getElementById('mini-card-overlay');
   if (!overlay) return;
 
   const username = user.username || user.display_name || 'Usuário';
-  const age = calculateAge(user.birthdate);
+  const age = userAge(user);
   const distVal = user.distance_km || user.distance;
 
   // Título: "Username, Idade"
   const nameEl = document.getElementById('mco-name');
-  nameEl.innerHTML = `<span style="font-weight:bold">${username}</span><span style="font-weight:normal">, ${age}</span>`;
+  nameEl.innerHTML = `<span style="font-weight:bold">${username}</span>${age ? `<span style="font-weight:normal">, ${age}</span>` : ''}`;
 
   // Avatar
   document.getElementById('mco-avatar').src = user.avatar_url || '/default-avatar.png';
@@ -606,7 +626,7 @@ function _handleMapRealtime(data) {
 
   // Distância real em metros — respeita o filtro de raio atual
   const realDistM = haversineDistanceM(fixedUserLat, fixedUserLng, data.lat, data.lng);
-  if (realDistM > currentRangeMeters) {
+  if (realDistM > currentRangeMeters + APPROX_POSITION_TOL_M) {
     // Saiu do radar: remove se existia
     const m = mapboxUserMarkers[uid];
     if (m) { m.remove(); delete mapboxUserMarkers[uid]; }
@@ -650,7 +670,7 @@ function _handleMapRealtime(data) {
     id: uid, username: data.username, latitude: data.lat, longitude: data.lng,
     avatar_url: data.avatar_url, verified: data.verified, bio: data.bio,
     city: data.city, gender: data.gender, interested_in: data.interested_in,
-    hobbies_list: data.hobbies_list, birthdate: data.birthdate,
+    hobbies_list: data.hobbies_list, age: data.age ?? null,
     distance_km: distKm, online: true
   };
   mapboxUserData[uid] = userData;
@@ -758,7 +778,7 @@ function showUserPopup(user) {
   // --- Idade ---
   const ageEl = userPopup.querySelector("#popup-age");
   if (ageEl) {
-    const age = user.age ?? (user.birthdate ? calculateAge(user.birthdate) : null);
+    const age = userAge(user);
     ageEl.textContent = age ? `, ${age}` : '';
   }
 
@@ -1044,6 +1064,7 @@ document.addEventListener("turbo:before-cache", () => {
   resetTracking(document.getElementById('fab-live-tracking'));
   if (mapResizeObserver) { mapResizeObserver.disconnect(); mapResizeObserver = null; }
   if (mapResizeInterval) { clearInterval(mapResizeInterval); mapResizeInterval = null; }
+  if (hiddenRefreshInterval) { clearInterval(hiddenRefreshInterval); hiddenRefreshInterval = null; }
   if (map) {
     map.remove();
     map = null;
@@ -1400,6 +1421,7 @@ document.addEventListener("turbo:load", () => {
         if (!response.ok) throw new Error("Erro ao salvar no servidor");
         const data = await response.json();
         updateVisibilityUI(data.invisible);
+        if (userData) userData.dataset.invisible = String(data.invisible);
         showMapToast(data.invisible ? MAP_TOASTS.hiddenOn : MAP_TOASTS.hiddenOff);
       } catch (error) {
         console.error("Erro ao alternar visibilidade:", error);
@@ -1502,6 +1524,15 @@ document.addEventListener("turbo:load", () => {
       }
     }
   }, 1000);
+
+  if (hiddenRefreshInterval) clearInterval(hiddenRefreshInterval);
+  hiddenRefreshInterval = setInterval(() => {
+    if (!map || !window._mapIsReady || document.visibilityState !== "visible") return;
+    if (!hiddenFromOthers() || !fixedUserLat || !fixedUserLng) return;
+    if (Date.now() - lastUserFetchTime <= FETCH_COOLDOWN_MS) return;
+    lastUserFetchTime = Date.now();
+    loadNearbyUsers(fixedUserLat, fixedUserLng, currentRangeMeters, currentGenderFilter);
+  }, HIDDEN_REFRESH_MS);
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;

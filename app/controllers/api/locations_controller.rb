@@ -8,7 +8,10 @@ class Api::LocationsController < ApplicationController
     
     user = User.find_by(id: params[:user_id])
 
-    if user
+    if user&.hidden_from_map?
+      # Modo oculto ou localização desligada (tela Privacidade): não grava a posição
+      render json: { status: "sucesso", message: "Localização não compartilhada" }, status: :ok
+    elsif user
       # Atualiza as coordenadas do usuário no banco de dados
       if user.update(latitude: params[:latitude], longitude: params[:longitude])
         render json: { status: 'sucesso', message: 'Localização atualizada com sucesso' }, status: :ok

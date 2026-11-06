@@ -64,6 +64,7 @@ class UsersController < ApplicationController
     new_status = !current_user.invisible
     
     if current_user.update(invisible: new_status)
+      broadcast_map_leave(current_user) if new_status
       render json: { invisible: new_status, message: "Visibilidade alterada" }, status: :ok
     else
       render json: { error: "Erro ao atualizar" }, status: :unprocessable_entity
@@ -72,7 +73,7 @@ class UsersController < ApplicationController
 
   def update_location
     user = @location_user
-    return head :ok if user.invisible
+    return head :ok if user.hidden_from_map? # oculto ou localização desligada: não grava
 
     lat = params[:latitude].to_f
     lng = params[:longitude].to_f
@@ -132,6 +133,35 @@ class UsersController < ApplicationController
     @user.album_photos.load
     # Carrossel "Planos" (do mais barato ao mais caro)
     @plans = Plan.active.order(:price_cents)
+  end
+
+  # Privacidade e localização (aberta por Meu Perfil): resumo, controles e a
+  # política em tópicos. A política completa continua pública em /politica-de-privacidade.
+  def privacy_settings
+    @user = current_user
+  end
+
+  # "Localização em tempo real" — vale para todos os planos. Desligar tira a pessoa
+  # do mapa na hora e para de gravar a posição (update_location / nearby).
+  def toggle_share_location
+    sharing = !current_user.sharing_location?
+    current_user.update_column(:share_location, sharing)
+    broadcast_map_leave(current_user) unless sharing
+    render json: { share_location: sharing }
+  end
+
+  # "Esconder minha idade" — Gold (Plan#allows_hide_age?)
+  def toggle_hide_age
+    unless current_user.can_hide_age?
+      return render json: { upgrade_required: true, plan: "Gold" }, status: :forbidden
+    end
+    unless User.age_hiding?
+      return render json: { error: "Recurso indisponível no momento." }, status: :service_unavailable
+    end
+
+    hidden = !current_user.age_hidden?
+    current_user.update_column(:hide_age, hidden)
+    render json: { hide_age: hidden }
   end
 
   def safety_center
@@ -204,11 +234,13 @@ class UsersController < ApplicationController
 
     # Mínimo de 150m independente do slider: GPS de celular tem erro de 20-80m por
     # dispositivo — sem esse piso, raios curtos excluem usuários fisicamente próximos.
-    raw_range_km = params[:range].present? ? (params[:range].to_f / 1000.0) : 0.3
-    range_km = [raw_range_km, 0.15].max
+    # Máximo de 300 m ("Só quem está perto te vê"), seja qual for o parâmetro.
+    raw_range_km = params[:range].present? ? (params[:range].to_f / 1000.0) : User::MAP_RADIUS_KM
+    range_km = raw_range_km.clamp(0.15, User::MAP_RADIUS_KM)
     gender_filter = params[:gender]&.downcase
 
-    if current_user && !current_user.invisible
+    # Oculto ou com a localização desligada: a posição não é gravada nem enviada
+    unless current_user.hidden_from_map?
       current_user.update_columns(
         latitude: latitude,
         longitude: longitude,
@@ -218,44 +250,16 @@ class UsersController < ApplicationController
       broadcast_map_presence(current_user, latitude, longitude)
     end
 
-    # Busca usuários próximos usando o Service
-    users_data = DiscoveryService.new(current_user).find_nearby_users(range_km, gender_filter)
-
-    # FILTRAGEM FINAL SEGURA:
+    # Busca a partir do GPS deste pedido (quem está oculto não tem posição no banco).
+    # O Service já tira ocultos, quem desligou a localização e passa a posição aproximada.
     blocked_ids = current_user.excluded_user_ids
-    
-    visible_users = users_data.select do |u| 
-      uid = u.respond_to?(:id) ? u.id : u[:id] || u['id']
-      
-      is_invisible = if u.respond_to?(:invisible)
-                       u.invisible
-                     elsif u.is_a?(Hash)
-                       u[:invisible] || u['invisible'] || false
-                     else
-                       false
-                     end
+    users_data  = DiscoveryService.new(current_user)
+                                  .find_nearby_users(range_km, gender_filter, origin: [ latitude, longitude ])
+                                  .reject { |u| blocked_ids.include?(u[:id]) }
 
-      !blocked_ids.include?(uid) && !is_invisible
-    end
-
-    # MAPEAMENTO DO JSON: Inserindo a lógica de Online/Offline
-    final_json = visible_users.map do |u|
-      # Lógica para determinar se o usuário está online (ativo nos últimos 5 minutos)
-      # Funciona se for objeto User ou se o Service retornar last_seen_at no Hash
-      last_activity = u.respond_to?(:last_seen_at) ? u.last_seen_at : (u[:last_seen_at] || u['last_seen_at'])
-      is_online = last_activity.present? && last_activity > 10.minutes.ago
-
-      if u.is_a?(Hash)
-        u.merge({ online: is_online }) # Preserva verified (já vem do DiscoveryService) + injeta online
-      else
-        u.as_json(only: [:id, :username, :latitude, :longitude, :distance_km, :city, :bio, :gender, :interested_in, :hobbies_list]).merge({
-          verified: u.verified?,
-          avatar_url: u.avatar.attached? ? rails_blob_path(u.avatar, only_path: true) : nil,
-          photos_urls: build_user_photos_urls(u),
-          age: u.birthdate.present? ? ((Date.today - u.birthdate.to_date) / 365.25).floor : nil,
-          online: is_online
-        })
-      end
+    # Online = ativo nos últimos 10 minutos
+    final_json = users_data.map do |u|
+      u.merge(online: u[:last_seen_at].present? && u[:last_seen_at] > 10.minutes.ago)
     end
 
     render json: final_json
@@ -578,15 +582,27 @@ class UsersController < ApplicationController
     []
   end
 
+  # Avisa, em tempo real, só quem está a até 300 m (e não bloqueou nem foi bloqueado)
+  # — cada um no seu stream (MapChannel) — e com a posição aproximada, nunca a do GPS.
   def broadcast_map_presence(user, lat, lng)
-    return if user.invisible
+    return if user.hidden_from_map?
 
-    ActionCable.server.broadcast("map_updates", {
+    approx_lat, approx_lng = user.approximate_coordinates
+    return if approx_lat.nil?
+
+    recipient_ids = User.near([ lat, lng ], User::MAP_RADIUS_KM)
+                        .online_on_map
+                        .where.not(id: [ user.id, *user.excluded_user_ids ])
+                        .reorder(nil) # o near ordena por "distance", que o pluck descarta
+                        .pluck(:id)
+    return if recipient_ids.empty?
+
+    payload = {
       action:        "update",
       user_id:       user.id,
       username:      user.display_name.presence || user.username,
-      lat:           lat,
-      lng:           lng,
+      lat:           approx_lat,
+      lng:           approx_lng,
       avatar_url:    if user.has_real_avatar?
                        rails_blob_path(user.avatar, only_path: true)
                      elsif (first = user.album_photos.first)
@@ -599,9 +615,15 @@ class UsersController < ApplicationController
       gender:        user.gender,
       interested_in: user.interested_in,
       hobbies_list:  user.hobbies_list,
-      birthdate:     user.birthdate,
-      age:           user.birthdate.present? ? ((Date.today - user.birthdate.to_date) / 365.25).floor : nil
-    })
+      age:           user.public_age # sem data de nascimento; nil se a idade estiver escondida
+    }
+
+    recipient_ids.each { |id| ActionCable.server.broadcast(MapChannel.user_stream(id), payload) }
+  end
+
+  # Tira o marcador do mapa de todo mundo (modo oculto ligado / localização desligada)
+  def broadcast_map_leave(user)
+    ActionCable.server.broadcast("map_updates", { action: "leave", user_id: user.id })
   end
 
   def user_params

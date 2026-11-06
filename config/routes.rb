@@ -121,6 +121,10 @@ Rails.application.routes.draw do
   get "/safety_center/history", to: "users#safety_history",  as: :safety_history
   get "/report_incident",       to: "reports#new",           as: :report_incident # "Fazer uma denúncia"
   get "/meu-perfil",      to: "users#me_profile",      as: :my_profile
+  # Privacidade e localização (Meu Perfil → configurações)
+  get  "/privacidade",            to: "users#privacy_settings",      as: :privacy_settings
+  post "/privacidade/localizacao", to: "users#toggle_share_location", as: :privacy_share_location
+  post "/privacidade/idade",       to: "users#toggle_hide_age",       as: :privacy_hide_age
   get  "/onboarding",    to: "users#onboarding",          as: :onboarding
   patch "/onboarding",   to: "users#complete_onboarding"
   get '/verificacao', to: 'users#verification', as: :verification

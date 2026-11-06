@@ -6,16 +6,23 @@ class DiscoveryService
     @user = user
   end
 
-  def find_nearby_users(radius_km = 10, gender_filter = nil)
-    return [] unless @user.latitude && @user.longitude
+  # origin: posição de quem olha (o GPS do pedido). Quem está oculto ou com a
+  # localização desligada não grava a posição no banco, então ela vem daqui.
+  # O raio nunca passa de User::MAP_RADIUS_KM ("Só quem está perto te vê").
+  def find_nearby_users(radius_km = User::MAP_RADIUS_KM, gender_filter = nil, origin: nil)
+    origin ||= [ @user.latitude, @user.longitude ]
+    return [] if origin.any?(&:blank?)
+
+    radius_km = [ radius_km.to_f, User::MAP_RADIUS_KM ].min
 
     # Só retorna utilizadores que estão online (ativos nos últimos 5 min).
     # Quem fechar o app sem logout desaparece após 5 min de inatividade.
     # Bloqueios breves de ecrã sobrevivem porque o presence.js re-bate ao desbloquear.
-    query = User.near([@user.latitude, @user.longitude], radius_km)
+    query = User.near(origin, radius_km)
                 .online_on_map
                 .where.not(id: @user.id)
                 .where(invisible: [false, nil])
+                .sharing_location
                 .with_attached_avatar
                 .with_attached_album_photos
 
@@ -36,16 +43,19 @@ class DiscoveryService
     end
 
     query.map do |u|
-      distance = Geocoder::Calculations.distance_between(
-        [@user.latitude, @user.longitude],
-        [u.latitude, u.longitude]
-      ).round(3)  # 3 casas = precisão de ~1m; .round(1) truncava 70m→0.1km, quebrando filtros curtos
+      # Posição aproximada (nunca a do GPS) e distância até ela — limitada ao raio,
+      # porque a pessoa de fato está dentro dele (o filtro acima usa a posição real)
+      approx_lat, approx_lng = u.approximate_coordinates
+      distance = [
+        Geocoder::Calculations.distance_between(origin, [ approx_lat, approx_lng ]),
+        radius_km
+      ].min.round(3)
 
       {
         id: u.id,
         username: u.username,
-        latitude: u.latitude,
-        longitude: u.longitude,
+        latitude: approx_lat,
+        longitude: approx_lng,
         gender: u.gender,
         city: u.city,
         bio: u.bio,
@@ -56,7 +66,7 @@ class DiscoveryService
         last_seen_at: u.last_seen_at,
         verified: u.verified,
         photos_urls: build_photos_urls(u),
-        age: u.birthdate.present? ? ((Date.today - u.birthdate.to_date) / 365.25).floor : nil
+        age: u.public_age # nil quando a pessoa escondeu a idade (Gold)
       }
     end
   end

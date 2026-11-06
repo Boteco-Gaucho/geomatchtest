@@ -18,7 +18,7 @@
   <div class="pv-info">
     <h2 class="pv-name">
       <strong><%= user.display_name.split.first %></strong>
-      <% if user.age %><span><%= user.age %></span><% end %>
+      <% if user.public_age %><span><%= user.public_age %></span><% end %>
       <% if user.verified? %>
         <svg class="pv-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
       <% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -549,6 +549,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_120000) do
     t.string "fcm_token"
     t.string "gender"
     t.boolean "hidden_from_city_search", default: false, null: false
+    t.boolean "hide_age", default: false, null: false
     t.string "hobbies"
     t.string "interested_in"
     t.boolean "invisible", default: false

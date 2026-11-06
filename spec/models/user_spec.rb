@@ -194,4 +194,28 @@ RSpec.describe User, type: :model do
       expect(user.hobbies_list).to eq([ "Praia", "Cinema", "1", "2", "3", "4", "5", "6" ])
     end
   end
+
+  describe "#approximate_coordinates (mapa: posição nunca exata)" do
+    let(:placed) { create(:user).tap { |u| u.update_columns(latitude: -14.7876, longitude: -39.2781) } }
+    let(:now) { Time.zone.local(2026, 11, 5, 12, 0, 0) }
+
+    def gap_m(coords)
+      Geocoder::Calculations.distance_between(coords, [ placed.latitude, placed.longitude ]) * 1000
+    end
+
+    it "fica perto (até ~110 m), mas nunca no ponto do GPS" do
+      coords = placed.approximate_coordinates(now)
+      expect(coords).not_to eq([ placed.latitude.to_f, placed.longitude.to_f ])
+      expect(gap_m(coords)).to be < 110
+    end
+
+    it "fica igual dentro da mesma janela de 5 minutos e muda na seguinte" do
+      expect(placed.approximate_coordinates(now + 2.minutes)).to eq(placed.approximate_coordinates(now))
+      expect(placed.approximate_coordinates(now + 5.minutes)).not_to eq(placed.approximate_coordinates(now))
+    end
+
+    it "sem posição gravada não devolve nada" do
+      expect(build(:user, latitude: nil, longitude: nil).approximate_coordinates(now)).to be_nil
+    end
+  end
 end

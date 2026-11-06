@@ -138,6 +138,9 @@ class User < ApplicationRecord
   # de 5 min tolera bloqueios breves de ecrã e quedas de rede temporárias.
   # Quem fechar o app sem fazer logout desaparece ao fim de 5 min de inatividade.
   scope :online_on_map, -> { where('last_location_updated_at >= ?', 5.minutes.ago) }
+  # "Localização em tempo real" (tela Privacidade): quem desligou não aparece no mapa.
+  # nil = nunca mexeu = compartilhando.
+  scope :sharing_location, -> { where(share_location: [ true, nil ]) }
   
   # --- Callbacks ---
   after_create :attach_default_avatar
@@ -391,6 +394,76 @@ class User < ApplicationRecord
     has_attribute?(:hidden_from_city_search) && self[:hidden_from_city_search]
   end
 
+  # =========================================================
+  # PRIVACIDADE NO MAPA (tela /privacidade — "Em resumo")
+  # =========================================================
+
+  # "Só quem está perto te vê": raio máximo do mapa, também no servidor
+  MAP_RADIUS_KM = 0.3
+  # "Sua posição nunca é exata": o mapa recebe o centro de uma quadrícula de ~100 m
+  # (fixa para cada pessoa) mais um desvio de até 35 m que muda a cada 5 minutos.
+  # Assim, nem a média de várias leituras chega ao ponto exato — só à quadrícula.
+  MAP_GRID_M        = 100.0
+  MAP_JITTER_M      = 35.0
+  MAP_JITTER_WINDOW = 5.minutes
+  METERS_PER_DEGREE = 111_320.0
+
+  def sharing_location?
+    share_location != false
+  end
+
+  # Fora do mapa dos outros: modo oculto ou localização desligada
+  def hidden_from_map?
+    invisible? || !sharing_location?
+  end
+
+  # [lat, lng] que os outros recebem no mapa — nunca a coordenada do GPS
+  def approximate_coordinates(at = Time.current)
+    return nil if latitude.blank? || longitude.blank?
+
+    lat = latitude.to_f
+    lng = longitude.to_f
+    grid_lat = MAP_GRID_M / METERS_PER_DEGREE
+    grid_lng = MAP_GRID_M / (METERS_PER_DEGREE * Math.cos(lat * Math::PI / 180))
+
+    # Quadrícula deslocada por pessoa (quem está no mesmo quarteirão não empilha)
+    offset_a, offset_b = map_privacy_randoms("grid")
+    center_lat = ((lat / grid_lat) - offset_a).floor * grid_lat + (offset_a + 0.5) * grid_lat
+    center_lng = ((lng / grid_lng) - offset_b).floor * grid_lng + (offset_b + 0.5) * grid_lng
+
+    angle_r, distance_r = map_privacy_randoms("jitter:#{at.to_i / MAP_JITTER_WINDOW.to_i}")
+    angle    = angle_r * 2 * Math::PI
+    distance = Math.sqrt(distance_r) * MAP_JITTER_M
+    jitter_lat = distance * Math.sin(angle) / METERS_PER_DEGREE
+    jitter_lng = distance * Math.cos(angle) / (METERS_PER_DEGREE * Math.cos(center_lat * Math::PI / 180))
+
+    [ (center_lat + jitter_lat).round(6), (center_lng + jitter_lng).round(6) ]
+  end
+
+  # =========================================================
+  # ESCONDER MINHA IDADE (Gold)
+  # =========================================================
+
+  # Em produção a coluna é criada à mão (migrations desligadas); até lá o
+  # interruptor fica indisponível e as idades continuam aparecendo
+  def self.age_hiding?
+    column_names.include?("hide_age")
+  end
+
+  def can_hide_age?
+    plan.present? && plan.allows_hide_age?
+  end
+
+  # Só vale enquanto o plano permitir: se o Gold vencer, a idade volta a aparecer
+  def age_hidden?
+    has_attribute?(:hide_age) && self[:hide_age] == true && can_hide_age?
+  end
+
+  # Idade que os OUTROS veem (cartões, perfil, mapa, notificações)
+  def public_age
+    age_hidden? ? nil : age
+  end
+
   def online?
     last_seen_at.present? && last_seen_at > 2.minutes.ago
   end
@@ -528,4 +601,10 @@ class User < ApplicationRecord
     self.plan ||= Plan.find_by(name: "Free") 
   end
 
+  # Dois números em [0, 1) fixos para esta pessoa e este rótulo (HMAC com a
+  # secret_key_base: de fora ninguém refaz o sorteio) — ver approximate_coordinates
+  def map_privacy_randoms(label)
+    digest = OpenSSL::HMAC.digest("SHA256", Rails.application.secret_key_base, "map-privacy:#{id}:#{label}")
+    digest.unpack("NN").map { |n| n / 4_294_967_296.0 }
+  end
 end

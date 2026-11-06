@@ -49,7 +49,7 @@ RSpec.describe "Planos (/plans)", type: :request do
       expect(page.at_css(".pl-footnote").text).to include("checkout seguro do Mercado Pago")
     end
 
-    it "marca os recursos pelo que o plano tem de fato (o que não existe ainda aparece como Em breve)" do
+    it "marca os recursos pelo que o plano tem de fato (Esconder minha idade segue o Gold)" do
       get "/plans"
       page = Nokogiri::HTML(response.body)
 
@@ -58,7 +58,8 @@ RSpec.describe "Planos (/plans)", type: :request do
       expect(plus_perks.select { |li| li["class"] == "is-yes" }.map { |li| li.text.squish })
         .to eq([ "Interação ilimitada no mapa", "Ver quem curtiu você", "Ver quem você curtiu", "Mensagens ilimitadas" ])
       expect(card(page, "gold").css(".pl-perks li.is-no")).to be_empty
-      expect(card(page, "gold").at_css(".pl-soon").parent.text.squish).to eq("Esconder minha idade Em breve")
+      expect(page.css(".pl-soon")).to be_empty
+      expect(plus_perks.find { |li| li.text.squish == "Esconder minha idade" }["class"]).to eq("is-no")
     end
 
     it "no Free: 'Seu plano' no Free e Assinar indo ao checkout nos pagos; Recomendado no Plus" do

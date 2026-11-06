@@ -25,7 +25,7 @@
     <p class="profile-card-name">
       <% if user.online? && !user.invisible? %><span class="profile-card-online" title="Online agora"></span><% end %>
       <strong><%= short_name %></strong>
-      <% if user.age %><span class="profile-card-age"><%= user.age %></span><% end %>
+      <% if user.public_age %><span class="profile-card-age"><%= user.public_age %></span><% end %>
       <% if user.respond_to?(:verified?) && user.verified? %>
         <%= image_tag "icone-verificar.png", class: "verified-badge", alt: "Verificado" %>
       <% end %>

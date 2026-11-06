@@ -1,13 +1,14 @@
 module PlansHelper
   # Lista de recursos dos cards de /plans (rótulo do mockup => chave em plans.features).
   # :soon = recurso que ainda não existe: aparece como "Em breve" e conta só no Gold.
+  # :hide_age = Plan#allows_hide_age? (chave hide_age de features ou, sem ela, o Gold).
   PLANS_PAGE_PERKS = [
     [ "Interação ilimitada no mapa", "likes_right_unlimited" ],
     [ "Ver quem curtiu você",        "see_who_liked_me" ],
     [ "Ver quem você curtiu",        "see_who_i_liked" ],
     [ "Mensagens ilimitadas",        "unlimited_messages" ],
     [ "Modo oculto",                 "allow_invisible" ],
-    [ "Esconder minha idade",        :soon ],
+    [ "Esconder minha idade",        :hide_age ],
     [ "Explorar outras cidades",     "search_by_distance" ],
     [ "Voltar perfil não curtido",   "rewind_profile" ]
   ].freeze
@@ -40,6 +41,7 @@ module PlansHelper
 
   def plan_page_perk?(plan, key)
     return plan.code == "gold" if key == :soon
+    return plan.allows_hide_age? if key == :hide_age
 
     (plan.features || {})[key] == true
   end

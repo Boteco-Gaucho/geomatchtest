@@ -99,3 +99,6 @@ application.register("city-visibility", CityVisibilityController)
 
 import UserProfileController from "./user_profile_controller"
 application.register("user-profile", UserProfileController)
+
+import PrivacyToggleController from "./privacy_toggle_controller"
+application.register("privacy-toggle", PrivacyToggleController)

@@ -65,7 +65,7 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     page = Nokogiri::HTML(body)
     expect(page.css(".me-settings .me-row-label").map(&:text))
       .to eq([ "Privacidade e localização", "Aparência", "Ajuda e suporte", "Sair", "Encerrar conta" ])
-    expect(page.at_css(".me-settings a.me-row")["href"]).to eq("/politica-de-privacidade")
+    expect(page.at_css(".me-settings a.me-row")["href"]).to eq("/privacidade")
     delete_form = page.at_css(".me-settings form.me-row-form")
     expect(delete_form["action"]).to eq("/users")
     expect(delete_form.at_css("input[name=_method]")["value"]).to eq("delete")

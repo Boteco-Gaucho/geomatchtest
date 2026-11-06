@@ -32,7 +32,7 @@
     <p class="fv-card-name">
       <% if user.online? && !user.invisible? %><span class="fv-card-online" title="Online agora"></span><% end %>
       <strong><%= short_name %></strong>
-      <% if user.age %><span class="fv-card-age"><%= user.age %></span><% end %>
+      <% if user.public_age %><span class="fv-card-age"><%= user.public_age %></span><% end %>
     </p>
     <% if place %><p class="fv-card-place"><%= place %></p><% end %>
   </div>
