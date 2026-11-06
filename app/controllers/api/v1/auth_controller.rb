@@ -16,8 +16,6 @@ module Api
           return render json: { error: 'Conta suspensa. Entre em contato com o suporte.' }, status: :forbidden
         end
 
-        user.unfreeze_account! # conta congelada volta ao entrar (ver User#freeze_account!)
-
         token = JwtService.encode(sub: user.id)
 
         response.set_header('Authorization', "Bearer #{token}")
@@ -32,7 +30,10 @@ module Api
             avatar_url: user.avatar_url,
             premium:    user.premium?,
             verified:   user.verified?,
-            admin:      user.admin?
+            admin:      user.admin?,
+            # Conta congelada (User#freeze_account!): o login não descongela; o app
+            # mostra a tela web /conta/de-volta ("Descongelar conta" ou "Agora não, sair")
+            frozen:     user.account_frozen?
           }
         }, status: :ok
       end

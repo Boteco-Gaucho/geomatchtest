@@ -461,9 +461,9 @@ class User < ApplicationRecord
   # =========================================================
   # CONGELAR CONTA (folha "Encerrar conta" em Meu Perfil)
   # Ninguém vê o perfil (descoberta, mapa, página de perfil); fotos, conversas,
-  # curtidas e favoritos ficam guardados. Entrar de novo descongela: web pelo
-  # hook do Warden (config/initializers/account_freeze.rb), app pelo
-  # Api::V1::AuthController#login.
+  # curtidas e favoritos ficam guardados. Só descongela pelos botões das telas
+  # "Até breve!" e "Que bom que você voltou" (UsersController#unfreeze_account) —
+  # entrar de novo leva à segunda, não descongela sozinho.
   # =========================================================
 
   def self.account_freezing?

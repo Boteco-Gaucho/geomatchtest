@@ -1,5 +1,6 @@
 // =================================================================
-// "Até breve!" — conta congelada (users/account_frozen.html.erb).
+// "Até breve!" — conta congelada (users/account_frozen.html.erb, .af-*) e
+// "Que bom que você voltou" (users/account_frozen_return.html.erb, .af-* + .wb-*).
 // Mockup de 739px de largura → ×0,528 para 390px.
 // =================================================================
 
@@ -192,6 +193,132 @@
 .af-ok:hover,
 .af-undo:hover { filter: none; box-shadow: none; }
 
+/* --- QUE BOM QUE VOCÊ VOLTOU (.wb-*) --- */
+.wb-page {
+  --wb-chip-border: #ece3d6;
+  --wb-chip-icon: #8a6a3a;
+  --wb-kept: #57534e;
+
+  padding-top: max(40px, 19.9dvh);
+  padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+}
+
+.wb-snow--1 { top: 13.4%; left: 11.9%; width: 6px; height: 6px; }
+.wb-snow--2 { top: 18.2%; left: 82.6%; width: 8px; height: 8px; animation-delay: -2s; }
+.wb-snow--3 { top: 34.6%; left: 75.8%; width: 4px; height: 4px; animation-delay: -4s; }
+
+.wb-avatar {
+  position: relative;
+  display: block;
+  width: 104px;
+  height: 104px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #988a7f;
+  box-shadow: 0 14px 36px rgba(47, 109, 179, 0.2);
+}
+
+.wb-avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.wb-avatar-badge {
+  position: absolute;
+  right: -10px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #e9f1fb;
+  color: var(--af-blue);
+
+  svg { width: 17px; height: 17px; stroke-width: 1.9; }
+}
+
+.wb-title {
+  max-width: 300px;
+  margin: 43px 0 0;
+  color: var(--af-title);
+  font-family: inherit; // sem a fonte global de h1
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 34px;
+  letter-spacing: -0.8px;
+}
+
+.wb-text { margin-top: 11px; }
+
+.wb-kept {
+  margin: 22px 0 0;
+  color: var(--wb-kept);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.wb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 8.5px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 13px;
+    border: 1px solid var(--wb-chip-border);
+    border-radius: 999px;
+    background: var(--af-circle);
+    color: var(--af-item);
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+    color: var(--wb-chip-icon);
+  }
+}
+
+.wb-unfreeze {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  height: 55px;
+  font-size: 16.5px;
+  box-shadow: 0 10px 24px rgba(30, 30, 32, 0.18);
+
+  svg {
+    width: 19px;
+    height: 19px;
+    stroke-width: 2;
+    color: #8fb3e2;
+  }
+
+  &:hover { box-shadow: 0 10px 24px rgba(30, 30, 32, 0.18); }
+}
+
+.wb-leave {
+  margin-top: 5px;
+  color: var(--wb-kept);
+  text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .af-snow { animation: none; }
 }
@@ -210,3 +337,16 @@ html.dark:not(.light-mode) .af-page {
   --af-ok-bg: #ece8e3;
   --af-ok-text: #121212;
 }
+
+.dark-mode .wb-page,
+html.dark:not(.light-mode) .wb-page {
+  --wb-chip-border: #2e2e30;
+  --wb-chip-icon: #c9a052;
+  --wb-kept: var(--color-text-secondary, #b3aea8);
+
+  .wb-avatar,
+  .wb-avatar-badge { border-color: #1e1e20; }
+  .wb-avatar-badge { background: #1d2a3a; }
+  .wb-unfreeze svg { color: #3f6fa8; }
+}
+

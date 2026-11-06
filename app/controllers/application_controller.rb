@@ -45,10 +45,11 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # Conta congelada (User#freeze_account!) e ainda logada: as páginas levam à tela
-  # "Até breve!", de onde a pessoa sai ou descongela. JSON/API seguem (o mapa já
-  # ignora a localização de quem está congelado — User#hidden_from_map?).
-  FROZEN_ACCOUNT_ACTIONS = %w[account_frozen leave_frozen_account unfreeze_account].freeze
+  # Conta congelada (User#freeze_account!) e logada — entrou de novo ou reabriu o app:
+  # as páginas levam a "Que bom que você voltou", de onde a pessoa descongela ou sai.
+  # JSON/API seguem (o mapa já ignora a localização de quem está congelado —
+  # User#hidden_from_map?).
+  FROZEN_ACCOUNT_ACTIONS = %w[account_frozen account_frozen_return leave_frozen_account unfreeze_account].freeze
 
   def redirect_frozen_account!
     return unless request.get? && request.format.html?
@@ -56,7 +57,7 @@ class ApplicationController < ActionController::Base
     return if controller_name == "users" && action_name.in?(FROZEN_ACCOUNT_ACTIONS)
     return unless current_user.account_frozen?
 
-    redirect_to account_frozen_path
+    redirect_to account_frozen_return_path
   end
 
   def require_onboarding!

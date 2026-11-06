@@ -155,9 +155,10 @@ class UsersController < ApplicationController
   # CONGELAR CONTA (ver User#freeze_account!)
   # "Vou congelar" (folha Encerrar conta) → tela "Até breve!" (/conta/congelada):
   #   "Entendi" sai da conta; "Mudei de ideia, descongelar agora" volta a Meu Perfil.
-  # Enquanto congelada e logada, qualquer página leva de volta à tela
-  # (ApplicationController#redirect_frozen_account!). Entrar de novo descongela
-  # (config/initializers/account_freeze.rb).
+  # Depois disso, congelada e logada (entrou de novo ou reabriu o app), qualquer
+  # página leva a "Que bom que você voltou" (/conta/de-volta,
+  # ApplicationController#redirect_frozen_account!): "Descongelar conta" ou
+  # "Agora não, sair" — as mesmas ações das duas telas.
   # =========================================================
 
   def freeze_account
@@ -174,14 +175,22 @@ class UsersController < ApplicationController
     @hide_sidebar = true
   end
 
-  # "Entendi": sai da conta, que continua congelada até a pessoa entrar de novo
+  def account_frozen_return
+    return redirect_to(my_profile_path) unless current_user.account_frozen?
+
+    @hide_sidebar = true
+    @first_name   = current_user.display_name.to_s.split.first
+    flash.delete(:notice) # o "Login realizado com sucesso." não cabe nesta tela
+  end
+
+  # "Entendi" / "Agora não, sair": sai da conta, que continua congelada
   def leave_frozen_account
     sign_out current_user
     redirect_to new_user_session_path, notice: "Sua conta está congelada. Quando quiser voltar, é só entrar de novo."
   end
 
-  # "Mudei de ideia, descongelar agora": volta a aparecer e cai em Meu Perfil com o
-  # aviso "Que bom que você ficou!" (shared/_unfreeze_toast.html.erb)
+  # "Mudei de ideia, descongelar agora" / "Descongelar conta": volta a aparecer e cai
+  # em Meu Perfil com o aviso "Que bom que você ficou!" (shared/_unfreeze_toast.html.erb)
   def unfreeze_account
     if current_user.account_frozen?
       current_user.unfreeze_account!

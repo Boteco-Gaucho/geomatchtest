@@ -1,6 +1,6 @@
-<%# "Que bom que você ficou!" — conta descongelada (users#unfreeze_account ou login de novo,
-    config/initializers/account_freeze.rb). Some sozinho em 5s (unfreeze_toast_controller.js);
-    estilos em unfreeze_toast.scss. %>
+<%# "Que bom que você ficou!" — conta descongelada (users#unfreeze_account, pelas telas
+    "Até breve!" ou "Que bom que você voltou"). Some sozinho em 5s
+    (unfreeze_toast_controller.js); estilos em unfreeze_toast.scss. %>
 <div class="uf-toast" role="status" aria-live="polite"
      data-controller="unfreeze-toast" data-unfreeze-toast-duration-value="5000"
      data-action="click->unfreeze-toast#dismiss turbo:before-cache@document->unfreeze-toast#remove">

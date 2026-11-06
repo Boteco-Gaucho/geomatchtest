@@ -1,0 +1,47 @@
+<%# "Que bom que você voltou" — conta congelada e logada de novo (users#account_frozen_return;
+    estilos .af-* + .wb-* em account_frozen.scss). Qualquer página leva aqui enquanto a conta
+    estiver congelada (ApplicationController#redirect_frozen_account!). %>
+<div class="af-page wb-page">
+  <span class="af-snow wb-snow--1" aria-hidden="true"></span>
+  <span class="af-snow wb-snow--2" aria-hidden="true"></span>
+  <span class="af-snow wb-snow--3" aria-hidden="true"></span>
+
+  <div class="af-content">
+    <span class="wb-avatar">
+      <%= image_tag current_user.avatar_url, class: "wb-avatar-img", alt: "Sua foto" %>
+      <span class="wb-avatar-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18M19.79 7.5L4.21 16.5M19.79 16.5L4.21 7.5"/></svg>
+      </span>
+    </span>
+
+    <h1 class="wb-title"><%= @first_name.present? ? "Que bom que você voltou, #{@first_name}!" : "Que bom que você voltou!" %></h1>
+    <p class="af-text wb-text">Sua conta ainda está congelada.<br class="af-br"> Descongele para voltar a aparecer no mapa<br class="af-br"> e continuar suas conversas.</p>
+
+    <p class="wb-kept">Tudo ficou guardado do jeitinho que você deixou</p>
+    <ul class="wb-chips">
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg>
+        Fotos
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+        Conversas
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
+        Favoritos
+      </li>
+    </ul>
+  </div>
+
+  <div class="af-actions wb-actions">
+    <%# Sem Turbo: as duas recarregam a página (Meu Perfil com o aviso, ou o login) %>
+    <%= button_to unfreeze_account_path, method: :post, class: "af-ok wb-unfreeze",
+                  form: { class: "af-form", data: { turbo: false } } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M20.66 7L3.34 17M20.66 17L3.34 7M17.37 8.9l.83-3.09M17.37 8.9l3.09.83M12 5.8L9.74 3.54M12 5.8l2.26-2.26M6.63 8.9l-3.09.83M6.63 8.9L5.8 5.81M6.63 15.1l-.83 3.09M6.63 15.1l-3.09-.83M12 18.2l2.26 2.26M12 18.2l-2.26 2.26M17.37 15.1l3.09-.83M17.37 15.1l.83 3.09"/></svg>
+      <span>Descongelar conta</span>
+    <% end %>
+    <%= button_to "Agora não, sair", leave_frozen_account_path, method: :post, class: "af-undo wb-leave",
+                  form: { class: "af-form", data: { turbo: false } } %>
+  </div>
+</div>

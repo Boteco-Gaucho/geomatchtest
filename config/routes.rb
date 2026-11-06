@@ -128,6 +128,7 @@ Rails.application.routes.draw do
   # Congelar conta (folha "Encerrar conta" de Meu Perfil)
   post "/conta/congelar",          to: "users#freeze_account",        as: :freeze_account
   get  "/conta/congelada",         to: "users#account_frozen",        as: :account_frozen
+  get  "/conta/de-volta",          to: "users#account_frozen_return", as: :account_frozen_return
   post "/conta/congelada/sair",    to: "users#leave_frozen_account",  as: :leave_frozen_account
   post "/conta/descongelar",       to: "users#unfreeze_account",      as: :unfreeze_account
   get  "/onboarding",    to: "users#onboarding",          as: :onboarding
