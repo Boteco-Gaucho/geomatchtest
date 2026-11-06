@@ -1,0 +1,141 @@
+// =================================================================
+// "Que bom que você ficou!" — aviso de conta descongelada
+// (shared/_unfreeze_toast.html.erb, unfreeze_toast_controller.js).
+// Mockup de 739px de largura → ×0,528 para 390px.
+// =================================================================
+
+.uf-toast {
+  --uf-surface: #fff;
+  --uf-border: #eee7dc;
+  --uf-title: #161616;
+  --uf-text: #5c5955;
+  --uf-icon-bg: #e9f1fb;
+  --uf-blue: #2f6db3;
+  --uf-blue-light: #9dbde6;
+  --uf-green: #22a559;
+
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 53px);
+  left: 50%;
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 34px);
+  max-width: 420px;
+  padding: 12px 16px 13px 12px;
+  overflow: hidden;
+  border: 1px solid var(--uf-border);
+  border-radius: 21px;
+  background: var(--uf-surface);
+  box-shadow: 0 12px 32px rgba(46, 40, 32, 0.14), 0 2px 6px rgba(46, 40, 32, 0.06);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translate(-50%, -16px);
+  transition: opacity 0.26s ease, transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-in  { opacity: 1; transform: translate(-50%, 0); }
+  &.is-out { opacity: 0; transform: translate(-50%, -16px); }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.uf-toast-icon {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--uf-icon-bg);
+  color: var(--uf-blue);
+}
+
+.uf-toast-spark {
+  width: 18px;
+  height: 18px;
+  margin: -3px 0 0 -3px;
+  stroke-width: 1.8;
+}
+
+.uf-toast-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 2px solid var(--uf-surface);
+  border-radius: 50%;
+  background: var(--uf-green);
+  color: #fff;
+
+  svg { width: 11px; height: 11px; stroke-width: 3; }
+}
+
+.uf-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.uf-toast-title {
+  color: var(--uf-title);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 19px;
+  letter-spacing: -0.2px;
+}
+
+.uf-toast-text {
+  color: var(--uf-text);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+// Barra de tempo: esvazia da direita para a esquerda nos 5s
+.uf-toast-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--uf-blue), var(--uf-blue-light));
+  transform-origin: left center;
+
+  .uf-toast.is-in & { animation: uf-countdown var(--uf-duration, 5000ms) linear forwards; }
+}
+
+@keyframes uf-countdown {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uf-toast { transition: opacity 0.2s ease; transform: translate(-50%, 0); }
+  .uf-toast.is-out { transform: translate(-50%, 0); }
+}
+
+.dark-mode .uf-toast,
+html.dark:not(.light-mode) .uf-toast {
+  --uf-surface: #1e1e20;
+  --uf-border: #2e2e30;
+  --uf-title: var(--color-text, #ece8e3);
+  --uf-text: var(--color-text-secondary, #b3aea8);
+  --uf-icon-bg: rgba(127, 176, 236, 0.14);
+  --uf-blue: #7fb0ec;
+  --uf-blue-light: #b9d3f3;
+
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}

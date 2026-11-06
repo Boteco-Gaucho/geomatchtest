@@ -151,16 +151,43 @@ class UsersController < ApplicationController
     render json: { share_location: sharing }
   end
 
-  # "Vou congelar" (folha Encerrar conta em Meu Perfil): congela, tira do mapa e sai.
-  # Entrar de novo descongela (config/initializers/account_freeze.rb).
+  # =========================================================
+  # CONGELAR CONTA (ver User#freeze_account!)
+  # "Vou congelar" (folha Encerrar conta) → tela "Até breve!" (/conta/congelada):
+  #   "Entendi" sai da conta; "Mudei de ideia, descongelar agora" volta a Meu Perfil.
+  # Enquanto congelada e logada, qualquer página leva de volta à tela
+  # (ApplicationController#redirect_frozen_account!). Entrar de novo descongela
+  # (config/initializers/account_freeze.rb).
+  # =========================================================
+
   def freeze_account
     return redirect_to(my_profile_path, alert: "Não deu para congelar agora. Tente de novo.") unless User.account_freezing?
 
-    user = current_user
-    user.freeze_account!
-    broadcast_map_leave(user)
-    sign_out user
+    current_user.freeze_account!
+    broadcast_map_leave(current_user)
+    redirect_to account_frozen_path
+  end
+
+  def account_frozen
+    return redirect_to(my_profile_path) unless current_user.account_frozen?
+
+    @hide_sidebar = true
+  end
+
+  # "Entendi": sai da conta, que continua congelada até a pessoa entrar de novo
+  def leave_frozen_account
+    sign_out current_user
     redirect_to new_user_session_path, notice: "Sua conta está congelada. Quando quiser voltar, é só entrar de novo."
+  end
+
+  # "Mudei de ideia, descongelar agora": volta a aparecer e cai em Meu Perfil com o
+  # aviso "Que bom que você ficou!" (shared/_unfreeze_toast.html.erb)
+  def unfreeze_account
+    if current_user.account_frozen?
+      current_user.unfreeze_account!
+      flash[:account_unfrozen] = true
+    end
+    redirect_to my_profile_path
   end
 
   # "Esconder minha idade" — Gold (Plan#allows_hide_age?)

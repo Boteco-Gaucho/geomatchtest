@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :disable_cache_for_auth, if: :devise_controller?
   before_action :update_last_seen, if: :user_signed_in?
+  before_action :redirect_frozen_account!, if: :user_signed_in?
   before_action :require_onboarding!, if: :user_signed_in?
   before_action :set_default_seo_tags
 
@@ -43,6 +44,20 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # Conta congelada (User#freeze_account!) e ainda logada: as páginas levam à tela
+  # "Até breve!", de onde a pessoa sai ou descongela. JSON/API seguem (o mapa já
+  # ignora a localização de quem está congelado — User#hidden_from_map?).
+  FROZEN_ACCOUNT_ACTIONS = %w[account_frozen leave_frozen_account unfreeze_account].freeze
+
+  def redirect_frozen_account!
+    return unless request.get? && request.format.html?
+    return if devise_controller?
+    return if controller_name == "users" && action_name.in?(FROZEN_ACCOUNT_ACTIONS)
+    return unless current_user.account_frozen?
+
+    redirect_to account_frozen_path
+  end
 
   def require_onboarding!
     # Não bloquear requests JSON/API (ex: stories, notificações, localização)

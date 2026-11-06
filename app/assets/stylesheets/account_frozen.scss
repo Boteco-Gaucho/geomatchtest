@@ -1,0 +1,212 @@
+// =================================================================
+// "Até breve!" — conta congelada (users/account_frozen.html.erb).
+// Mockup de 739px de largura → ×0,528 para 390px.
+// =================================================================
+
+.af-page {
+  --af-top: #e8f0fa;
+  --af-bottom: #f8f1e8;
+  --af-blue: #2f6db3;
+  --af-snow: #a8c5ea;
+  --af-circle: #fff;
+  --af-pill-border: #cfdff2;
+  --af-title: #1c1c1c;
+  --af-text: #5c5955;
+  --af-item: #2a2826;
+  --af-ok-bg: #1e1e20;
+  --af-ok-text: #fff;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(40px, 22.8dvh) 16px calc(36px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--af-top) 0%, var(--af-bottom) 62%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// Flocos parados no fundo (no mockup: pontinhos azuis)
+.af-snow {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--af-snow);
+  animation: af-float 6s ease-in-out infinite alternate;
+
+  &--1 { top: 14.5%; left: 11%;  width: 5px; height: 5px; }
+  &--2 { top: 20.6%; left: 84.6%; width: 7px; height: 7px; animation-delay: -2s; }
+  &--3 { top: 35.8%; left: 20.6%; width: 4px; height: 4px; animation-delay: -4s; }
+  &--4 { top: 39.4%; left: 81.2%; width: 5px; height: 5px; animation-delay: -1s; }
+}
+
+@keyframes af-float {
+  from { transform: translateY(0); }
+  to   { transform: translateY(6px); }
+}
+
+.af-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.af-icon {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: var(--af-circle);
+  color: var(--af-blue);
+  box-shadow: 0 12px 36px rgba(47, 109, 179, 0.16), 0 0 0 10px rgba(255, 255, 255, 0.25);
+
+  svg { width: 42px; height: 42px; stroke-width: 2.2; }
+}
+
+.af-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  margin-top: 52px;
+  padding: 0 13px 0 12px;
+  border: 1px solid var(--af-pill-border);
+  border-radius: 999px;
+  background: var(--af-circle);
+  color: var(--af-blue);
+  font-size: 12.5px;
+  font-weight: 700;
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.af-title {
+  margin: 14px 0 0;
+  font-family: inherit; // sem a fonte global de h1
+  color: var(--af-title);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 40px;
+  letter-spacing: -0.8px;
+}
+
+.af-text {
+  max-width: 358px;
+  margin: 10px auto 0;
+  color: var(--af-text);
+  font-size: 15.5px;
+  line-height: 24.8px;
+}
+
+// Quebras do mockup; em tela estreita o texto quebra sozinho
+@media (max-width: 359px) {
+  .af-br { display: none; }
+}
+
+.af-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--af-item);
+    font-size: 14.5px;
+    line-height: 18px;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+    color: var(--af-blue);
+  }
+}
+
+.af-actions {
+  position: relative;
+  width: 100%;
+  max-width: 334px;
+  margin: auto auto 0;
+  padding-top: 40px;
+}
+
+.af-form { margin: 0; }
+
+.af-ok,
+.af-undo {
+  display: block;
+  width: 100%;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.af-ok {
+  height: 54px;
+  border-radius: 999px;
+  background: var(--af-ok-bg);
+  color: var(--af-ok-text);
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+}
+
+.af-undo {
+  height: 46px;
+  margin-top: 7px;
+  background: none;
+  color: var(--af-blue);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+// Sem o "levanta e brilha" global de botões
+.af-ok:hover,
+.af-undo:hover { filter: none; box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .af-snow { animation: none; }
+}
+
+.dark-mode .af-page,
+html.dark:not(.light-mode) .af-page {
+  --af-top: #16202c;
+  --af-bottom: #121212;
+  --af-blue: #7fb0ec;
+  --af-snow: rgba(127, 176, 236, 0.45);
+  --af-circle: #1e1e20;
+  --af-pill-border: rgba(127, 176, 236, 0.3);
+  --af-title: var(--color-text, #ece8e3);
+  --af-text: var(--color-text-secondary, #b3aea8);
+  --af-item: var(--color-text, #ece8e3);
+  --af-ok-bg: #ece8e3;
+  --af-ok-text: #121212;
+}

@@ -127,6 +127,9 @@ Rails.application.routes.draw do
   post "/privacidade/idade",       to: "users#toggle_hide_age",       as: :privacy_hide_age
   # Congelar conta (folha "Encerrar conta" de Meu Perfil)
   post "/conta/congelar",          to: "users#freeze_account",        as: :freeze_account
+  get  "/conta/congelada",         to: "users#account_frozen",        as: :account_frozen
+  post "/conta/congelada/sair",    to: "users#leave_frozen_account",  as: :leave_frozen_account
+  post "/conta/descongelar",       to: "users#unfreeze_account",      as: :unfreeze_account
   get  "/onboarding",    to: "users#onboarding",          as: :onboarding
   patch "/onboarding",   to: "users#complete_onboarding"
   get '/verificacao', to: 'users#verification', as: :verification

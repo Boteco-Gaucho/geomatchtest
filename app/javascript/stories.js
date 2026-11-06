@@ -174,12 +174,15 @@ function initializeStories() {
 }
 
 async function loadStories() {
-  try {
-    const response = await fetch("/stories");
-    const stories = await response.json();
+  // Só onde há carrossel. E pedindo JSON: sem isso, numa página deslogada (ex.: login)
+  // o Devise guardava /stories como "voltar para depois do login" e, ao entrar, a
+  // pessoa era mandada para o JSON — o Turbo ficava parado na tela de login.
+  const storiesCarousel = document.getElementById("stories-carousel");
+  if (!storiesCarousel) return;
 
-    const storiesCarousel = document.getElementById("stories-carousel");
-    if (!storiesCarousel) return;
+  try {
+    const response = await fetch("/stories", { headers: { Accept: "application/json" } });
+    const stories = await response.json();
 
     storiesCarousel.innerHTML = "";
 

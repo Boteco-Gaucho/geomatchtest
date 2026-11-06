@@ -88,6 +88,7 @@
     <div id="toast-container" class="toast-container">
       <%= render 'shared/flash' %>
     </div>
+    <%= render 'shared/unfreeze_toast' if flash[:account_unfrozen] %>
     <% if user_signed_in? %>
       <!-- Estrutura principal com Sidebar e Conteúdo para usuários autenticados -->
       <div class="authenticated-layout">

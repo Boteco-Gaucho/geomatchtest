@@ -1,0 +1,39 @@
+<%# "Até breve!" — conta congelada (users#account_frozen; estilos em account_frozen.scss).
+    Chega aqui pelo "Vou congelar" da folha Encerrar conta (Meu Perfil) e, enquanto a conta
+    estiver congelada e logada, por qualquer página (ApplicationController#redirect_frozen_account!). %>
+
+<div class="af-page">
+  <span class="af-snow af-snow--1" aria-hidden="true"></span>
+  <span class="af-snow af-snow--2" aria-hidden="true"></span>
+  <span class="af-snow af-snow--3" aria-hidden="true"></span>
+  <span class="af-snow af-snow--4" aria-hidden="true"></span>
+
+  <div class="af-content">
+    <span class="af-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M20.66 7L3.34 17M20.66 17L3.34 7M17.37 8.9l.83-3.09M17.37 8.9l3.09.83M12 5.8L9.74 3.54M12 5.8l2.26-2.26M6.63 8.9l-3.09.83M6.63 8.9L5.8 5.81M6.63 15.1l-.83 3.09M6.63 15.1l-3.09-.83M12 18.2l2.26 2.26M12 18.2l-2.26 2.26M17.37 15.1l3.09-.83M17.37 15.1l.83 3.09"/></svg>
+    </span>
+
+    <span class="af-pill">Conta congelada</span>
+    <h1 class="af-title">Até breve!</h1>
+    <p class="af-text">Seu perfil está escondido e tudo ficou<br class="af-br"> guardado do jeitinho que você deixou.<br class="af-br"> Quando der saudade, é só entrar de novo.</p>
+
+    <ul class="af-list">
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M2 2l20 20"/></svg>
+        Ninguém vê seu perfil
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Fotos e conversas guardadas
+      </li>
+    </ul>
+  </div>
+
+  <div class="af-actions">
+    <%# Sem Turbo: sair recarrega a página no login %>
+    <%= button_to "Entendi", leave_frozen_account_path, method: :post, class: "af-ok",
+                  form: { class: "af-form", data: { turbo: false } } %>
+    <%= button_to "Mudei de ideia, descongelar agora", unfreeze_account_path, method: :post, class: "af-undo",
+                  form: { class: "af-form", data: { turbo: false } } %>
+  </div>
+</div>

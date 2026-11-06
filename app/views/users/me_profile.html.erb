@@ -390,7 +390,7 @@
           <% end %>
         </ul>
 
-        <%# Sem Turbo: congelar encerra a sessão e a página recarrega no login %>
+        <%# Sem Turbo: a página recarrega na tela "Até breve!" (users/account_frozen) %>
         <%= form_with url: freeze_account_path, method: :post, class: "fz-form",
                       data: { turbo: false, action: "submit->delete-account-sheet#freeze" } do %>
           <button type="submit" class="ls-stay fz-freeze" data-delete-account-sheet-target="freezeButton">

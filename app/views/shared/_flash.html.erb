@@ -1,4 +1,5 @@
 <% flash.each do |type, message| %>
+  <% next if type.to_s == "account_unfrozen" # aviso próprio: shared/_unfreeze_toast %>
   <div class="toast toast--<%= type.to_s == 'alert' ? 'alert' : 'notice' %>"
        data-controller="toast"
        role="alert"
