@@ -69,8 +69,12 @@ class PagesController < ApplicationController
   end
 
   # Carteira digital — saldo e extrato carregados via /wallet e /wallet/transactions.
+  # Carteira: o saldo já vem desenhado (sem piscar "R$ 0,00"); o wallet_controller.js
+  # concilia depósitos pendentes, atualiza o saldo e carrega o histórico.
   def mimo_wallet
-    @hide_sidebar = true
+    @hide_sidebar   = true
+    @wallet         = current_user.wallet
+    @balance_hidden = cookies[:hide_wallet_balance] == "1" # o mesmo olho de Meu Perfil
   end
 
   # Depósito de saldo — valores pré-definidos, envia para /wallet/deposit.

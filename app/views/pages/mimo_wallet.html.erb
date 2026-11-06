@@ -1,32 +1,75 @@
-<div class="gm-mimo-wrapper"
+<%# Carteira (/carteira, "Minha Carteira" em Meu Perfil). Estilos .wl-* em wallet.scss.
+    wallet_controller.js: concilia depósitos pendentes, atualiza o saldo e desenha o histórico
+    (filtros Tudo / Entradas / Saídas). O olho usa o mesmo cookie do card de Meu Perfil
+    (balance_visibility_controller.js). %>
+<% available_cents = @wallet ? @wallet.available_balance_cents : 0 %>
+<% reserved_cents  = @wallet ? @wallet.pending_withdrawal_cents : 0 %>
+<div class="wl-page"
      data-controller="wallet"
      data-wallet-show-url-value="<%= wallet_path %>"
      data-wallet-transactions-url-value="<%= wallet_transactions_path %>"
      data-wallet-reconcile-url-value="<%= reconcile_wallet_path %>"
      data-wallet-withdraw-page-url-value="<%= mimo_withdraw_page_path %>">
 
-  <div class="gm-mimo-appbar">
-    <%= link_to my_profile_path, class: "gm-mimo-back" do %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  <header class="wl-appbar">
+    <%= link_to my_profile_path, class: "wl-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     <% end %>
-    <h1>Carteira</h1>
-    <span class="gm-mimo-appbar-spacer"></span>
-  </div>
+    <h1 class="wl-title">Carteira</h1>
+  </header>
 
-  <div class="gm-wallet-body">
-    <div class="gm-wallet-saldo-card">
-      <div class="gm-wallet-saldo-label">Saldo disponível</div>
-      <div class="gm-wallet-saldo-value" data-wallet-target="balance">R$ 0,00</div>
-      <div class="gm-wallet-saldo-reservado" data-wallet-target="reserved"></div>
-      <button type="button" class="gm-mimo-btn gm-mimo-btn--gold" data-action="wallet#goToWithdraw">Sacar para Pix</button>
-      <%= link_to "Adicionar Saldo", mimo_deposit_page_path, class: "gm-mimo-btn gm-mimo-btn--outline" %>
+  <%= tag.section class: ["wl-card", ("is-balance-hidden" if @balance_hidden)],
+                  data: { controller: "balance-visibility", balance_visibility_hidden_value: @balance_hidden } do %>
+    <span class="wl-card-rings" aria-hidden="true"></span>
+    <div class="wl-card-head">
+      <span class="wl-card-label">Saldo disponível</span>
+      <button type="button" class="wl-eye" data-action="balance-visibility#toggle"
+              data-balance-visibility-target="button"
+              aria-label="<%= @balance_hidden ? "Mostrar saldo" : "Ocultar saldo" %>">
+        <svg class="wl-eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="wl-eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 8 10 8a17 17 0 0 1-2.16 3.19M6.6 6.6A17 17 0 0 0 2 12s3.6 8 10 8a9.1 9.1 0 0 0 5.4-1.6"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M2 2l20 20"/></svg>
+      </button>
     </div>
 
-    <div>
-      <div class="gm-wallet-hist-title">Histórico</div>
-      <div data-wallet-target="history">
-        <p class="gm-wallet-empty-hist">Carregando extrato...</p>
+    <p class="wl-amount">
+      <span class="wl-amount-currency">R$</span>
+      <span class="wl-amount-value" data-wallet-target="balance"><%= number_with_precision(available_cents / 100.0, precision: 2, delimiter: ".", separator: ",") %></span>
+      <span class="wl-amount-mask" aria-label="Saldo oculto">••••</span>
+    </p>
+    <p class="wl-reserved<%= " is-visible" if reserved_cents.positive? %>" data-wallet-target="reserved">
+      <% if reserved_cents.positive? %><%= number_to_currency(reserved_cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") %> reservado em saque solicitado<% end %>
+    </p>
+
+    <div class="wl-actions">
+      <%= link_to mimo_deposit_page_path, class: "wl-btn wl-btn--add" do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar
+      <% end %>
+      <button type="button" class="wl-btn wl-btn--pix" data-action="wallet#goToWithdraw">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+        Sacar via Pix
+      </button>
+    </div>
+  <% end %>
+
+  <section class="wl-history" aria-labelledby="wl-history-title">
+    <div class="wl-history-head">
+      <h2 class="wl-history-title" id="wl-history-title">Histórico</h2>
+      <div class="wl-filters" role="group" aria-label="Filtrar histórico">
+        <% [ [ "all", "Tudo" ], [ "in", "Entradas" ], [ "out", "Saídas" ] ].each_with_index do |(key, label), i| %>
+          <button type="button" class="wl-filter<%= " is-active" if i.zero? %>" aria-pressed="<%= i.zero? %>"
+                  data-wallet-target="filter" data-filter="<%= key %>" data-action="wallet#filterHistory"><%= label %></button>
+        <% end %>
       </div>
     </div>
-  </div>
+
+    <div class="wl-history-card" data-wallet-target="history" aria-live="polite">
+      <p class="wl-loading">Carregando extrato...</p>
+    </div>
+  </section>
+
+  <p class="wl-secure">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    Pagamentos e saques protegidos pelo Mercado Pago
+  </p>
 </div>

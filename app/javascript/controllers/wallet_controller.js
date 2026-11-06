@@ -6,7 +6,7 @@ import { Controller } from "@hotwired/stimulus"
 //   Depósito  — envia POST /wallet/deposit e redireciona ao checkout do Mercado Pago
 export default class extends Controller {
   static targets = [
-    "balance", "reserved", "history",                                                  // carteira
+    "balance", "reserved", "history", "filter",                                        // carteira
     "amountInput", "availableText", "keyOptions", "keyInput", "error", "withdrawButton", // saque
     "depositAmountInput", "depositError", "depositButton"                              // depósito
   ]
@@ -22,6 +22,8 @@ export default class extends Controller {
   }
 
   selectedKeyType = null
+  entries = null       // extrato carregado (carteira)
+  historyFilter = "all" // Tudo / Entradas / Saídas
 
   connect() {
     this.load()
@@ -67,8 +69,9 @@ export default class extends Controller {
       // total: um saque solicitado reserva o valor (pending_withdrawal_cents) e
       // só sai do balance quando o pagamento é confirmado. Mostrar o total aqui
       // fazia parecer que o pedido de saque não tinha surtido efeito nenhum.
+      // Só o número: o "R$" fica à parte no card (pages/mimo_wallet.html.erb)
       if (this.hasBalanceTarget) {
-        this.balanceTarget.textContent = this.formatCents(wallet.available_balance_cents || 0)
+        this.balanceTarget.textContent = this.formatNumber(wallet.available_balance_cents || 0)
       }
 
       // O valor reservado não some — ele fica explícito, aguardando o saque.
@@ -98,44 +101,73 @@ export default class extends Controller {
   async loadTransactions() {
     try {
       const data = await this.fetchJson(this.transactionsUrlValue)
-      this.renderHistory(data.transactions || [])
+      this.entries = data.transactions || []
+      this.renderHistory()
     } catch (e) {
-      this.historyTarget.innerHTML = '<p class="gm-wallet-empty-hist">Não foi possível carregar o extrato.</p>'
+      this.historyTarget.innerHTML = this.emptyHtml("Não foi possível carregar o extrato.", "Verifique sua conexão e abra a carteira de novo.")
       console.error("[Wallet] loadTransactions falhou:", e)
     }
   }
 
-  renderHistory(entries) {
+  // Filtros Tudo / Entradas / Saídas (entrada = valor positivo)
+  filterHistory(event) {
+    this.historyFilter = event.currentTarget.dataset.filter
+    this.filterTargets.forEach((btn) => {
+      const active = btn.dataset.filter === this.historyFilter
+      btn.classList.toggle("is-active", active)
+      btn.setAttribute("aria-pressed", String(active))
+    })
+    if (this.entries) this.renderHistory()
+  }
+
+  renderHistory() {
+    const entries = this.entries.filter((entry) => {
+      if (this.historyFilter === "in") return entry.amount_cents >= 0
+      if (this.historyFilter === "out") return entry.amount_cents < 0
+      return true
+    })
+
     if (!entries.length) {
-      this.historyTarget.innerHTML = '<p class="gm-wallet-empty-hist">Nenhuma movimentação ainda.</p>'
+      const [title, text] = {
+        all: ["Nenhuma movimentação ainda", "Quando você adicionar ou sacar saldo, tudo aparece aqui."],
+        in:  ["Nenhuma entrada ainda", "Saldo adicionado e mimos recebidos aparecem aqui."],
+        out: ["Nenhuma saída ainda", "Seus saques via Pix aparecem aqui."]
+      }[this.historyFilter]
+      this.historyTarget.innerHTML = this.emptyHtml(title, text)
       return
     }
 
-    this.historyTarget.innerHTML = entries.map((entry) => {
+    this.historyTarget.innerHTML = `<ul class="wl-tx-list">${entries.map((entry) => {
       const isIn = entry.amount_cents >= 0
-      const arrow = isIn
-        ? '<path d="M12 19V5M5 12l7-7 7 7"/>'
-        : '<path d="M12 5v14M5 12l7 7 7-7"/>'
+      const arrow = isIn ? '<path d="M12 19V5M6 11l6-6 6 6"/>' : '<path d="M12 5v14M6 13l6 6 6-6"/>'
 
       // status_label distingue "saque pago" de "saque só solicitado" — sem ele
       // um pedido pendente aparece idêntico a um pagamento já concluído.
       const status = entry.status_label
-        ? ` <span class="gm-wallet-hist-status">· ${this.escapeHtml(entry.status_label)}</span>`
+        ? ` <span class="wl-tx-status">· ${this.escapeHtml(entry.status_label)}</span>`
         : ""
 
       return `
-        <div class="gm-wallet-hist-item">
-          <div class="gm-wallet-hist-ic ${isIn ? "in" : "out"}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">${arrow}</svg>
-          </div>
-          <div class="gm-wallet-hist-mid">
+        <li class="wl-tx">
+          <span class="wl-tx-icon ${isIn ? "is-in" : "is-out"}" aria-hidden="true"><svg viewBox="0 0 24 24">${arrow}</svg></span>
+          <span class="wl-tx-main">
             <strong>${this.escapeHtml(entry.description)}</strong>
             <small>${this.formatDate(entry.created_at)}${status}</small>
-          </div>
-          <span class="gm-wallet-hist-val ${isIn ? "in" : "out"}">${isIn ? "+" : "-"} ${this.formatCents(Math.abs(entry.amount_cents))}</span>
-        </div>
-      `
-    }).join("")
+          </span>
+          <span class="wl-tx-value ${isIn ? "is-in" : "is-out"}">${isIn ? "+" : "−"} ${this.formatCents(Math.abs(entry.amount_cents))}</span>
+        </li>`
+    }).join("")}</ul>`
+  }
+
+  emptyHtml(title, text) {
+    return `
+      <div class="wl-empty">
+        <span class="wl-empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+        </span>
+        <strong class="wl-empty-title">${this.escapeHtml(title)}</strong>
+        <p class="wl-empty-text">${this.escapeHtml(text)}</p>
+      </div>`
   }
 
   goToWithdraw() {
@@ -292,6 +324,10 @@ export default class extends Controller {
   hideError() {
     if (!this.hasErrorTarget) return
     this.errorTarget.classList.remove("is-visible")
+  }
+
+  formatNumber(cents) {
+    return (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   formatCents(cents) {

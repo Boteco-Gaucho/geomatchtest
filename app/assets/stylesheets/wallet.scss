@@ -1,0 +1,415 @@
+// =================================================================
+// Carteira (/carteira — pages/mimo_wallet.html.erb, wallet_controller.js).
+// Mockup de 739px de largura → ×0,528 para 390px.
+// =================================================================
+
+.wl-page {
+  --wl-bg: #f8f1e8;
+  --wl-text: #1c1c1c;
+  --wl-muted: #5c5955;
+  --wl-faint: #8a857f;
+  --wl-surface: #fff;
+  --wl-border: #ece4d8;
+  --wl-gold-1: #a98146;
+  --wl-gold-2: #8a6532;
+  --wl-icon-bg: #f1ebe2;
+  --wl-icon: #8a6a3a;
+  --wl-in: #23875a;
+  --wl-out: #b8291f;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 20.5px calc(36px + env(safe-area-inset-bottom, 0px));
+  background: var(--wl-bg);
+  color: var(--wl-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  h1, h2 { font-family: inherit; }
+}
+
+/* --- Cabeçalho --- */
+.wl-appbar {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+}
+
+.wl-back {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 36px;
+  margin-left: -2px;
+  color: var(--wl-text);
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 19px; height: 19px; stroke-width: 2.2; }
+}
+
+.wl-title {
+  margin: 0;
+  background: linear-gradient(180deg, var(--wl-gold-1), var(--wl-gold-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 36px;
+  letter-spacing: -0.6px;
+}
+
+/* --- Card do saldo --- */
+.wl-card {
+  position: relative;
+  margin-top: 24px;
+  padding: 24px 22px 20.5px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(201, 160, 82, 0.35);
+  border-radius: 25px;
+  background:
+    radial-gradient(75% 85% at 84% 0%, rgba(128, 112, 78, 0.95) 0%, rgba(80, 68, 50, 0.55) 45%, transparent 78%),
+    linear-gradient(170deg, #3a3226 0%, #1f1c18 58%, #141313 100%);
+  box-shadow: 0 18px 40px rgba(46, 40, 32, 0.22);
+  color: #fff;
+}
+
+// Círculos finos no canto de baixo à direita
+.wl-card-rings {
+  position: absolute;
+  z-index: -1;
+  right: -60px;
+  bottom: -90px;
+  width: 196px;
+  height: 196px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+  }
+}
+
+.wl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wl-card-label {
+  color: #d3c7b5;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.wl-eye {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -7px -7px -7px 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #d3c7b5;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 19px; height: 19px; stroke-width: 1.8; }
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+.wl-eye-closed { display: none; }
+
+.wl-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 12px 0 0;
+  line-height: 1;
+}
+
+.wl-amount-currency {
+  color: #d9b46a;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.wl-amount-value,
+.wl-amount-mask {
+  color: #fff;
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -1.4px;
+}
+
+.wl-amount-mask {
+  display: none;
+  letter-spacing: 2px;
+}
+
+// Olho fechado (cookie hide_wallet_balance — o mesmo de Meu Perfil)
+.wl-card.is-balance-hidden {
+  .wl-amount-value,
+  .wl-reserved,
+  .wl-eye-open { display: none; }
+  .wl-amount-mask,
+  .wl-eye-closed { display: block; }
+}
+
+// Valor preso num saque solicitado: só aparece quando há reserva
+.wl-reserved {
+  display: none;
+  margin: 8px 0 0;
+  color: #d9b46a;
+  font-size: 12.5px;
+  font-weight: 600;
+
+  &.is-visible { display: block; }
+}
+
+.wl-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-top: 22px;
+}
+
+.wl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 49px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  svg { width: 18px; height: 18px; stroke-width: 2.2; }
+
+  &:active { transform: scale(0.98); }
+  &:hover { filter: none; box-shadow: none; }
+}
+
+.wl-btn--add {
+  border: 0;
+  background: linear-gradient(180deg, #e6c682 0%, #c99c4f 100%);
+  color: #1e1e20;
+
+  &:hover { color: #1e1e20; }
+}
+
+.wl-btn--pix {
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+/* --- Histórico --- */
+.wl-history { margin-top: 29px; }
+
+.wl-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wl-history-title {
+  margin: 0;
+  color: var(--wl-text);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.wl-filters {
+  display: flex;
+  gap: 7px;
+}
+
+.wl-filter {
+  height: 32px;
+  padding: 0 12.5px;
+  border: 1px solid var(--wl-border);
+  border-radius: 999px;
+  background: var(--wl-surface);
+  color: var(--wl-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-active {
+    border-color: #1e1e20;
+    background: #1e1e20;
+    color: #fff;
+  }
+
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+.wl-history-card {
+  margin-top: 12.5px;
+  border: 1px solid var(--wl-border);
+  border-radius: 21px;
+  background: var(--wl-surface);
+}
+
+.wl-loading {
+  margin: 0;
+  padding: 36px 20px;
+  color: var(--wl-faint);
+  font-size: 14px;
+  text-align: center;
+}
+
+.wl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 28px 36px;
+  text-align: center;
+}
+
+.wl-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--wl-icon-bg);
+  color: var(--wl-icon);
+
+  svg { width: 22px; height: 22px; stroke-width: 1.8; }
+}
+
+.wl-empty-title {
+  margin-top: 14px;
+  color: var(--wl-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.wl-empty-text {
+  max-width: 300px;
+  margin: 6px 0 0;
+  color: var(--wl-muted);
+  font-size: 14px;
+  line-height: 20.6px;
+}
+
+.wl-tx-list {
+  margin: 0;
+  padding: 4px 16px;
+  list-style: none;
+}
+
+.wl-tx {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+
+  & + & { border-top: 1px solid var(--wl-border); }
+}
+
+.wl-tx-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+
+  svg { width: 17px; height: 17px; stroke-width: 2.2; }
+
+  &.is-in  { background: rgba(35, 135, 90, 0.1); color: var(--wl-in); }
+  &.is-out { background: rgba(184, 41, 31, 0.08); color: var(--wl-out); }
+}
+
+.wl-tx-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    color: var(--wl-text);
+    font-size: 14.5px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: var(--wl-faint);
+    font-size: 12.5px;
+  }
+}
+
+.wl-tx-value {
+  flex-shrink: 0;
+  font-size: 14.5px;
+  font-weight: 800;
+  white-space: nowrap;
+
+  &.is-in  { color: var(--wl-in); }
+  &.is-out { color: var(--wl-text); }
+}
+
+/* --- Rodapé --- */
+.wl-secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: auto 0 0;
+  padding-top: 40px;
+  color: var(--wl-faint);
+  font-size: 12.5px;
+
+  svg { width: 14px; height: 14px; stroke-width: 2; }
+}
+
+.dark-mode .wl-page,
+html.dark:not(.light-mode) .wl-page {
+  --wl-bg: var(--color-background, #121212);
+  --wl-text: var(--color-text, #ece8e3);
+  --wl-muted: var(--color-text-secondary, #b3aea8);
+  --wl-faint: #8f8a84;
+  --wl-surface: #1e1e20;
+  --wl-border: #2e2e30;
+  --wl-gold-1: #e0bd77;
+  --wl-gold-2: #c9a052;
+  --wl-icon-bg: #2a2620;
+  --wl-icon: #d6b26a;
+  --wl-in: #4ade80;
+  --wl-out: #f87171;
+
+  .wl-filter.is-active { border-color: #ece8e3; background: #ece8e3; color: #121212; }
+  .wl-card { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
+}
