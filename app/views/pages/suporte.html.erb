@@ -1,234 +1,91 @@
-<!-- FAQ Schema para SEO -->
+<%# Ajuda e suporte (/suporte) — aberta por "Ajuda e suporte" em Meu Perfil; também é
+    pública (link "Central de Suporte" do rodapé). Layout do mockup; estilos .hs-* em
+    help_support.scss. O FAQ é um <details> por pergunta (a primeira já aberta) e
+    alimenta também o FAQPage do schema.org. %>
+<%
+  support_email = "suporte@geomatchbr.com"
+  faq = [
+    [ "Como excluir minha conta?",
+      "Vá em <strong>Perfil › Configurações › Encerrar conta</strong>. Se precisar de ajuda, mande um e-mail com o assunto “Excluir conta”." ],
+    [ "Como cancelar minha assinatura?",
+      "Os planos pagos não renovam sozinhos: valem até a data mostrada em <strong>Planos</strong> e depois voltam para o Free, sem nova cobrança. Para pedir reembolso, mande um e-mail." ],
+    [ "Como denunciar alguém?",
+      "Abra o perfil da pessoa e toque em <strong>Denunciar</strong>, no fim da página, ou use <strong>Central de Segurança › Denunciar</strong>. Nossa equipe analisa as denúncias em até 24 horas." ],
+    [ "Não recebo notificações",
+      "Confira se as notificações do GeoMatch estão permitidas nos ajustes do celular (<strong>Ajustes › Notificações › GeoMatch</strong>) ou do navegador, se você usa pelo site. Depois feche e abra o app de novo." ]
+  ]
+%>
+
 <script type="application/ld+json">
-<%= {
+<%= raw({
   "@context": "https://schema.org/",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Como excluir minha conta?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Acesse seu perfil → Configurações → Excluir conta. Se precisar de ajuda, envie um e-mail com o assunto 'Excluir conta'."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Como cancelar minha assinatura?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Cancele diretamente pela App Store (iOS) ou pelo app em Perfil → Assinatura. Para reembolsos, entre em contato pelo e-mail acima."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Como reportar um usuário?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No perfil do usuário, toque em 'Reportar'. Nossa equipe de moderação analisa todos os relatos em até 24 horas."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Problemas com notificações?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Verifique se as notificações estão habilitadas em Ajustes → GeoMatch → Notificações no seu dispositivo."
-      }
-    }
-  ]
-}.to_json %>
+  "mainEntity": faq.map { |question, answer|
+    { "@type": "Question", "name": question,
+      "acceptedAnswer": { "@type": "Answer", "text": strip_tags(answer) } }
+  }
+}.to_json) %>
 </script>
 
-<div class="support-page">
-  <div class="support-container">
-    <div class="support-logo">
-      <h1 class="support-brand">GeoMatch</h1>
-    </div>
+<div class="help-support">
 
-    <div class="support-card">
-      <h2>Central de Suporte</h2>
-      <p class="support-tagline">Precisa de ajuda com o GeoMatch? Estamos aqui para você.</p>
-
-      <div class="support-section">
-        <h3>Fale Conosco</h3>
-        <p>Nossa equipe responde em até 48 horas úteis.</p>
-        <a href="mailto:suporte@geomatchbr.com" class="support-email-btn">
-          ✉ suporte@geomatchbr.com
-        </a>
-      </div>
-
-      <div class="support-section">
-        <h3>Perguntas Frequentes</h3>
-        <div class="faq-item">
-          <strong>Como excluir minha conta?</strong>
-          <p>Acesse seu perfil → Configurações → Excluir conta. Se precisar de ajuda, envie um e-mail com o assunto "Excluir conta".</p>
-        </div>
-        <div class="faq-item">
-          <strong>Como cancelar minha assinatura?</strong>
-          <p>Cancele diretamente pela App Store (iOS) ou pelo app em Perfil → Assinatura. Para reembolsos, entre em contato pelo e-mail acima.</p>
-        </div>
-        <div class="faq-item">
-          <strong>Como reportar um usuário?</strong>
-          <p>No perfil do usuário, toque em "Reportar". Nossa equipe de moderação analisa todos os relatos em até 24 horas.</p>
-        </div>
-        <div class="faq-item">
-          <strong>Problemas com notificações?</strong>
-          <p>Verifique se as notificações estão habilitadas em Ajustes → GeoMatch → Notificações no seu dispositivo.</p>
-        </div>
-      </div>
-
-      <div class="support-section support-footer-note">
-        <p>Ao entrar em contato, informe seu nome de usuário e descreva o problema com o máximo de detalhes possível para agilizarmos o atendimento.</p>
-      </div>
+  <%# --- 1. TOPO --- %>
+  <div class="hs-header">
+    <%= link_to (user_signed_in? ? my_profile_path : root_path), class: "hs-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
+    <div class="hs-heading">
+      <h1 class="hs-title"><span>Ajuda e suporte</span></h1>
+      <p class="hs-subtitle">Precisa de ajuda? Estamos aqui para você.</p>
     </div>
   </div>
+
+  <%# --- 2. FALE COM A GENTE --- %>
+  <section class="hs-contact">
+    <div class="hs-contact-head">
+      <span class="hs-contact-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>
+      </span>
+      <div>
+        <h2 class="hs-contact-title">Fale com a gente</h2>
+        <p class="hs-contact-text">Respondemos em até 48 horas úteis</p>
+      </div>
+    </div>
+    <%= mail_to support_email, "Enviar e-mail", subject: "Suporte GeoMatch", class: "hs-contact-btn" %>
+    <p class="hs-contact-email"><%= support_email %></p>
+  </section>
+
+  <%# --- 3. CENTRAL DE SEGURANÇA (só com login: a página dela pede conta) --- %>
+  <% if user_signed_in? %>
+    <%= link_to safety_center_path, class: "hs-safety" do %>
+      <span class="hs-safety-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+      </span>
+      <span class="hs-safety-text">
+        <strong>Central de Segurança</strong>
+        <span>Se for urgente, comece por aqui</span>
+      </span>
+      <svg class="hs-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+    <% end %>
+  <% end %>
+
+  <%# --- 4. PERGUNTAS FREQUENTES --- %>
+  <h2 class="hs-section-title">Perguntas frequentes</h2>
+  <div class="hs-faq">
+    <% faq.each_with_index do |(question, answer), index| %>
+      <details class="hs-faq-item" name="faq" <%= "open" if index.zero? %>>
+        <summary>
+          <span><%= question %></span>
+          <svg class="hs-faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <p><%= sanitize answer, tags: %w[strong] %></p>
+      </details>
+    <% end %>
+  </div>
+
+  <%# --- 5. DICA --- %>
+  <div class="hs-note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <p>Para agilizar, conte no e-mail seu nome de usuário e o que aconteceu, com o máximo de detalhes.</p>
+  </div>
 </div>
-
-<style>
-  .support-page {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 40px 16px;
-  }
-
-  .support-container {
-    width: 100%;
-    max-width: 640px;
-  }
-
-  .support-logo {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .support-brand {
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(90deg, #e94560, #f5a623);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-    letter-spacing: -0.5px;
-  }
-
-  .support-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 36px 32px;
-    color: #f0f0f0;
-    backdrop-filter: blur(10px);
-  }
-
-  .support-card h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    color: #ffffff;
-  }
-
-  .support-tagline {
-    color: #a0aec0;
-    font-size: 1rem;
-    margin: 0 0 32px 0;
-    line-height: 1.5;
-  }
-
-  .support-section {
-    margin-bottom: 28px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .support-section:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-
-  .support-section h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e94560;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 0 0 12px 0;
-  }
-
-  .support-section > p {
-    color: #a0aec0;
-    font-size: 0.95rem;
-    margin: 0 0 16px 0;
-    line-height: 1.5;
-  }
-
-  .support-email-btn {
-    display: inline-block;
-    background: linear-gradient(90deg, #e94560, #f5a623);
-    color: #ffffff;
-    text-decoration: none;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: opacity 0.2s;
-  }
-
-  .support-email-btn:hover {
-    opacity: 0.85;
-    color: #ffffff;
-  }
-
-  .faq-item {
-    margin-bottom: 16px;
-    padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 10px;
-    border-left: 3px solid #e94560;
-  }
-
-  .faq-item:last-child {
-    margin-bottom: 0;
-  }
-
-  .faq-item strong {
-    display: block;
-    color: #ffffff;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-  }
-
-  .faq-item p {
-    color: #a0aec0;
-    font-size: 0.875rem;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .support-footer-note p {
-    color: #718096;
-    font-size: 0.85rem;
-    line-height: 1.6;
-    margin: 0;
-    font-style: italic;
-  }
-
-  @media (max-width: 480px) {
-    .support-card {
-      padding: 24px 20px;
-    }
-
-    .support-brand {
-      font-size: 2rem;
-    }
-
-    .support-card h2 {
-      font-size: 1.5rem;
-    }
-  }
-</style>

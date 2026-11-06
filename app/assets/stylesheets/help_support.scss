@@ -1,0 +1,323 @@
+// =========================================================
+// AJUDA E SUPORTE (/suporte) — app/views/pages/suporte.html.erb
+// Layout do mockup (529px de largura → ×0,737 para 390px), na mesma linha visual
+// da Central de Segurança (safety_center.scss).
+// =========================================================
+
+.help-support {
+  --hs-bg: #f9f2e8;
+  --hs-surface: #fff;
+  --hs-border: #ebe4da;
+  --hs-divider: #eee8df;
+  --hs-text: #151515;
+  --hs-muted: #52504c;
+  --hs-gold-top: #b8914f;
+  --hs-gold-bottom: #7f633a;
+  --hs-accent: #8a6a3a;
+  --hs-chevron: #7d7b77;
+  --hs-note-bg: #ede3d5;
+
+  max-width: 560px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 9px 20px calc(28px + env(safe-area-inset-bottom, 0px)); // a área segura do topo vem do .authenticated-layout
+  background: var(--hs-bg);
+  color: var(--hs-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  :where(h1, h2, p) { margin: 0; }
+}
+
+// O fundo bege vai de ponta a ponta (no desktop e no layout público, sem login)
+.site-content:has(> .help-support) { background: #f9f2e8; }
+
+/* --- 1. TOPO --- */
+.hs-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hs-back {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: 1px 0 0 -8px;
+  color: #1c1c1c;
+
+  svg { width: 22px; height: 22px; stroke-width: 2.6; }
+}
+
+.hs-heading { min-width: 0; }
+
+.hs-title {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 34px;
+  letter-spacing: -0.4px;
+
+  span {
+    background: linear-gradient(180deg, var(--hs-gold-top), var(--hs-gold-bottom));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
+.hs-subtitle {
+  margin-top: 1px;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--hs-muted);
+}
+
+/* --- 2. FALE COM A GENTE --- */
+.hs-contact {
+  margin-top: 23px;
+  padding: 20px 20px 18px;
+  border-radius: 22px;
+  background: #1d1c1e;
+  box-shadow: 0 10px 26px rgba(40, 30, 15, 0.18);
+  color: #fff;
+}
+
+.hs-contact-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hs-contact-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #3a3734;
+  color: #e2c58a;
+
+  svg { width: 20px; height: 20px; stroke-width: 1.8; }
+}
+
+.hs-contact-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 21px;
+}
+
+.hs-contact-text {
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 17px;
+  color: #c9c4bd;
+}
+
+.hs-contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  margin-top: 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ead39d 0%, #c9a35a 100%);
+  color: #1c1a14;
+  font-size: 15.5px;
+  font-weight: 700;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:hover { color: #1c1a14; }
+  &:active { transform: scale(0.98); }
+}
+
+.hs-contact-email {
+  margin-top: 13px;
+  font-size: 13px;
+  line-height: 17px;
+  color: #c9c4bd;
+  text-align: center;
+}
+
+/* --- 3. CENTRAL DE SEGURANÇA --- */
+.hs-safety {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  margin-top: 13px;
+  padding: 6px 16px 6px 16px;
+  border: 1px solid var(--hs-border);
+  border-radius: 18px;
+  background: var(--hs-surface);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease;
+
+  &:hover { color: inherit; }
+  &:active { transform: scale(0.985); }
+}
+
+.hs-safety-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fce3e1;
+  color: #a8261d;
+
+  svg { width: 20px; height: 20px; stroke-width: 2; }
+}
+
+.hs-safety-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 19px;
+  }
+
+  span {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--hs-muted);
+  }
+}
+
+.hs-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.4;
+  color: var(--hs-chevron);
+}
+
+/* --- 4. PERGUNTAS FREQUENTES --- */
+.hs-section-title {
+  margin: 24px 0 9px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.hs-faq {
+  overflow: hidden;
+  border: 1px solid var(--hs-border);
+  border-radius: 18px;
+  background: var(--hs-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.hs-faq-item + .hs-faq-item { border-top: 1px solid var(--hs-divider); }
+
+.hs-faq-item {
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 57px;
+    padding: 0 18px 0 16px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 20px;
+    list-style: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &::-webkit-details-marker { display: none; }
+
+    span { flex: 1; }
+  }
+
+  p {
+    padding: 0 16px 17px;
+    font-size: 14px;
+    line-height: 21px;
+    color: var(--hs-muted);
+
+    strong { color: var(--hs-text); font-weight: 700; }
+  }
+
+  &[open] summary { min-height: 0; padding-top: 18px; padding-bottom: 12px; }
+  &[open] .hs-faq-chevron { transform: rotate(180deg); color: var(--hs-accent); }
+}
+
+.hs-faq-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.4;
+  color: var(--hs-chevron);
+  transition: transform 0.2s ease;
+}
+
+/* --- 5. DICA --- */
+.hs-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 21px;
+  padding: 15px 18px 16px 16px;
+  border-radius: 16px;
+  background: var(--hs-note-bg);
+
+  svg {
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+    stroke-width: 2;
+    color: #4a4642;
+  }
+
+  p {
+    font-size: 13.5px;
+    line-height: 19px;
+    color: #3d3a36;
+  }
+}
+
+/* --- MODO ESCURO --- */
+.dark-mode .help-support,
+html.dark:not(.light-mode) .help-support {
+  --hs-bg: var(--color-background);
+  --hs-surface: var(--color-section-gray);
+  --hs-border: var(--color-border);
+  --hs-divider: var(--color-border);
+  --hs-text: var(--color-text);
+  --hs-muted: var(--color-text-secondary);
+  --hs-gold-top: #e6c993;
+  --hs-gold-bottom: #b88e52;
+  --hs-accent: #d8b06e;
+  --hs-chevron: #8f8a84;
+  --hs-note-bg: rgba(201, 160, 82, 0.12);
+
+  .hs-back { color: var(--color-text); }
+  .hs-contact { background: #232224; border: 1px solid rgba(255, 255, 255, 0.06); }
+  .hs-safety-icon { background: rgba(239, 83, 80, 0.16); color: #ff8a80; }
+  .hs-note svg, .hs-note p { color: var(--color-text-secondary); }
+}
+
+.dark-mode .site-content:has(> .help-support),
+html.dark:not(.light-mode) .site-content:has(> .help-support) { background: var(--color-background); }
