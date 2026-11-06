@@ -1,0 +1,15 @@
+<%# Aviso no topo da tela (top_toast_controller.js; estilos .tt-* em top_toast.scss).
+    Desce, some sozinho depois de `duration` ms, e tocar fecha antes. Uso:
+      render layout: "shared/top_toast", locals: { title:, text:, icon_class:, bar: } — o
+      bloco é o ícone (svg). bar: true mostra a barra de tempo (conta descongelada). %>
+<% bar = local_assigns.fetch(:bar, false) %>
+<div class="tt-toast<%= " tt-toast--timed" if bar %>" role="status" aria-live="polite"
+     data-controller="top-toast" data-top-toast-duration-value="<%= local_assigns.fetch(:duration, 5000) %>"
+     data-action="click->top-toast#dismiss turbo:before-cache@document->top-toast#remove">
+  <span class="tt-icon <%= local_assigns[:icon_class] %>" aria-hidden="true"><%= yield %></span>
+  <span class="tt-body">
+    <strong class="tt-title"><%= title %></strong>
+    <span class="tt-text"><%= text %></span>
+  </span>
+  <% if bar %><span class="tt-bar" aria-hidden="true"></span><% end %>
+</div>

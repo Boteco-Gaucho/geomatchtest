@@ -135,6 +135,7 @@
           <button type="button" class="me-switch" role="switch" aria-label="Não mostrar minha idade"
                   aria-checked="<%= @user.age_hidden? %>"
                   data-privacy-toggle-target="switch" data-action="privacy-toggle#toggle"></button>
+          <%= render "users/age_toasts", age: @user.age %>
         </div>
       </div>
 

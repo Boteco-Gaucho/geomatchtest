@@ -1,14 +1,18 @@
 import { Controller } from "@hotwired/stimulus"
 
-// "Que bom que você ficou!" (shared/_unfreeze_toast.html.erb): desce, mostra a barra
-// de tempo e some sozinho depois de `duration` ms. Tocar fecha antes.
+// Aviso no topo da tela (shared/_top_toast.html.erb): desce, some sozinho depois de
+// `duration` ms (com a barra de tempo, quando tem) e tocar fecha antes.
+// Vem do servidor (conta descongelada) ou de um <template> copiado pelo JS
+// (avisos da idade — privacy_toggle_controller).
 const LEAVE_MS = 260
 
 export default class extends Controller {
   static values = { duration: { type: Number, default: 5000 } }
 
   connect() {
-    this.element.style.setProperty("--uf-duration", `${this.durationValue}ms`)
+    // Um aviso por vez: os do flash comum (shared/_flash) ainda na tela saem
+    document.querySelectorAll("#toast-container .toast").forEach((el) => el.remove())
+    this.element.style.setProperty("--tt-duration", `${this.durationValue}ms`)
     requestAnimationFrame(() => this.element.classList.add("is-in"))
     this._timer = setTimeout(() => this.dismiss(), this.durationValue)
   }

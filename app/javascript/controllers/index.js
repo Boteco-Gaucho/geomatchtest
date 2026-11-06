@@ -109,5 +109,5 @@ application.register("logout-sheet", LogoutSheetController)
 import DeleteAccountSheetController from "./delete_account_sheet_controller"
 application.register("delete-account-sheet", DeleteAccountSheetController)
 
-import UnfreezeToastController from "./unfreeze_toast_controller"
-application.register("unfreeze-toast", UnfreezeToastController)
+import TopToastController from "./top_toast_controller"
+application.register("top-toast", TopToastController)

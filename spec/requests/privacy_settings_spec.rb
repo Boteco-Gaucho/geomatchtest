@@ -123,6 +123,25 @@ RSpec.describe "Privacidade e localização (/privacidade)", type: :request do
       expect(row.at_css("button.me-switch")["aria-checked"]).to eq("true")
       expect(response.body).to include("#{user.display_name.split.first}, #{user.age}") # a própria pessoa ainda vê
     end
+
+    it "Meu Perfil traz os avisos do mockup para esconder e mostrar a idade" do
+      user.update!(plan: gold, birthdate: 26.years.ago.to_date - 10.days)
+      get "/meu-perfil"
+      row = Nokogiri::HTML(response.body).at_css('.me-toggle-row[data-privacy-toggle-key-value="hide_age"]')
+
+      on  = Nokogiri::HTML(row.at_css('template[data-privacy-toggle-target="onToast"]').inner_html)
+      off = Nokogiri::HTML(row.at_css('template[data-privacy-toggle-target="offToast"]').inner_html)
+
+      expect(on.at_css(".tt-toast")["data-controller"]).to eq("top-toast")
+      expect(on.at_css(".tt-icon--age-hidden")).to be_present
+      expect(on.at_css(".tt-title").text).to eq("Sua idade está escondida")
+      expect(on.at_css(".tt-text").text).to eq("Ninguém vê sua idade no seu perfil. Volte a mostrar quando quiser.")
+
+      expect(off.at_css(".tt-icon--age-shown text").text).to eq("26") # a idade da pessoa no calendário
+      expect(off.at_css(".tt-title").text).to eq("Sua idade voltou a aparecer")
+      expect(off.at_css(".tt-text").text).to eq("Quem abrir seu perfil já vê sua idade. Esconda de novo quando quiser.")
+      expect(on.at_css(".tt-bar")).to be_nil # sem barra de tempo, como no mockup
+    end
   end
 
   describe "mapa (/users/nearby)" do

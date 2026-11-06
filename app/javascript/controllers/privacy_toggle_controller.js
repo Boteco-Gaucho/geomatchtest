@@ -5,8 +5,10 @@ import { showToast } from "../show_toast"
 // Interruptor da tela Privacidade e localização (e "Não mostrar minha idade" de Meu Perfil).
 //   POST url → { [key]: bool }   (ligado = valor true)
 //   403 { upgrade_required } → modal do Gold · 503 → recurso ainda indisponível
+// Com os <template> onToast/offToast (users/_age_toasts.html.erb), mostra o aviso do
+// novo estado no topo da tela (shared/_top_toast, top_toast_controller.js).
 export default class extends Controller {
-  static targets = ["switch"]
+  static targets = ["switch", "onToast", "offToast"]
   static values = {
     url: String,
     key: String,
@@ -41,6 +43,7 @@ export default class extends Controller {
 
       const data = await response.json()
       this.checkedValue = data[this.keyValue] === true
+      this.announce()
     } catch (error) {
       console.error("[GeoMatch] Interruptor de privacidade:", error)
       showToast("Não deu para mudar agora. Verifique a conexão e tente de novo.", true)
@@ -48,6 +51,18 @@ export default class extends Controller {
       this._busy = false
       this.switchTarget.removeAttribute("aria-busy")
     }
+  }
+
+  // Um aviso por vez: o novo substitui o que ainda estiver na tela
+  announce() {
+    const template = this.checkedValue
+      ? (this.hasOnToastTarget && this.onToastTarget)
+      : (this.hasOffToastTarget && this.offToastTarget)
+    const toast = template?.content.firstElementChild
+    if (!toast) return
+
+    document.querySelectorAll(".tt-toast").forEach((el) => el.remove())
+    document.body.appendChild(toast.cloneNode(true))
   }
 
   checkedValueChanged() {

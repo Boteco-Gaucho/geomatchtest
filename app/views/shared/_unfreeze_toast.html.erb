@@ -1,18 +1,9 @@
 <%# "Que bom que você ficou!" — conta descongelada (users#unfreeze_account, pelas telas
-    "Até breve!" ou "Que bom que você voltou"). Some sozinho em 5s
-    (unfreeze_toast_controller.js); estilos em unfreeze_toast.scss. %>
-<div class="uf-toast" role="status" aria-live="polite"
-     data-controller="unfreeze-toast" data-unfreeze-toast-duration-value="5000"
-     data-action="click->unfreeze-toast#dismiss turbo:before-cache@document->unfreeze-toast#remove">
-  <span class="uf-toast-icon" aria-hidden="true">
-    <svg class="uf-toast-spark" viewBox="0 0 24 24"><path d="M12 3v18M19.79 7.5L4.21 16.5M19.79 16.5L4.21 7.5"/></svg>
-    <span class="uf-toast-badge">
-      <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.7 3.6L17.5 8.6"/></svg>
-    </span>
-  </span>
-  <span class="uf-toast-body">
-    <strong class="uf-toast-title">Que bom que você ficou!</strong>
-    <span class="uf-toast-text">Sua conta foi descongelada e você já aparece de novo para quem está por perto.</span>
-  </span>
-  <span class="uf-toast-bar" aria-hidden="true"></span>
-</div>
+    "Até breve!" ou "Que bom que você voltou"). Componente: shared/_top_toast. %>
+<%= render layout: "shared/top_toast", locals: {
+      title: "Que bom que você ficou!",
+      text: "Sua conta foi descongelada e você já aparece de novo para quem está por perto.",
+      icon_class: "tt-icon--thaw", bar: true } do %>
+  <svg class="tt-thaw-spark" viewBox="0 0 24 24"><path d="M12 3v18M19.79 7.5L4.21 16.5M19.79 16.5L4.21 7.5"/></svg>
+  <span class="tt-thaw-badge"><svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.7 3.6L17.5 8.6"/></svg></span>
+<% end %>

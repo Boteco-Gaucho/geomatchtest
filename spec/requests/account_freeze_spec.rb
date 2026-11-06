@@ -105,15 +105,15 @@ RSpec.describe "Congelar conta", type: :request do
       expect(response).to redirect_to(my_profile_path)
       expect(user.reload.account_frozen?).to be(false)
       follow_redirect!
-      toast = Nokogiri::HTML(response.body).at_css('.uf-toast[data-controller="unfreeze-toast"]')
-      expect(toast["data-unfreeze-toast-duration-value"]).to eq("5000")
-      expect(toast.at_css(".uf-toast-title").text).to eq("Que bom que você ficou!")
-      expect(toast.at_css(".uf-toast-text").text)
+      toast = Nokogiri::HTML(response.body).at_css('.tt-toast--timed[data-controller="top-toast"]')
+      expect(toast["data-top-toast-duration-value"]).to eq("5000")
+      expect(toast.at_css(".tt-title").text).to eq("Que bom que você ficou!")
+      expect(toast.at_css(".tt-text").text)
         .to eq("Sua conta foi descongelada e você já aparece de novo para quem está por perto.")
       expect(response.body).not_to include('<span class="toast__message">true</span>')
 
       get "/meu-perfil"
-      expect(response.body).not_to include("uf-toast") # só uma vez
+      expect(response.body).not_to include("Que bom que você ficou!") # só uma vez
     end
 
     it "conta que não estava congelada: só volta a Meu Perfil, sem aviso" do
@@ -121,7 +121,7 @@ RSpec.describe "Congelar conta", type: :request do
       post "/conta/descongelar"
       follow_redirect!
 
-      expect(response.body).not_to include("uf-toast")
+      expect(response.body).not_to include("Que bom que você ficou!")
     end
   end
 
