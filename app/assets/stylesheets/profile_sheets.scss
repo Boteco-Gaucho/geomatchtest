@@ -1,7 +1,8 @@
 // =================================================================
 // Folhas inferiores de Meu Perfil (users/me_profile.html.erb): "Sair da sua conta?"
-// (.ls-*, logout_sheet_controller.js) e "Encerrar sua conta?" (.ls-* + .ds-*,
-// delete_account_sheet_controller.js). Base JS: bottom_sheet_controller.js.
+// (.ls-*, logout_sheet_controller.js) e "Encerrar sua conta?" (.ls-* + .ds-*, com o
+// passo "Que tal congelar sua conta?" em .fz-*; delete_account_sheet_controller.js).
+// Base JS: bottom_sheet_controller.js.
 // Mockups de 739px de largura → ×0,528 para 390px.
 // =================================================================
 
@@ -248,6 +249,78 @@
   }
 }
 
+/* --- CONGELAR CONTA (passo 2 da folha Encerrar conta) --- */
+.ds-step[hidden] { display: none; }
+
+.fz-step {
+  --fz-blue: #2f6db3;
+  --fz-blue-bg: #e9f1fb;
+  --fz-glow: rgba(233, 241, 251, 0.6);
+  --fz-spark: #8fb3e2;
+  --fz-item: #2a2826;
+
+  animation: fz-in 0.24s ease;
+}
+
+@keyframes fz-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.fz-icon {
+  margin-top: 34px;
+  background: var(--fz-blue-bg);
+  color: var(--fz-blue);
+  box-shadow: 0 0 0 5px var(--fz-glow), 0 4px 14px rgba(47, 109, 179, 0.08);
+
+  svg { stroke-width: 2.2; }
+}
+
+.fz-step .ls-title { margin-top: 21px; }
+.fz-text { max-width: none; }
+
+.fz-list {
+  margin-top: 20px;
+  padding: 16px 17px 15px;
+  gap: 9px;
+
+  li {
+    color: var(--fz-item);
+    font-size: 14px;
+    line-height: 17.5px;
+  }
+
+  svg {
+    width: 15px;
+    height: 15px;
+    stroke-width: 2.6;
+
+    circle { fill: var(--fz-blue); stroke: none; }
+    path { stroke: #fff; }
+  }
+}
+
+.fz-form { margin: 0; }
+
+.fz-freeze {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 23px;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.8;
+    color: var(--fz-spark);
+  }
+
+  &:disabled { opacity: 0.75; cursor: default; }
+}
+
+.fz-leave { margin-top: 10px; }
+
 // Página parada atrás da folha
 html.ls-lock,
 html.ls-lock body { overflow: hidden; }
@@ -277,5 +350,16 @@ html.dark:not(.light-mode) .ds-sheet {
   --ds-off-text: rgba(248, 113, 113, 0.55);
 
   .ds-icon { background: rgba(248, 113, 113, 0.14); }
+}
+
+.dark-mode .fz-step,
+html.dark:not(.light-mode) .fz-step {
+  --fz-blue: #7fb0ec;
+  --fz-blue-bg: rgba(127, 176, 236, 0.14);
+  --fz-glow: rgba(127, 176, 236, 0.06);
+  --fz-spark: #7fb0ec;
+  --fz-item: var(--color-text, #ece8e3);
+
+  .fz-list svg path { stroke: #121212; }
 }
 

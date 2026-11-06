@@ -115,7 +115,8 @@ class UsersController < ApplicationController
     # MODO INVISÍVEL (navegação 100% oculta): perfil de usuário invisível fica
     # inacessível para todos — some da galeria, do mapa e também da tela de perfil.
     # O próprio usuário continua vendo o seu perfil normalmente.
-    if @user.invisible? && @user.id != current_user.id
+    # Conta congelada: mesma regra — ninguém vê o perfil enquanto estiver congelada.
+    if (@user.invisible? || @user.account_frozen?) && @user.id != current_user.id
       redirect_to discover_3d_path, alert: "Perfil indisponível."
       return
     end
@@ -148,6 +149,18 @@ class UsersController < ApplicationController
     current_user.update_column(:share_location, sharing)
     broadcast_map_leave(current_user) unless sharing
     render json: { share_location: sharing }
+  end
+
+  # "Vou congelar" (folha Encerrar conta em Meu Perfil): congela, tira do mapa e sai.
+  # Entrar de novo descongela (config/initializers/account_freeze.rb).
+  def freeze_account
+    return redirect_to(my_profile_path, alert: "Não deu para congelar agora. Tente de novo.") unless User.account_freezing?
+
+    user = current_user
+    user.freeze_account!
+    broadcast_map_leave(user)
+    sign_out user
+    redirect_to new_user_session_path, notice: "Sua conta está congelada. Quando quiser voltar, é só entrar de novo."
   end
 
   # "Esconder minha idade" — Gold (Plan#allows_hide_age?)

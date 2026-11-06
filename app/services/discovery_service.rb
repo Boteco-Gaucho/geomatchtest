@@ -21,7 +21,7 @@ class DiscoveryService
     query = User.near(origin, radius_km)
                 .online_on_map
                 .where.not(id: @user.id)
-                .where(invisible: [false, nil])
+                .visible # modo oculto e conta congelada ficam de fora
                 .sharing_location
                 .with_attached_avatar
                 .with_attached_album_photos

@@ -140,7 +140,9 @@ class User < ApplicationRecord
     where(birthdate: start_date..end_date)
   }
 
-  scope :visible,       -> { where(invisible: [false, nil]) }
+  # Fora da descoberta: modo oculto e conta congelada
+  scope :visible,       -> { where(invisible: [false, nil]).not_frozen }
+  scope :not_frozen,    -> { account_freezing? ? where(frozen_at: nil) : all }
   # "Explorar cidades": tira quem ligou o olho daquela tela (só dela — o mapa usa :visible)
   scope :findable_in_city_search, -> { city_search_hiding? ? where(hidden_from_city_search: false) : all }
   # Filtra utilizadores ativos no mapa: só aparecem quem atualizou a localização
@@ -422,9 +424,9 @@ class User < ApplicationRecord
     share_location != false
   end
 
-  # Fora do mapa dos outros: modo oculto ou localização desligada
+  # Fora do mapa dos outros: modo oculto, localização desligada ou conta congelada
   def hidden_from_map?
-    invisible? || !sharing_location?
+    invisible? || !sharing_location? || account_frozen?
   end
 
   # [lat, lng] que os outros recebem no mapa — nunca a coordenada do GPS
@@ -456,6 +458,32 @@ class User < ApplicationRecord
 
   # Em produção a coluna é criada à mão (migrations desligadas); até lá o
   # interruptor fica indisponível e as idades continuam aparecendo
+  # =========================================================
+  # CONGELAR CONTA (folha "Encerrar conta" em Meu Perfil)
+  # Ninguém vê o perfil (descoberta, mapa, página de perfil); fotos, conversas,
+  # curtidas e favoritos ficam guardados. Entrar de novo descongela: web pelo
+  # hook do Warden (config/initializers/account_freeze.rb), app pelo
+  # Api::V1::AuthController#login.
+  # =========================================================
+
+  def self.account_freezing?
+    column_names.include?("frozen_at")
+  end
+
+  # "frozen?" é do Ruby (Object#frozen?) — por isso account_frozen?
+  def account_frozen?
+    has_attribute?(:frozen_at) && self[:frozen_at].present?
+  end
+
+  # Congela e tira do mapa: sem coordenadas, ninguém reabre o mapa e encontra a pessoa
+  def freeze_account!
+    update_columns(frozen_at: Time.current, latitude: nil, longitude: nil, last_location_updated_at: nil)
+  end
+
+  def unfreeze_account!
+    update_column(:frozen_at, nil) if account_frozen?
+  end
+
   def self.age_hiding?
     column_names.include?("hide_age")
   end

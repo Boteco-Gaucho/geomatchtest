@@ -331,13 +331,18 @@
 </div>
 
 <%# --- ENCERRAR CONTA: folha inferior (delete_account_sheet_controller.js; estilos em profile_sheets.scss).
-    "Encerrar conta" só libera depois de digitar ENCERRAR e envia o DELETE /users do Devise
-    (registrations#destroy), que apaga a conta e tudo ligado a ela (ver associações em User). %>
+    Passo 1: "Encerrar conta" só libera depois de digitar ENCERRAR.
+    Passo 2: "Que tal congelar sua conta?" — "Vou congelar" (POST /conta/congelar, User#freeze_account!)
+    ou "Vou encerrar mesmo assim", que envia o DELETE /users do Devise (registrations#destroy) e
+    apaga a conta e tudo ligado a ela (ver associações em User). Sem a coluna frozen_at, o passo 2
+    não aparece e o passo 1 apaga direto. %>
 <div class="ls-backdrop" data-delete-account-sheet-target="backdrop" data-action="click->delete-account-sheet#backdropClick" hidden>
   <div class="ls-sheet ds-sheet" role="dialog" aria-modal="true" aria-labelledby="ds-title" aria-describedby="ds-text"
        data-delete-account-sheet-target="sheet"
        data-action="touchstart->delete-account-sheet#dragStart touchmove->delete-account-sheet#dragMove touchend->delete-account-sheet#dragEnd">
     <span class="ls-handle" aria-hidden="true"></span>
+
+    <div class="ds-step" data-delete-account-sheet-target="confirmStep">
     <span class="ls-icon ds-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M4 6.5h16"/><path d="M9 6.5V4.5h6v2"/><path d="M6.5 6.5l1 13.5h9l1-13.5"/><path d="M10.5 10.5v6M13.5 10.5v6"/></svg>
     </span>
@@ -354,7 +359,7 @@
     </ul>
     <p class="ds-note">Tem Plus ou Gold? O plano acaba junto com a conta e nada mais é cobrado: os planos não renovam sozinhos.</p>
 
-    <%= form_with url: user_registration_path, method: :delete, class: "ds-form",
+    <%= form_with url: user_registration_path, method: :delete, id: "ds-form", class: "ds-form",
                   data: { action: "submit->delete-account-sheet#submit" } do %>
       <label class="ds-label" for="ds-confirm">Para confirmar, digite <strong>ENCERRAR</strong></label>
       <input type="text" id="ds-confirm" class="ds-input" placeholder="ENCERRAR" autocomplete="off"
@@ -363,6 +368,40 @@
       <button type="button" class="ls-stay ds-stay" data-delete-account-sheet-target="stay"
               data-action="delete-account-sheet#close">Manter minha conta</button>
       <button type="submit" class="ds-submit" data-delete-account-sheet-target="submit" disabled>Encerrar conta</button>
+    <% end %>
+    </div>
+
+    <% if User.account_freezing? %>
+      <div class="ds-step fz-step" data-delete-account-sheet-target="freezeStep" hidden>
+        <span class="ls-icon fz-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2v20M20.66 7L3.34 17M20.66 17L3.34 7M17.37 8.9l.83-3.09M17.37 8.9l3.09.83M12 5.8L9.74 3.54M12 5.8l2.26-2.26M6.63 8.9l-3.09.83M6.63 8.9L5.8 5.81M6.63 15.1l-.83 3.09M6.63 15.1l-3.09-.83M12 18.2l2.26 2.26M12 18.2l-2.26 2.26M17.37 15.1l3.09-.83M17.37 15.1l.83 3.09"/></svg>
+        </span>
+        <h2 class="ls-title" id="fz-title">Que tal congelar sua conta?</h2>
+        <p class="ls-text fz-text" id="fz-text">Você dá um tempo do GeoMatch sem perder nada. Quando quiser voltar, é só entrar de novo.</p>
+
+        <ul class="ds-list fz-list">
+          <% [ "Ninguém vê seu perfil enquanto estiver congelado",
+               "Fotos, conversas e favoritos ficam guardados",
+               "Volte quando quiser, do jeitinho que deixou" ].each do |item| %>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12"/><path d="M7 12.4l3.2 3.1L17 8.8"/></svg>
+              <%= item %>
+            </li>
+          <% end %>
+        </ul>
+
+        <%# Sem Turbo: congelar encerra a sessão e a página recarrega no login %>
+        <%= form_with url: freeze_account_path, method: :post, class: "fz-form",
+                      data: { turbo: false, action: "submit->delete-account-sheet#freeze" } do %>
+          <button type="submit" class="ls-stay fz-freeze" data-delete-account-sheet-target="freezeButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M19.79 7.5L4.21 16.5M19.79 16.5L4.21 7.5"/></svg>
+            <span>Vou congelar</span>
+          </button>
+        <% end %>
+        <%# form="ds-form": envia o formulário de exclusão do passo 1 %>
+        <button type="submit" form="ds-form" class="ls-leave fz-leave"
+                data-delete-account-sheet-target="leave">Vou encerrar mesmo assim</button>
+      </div>
     <% end %>
   </div>
 </div>

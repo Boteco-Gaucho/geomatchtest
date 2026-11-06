@@ -45,7 +45,7 @@ RSpec.describe "Encerrar conta (DELETE /users)", type: :request do
     sheet = wrapper.at_css('[data-delete-account-sheet-target="backdrop"]')
     expect(sheet.key?("hidden")).to be(true)
     expect(sheet.at_css(".ls-title").text).to eq("Encerrar sua conta?")
-    expect(sheet.css(".ds-list li").map { |li| li.text.squish })
+    expect(sheet.css('[data-delete-account-sheet-target="confirmStep"] .ds-list li').map { |li| li.text.squish })
       .to eq([ "Seu perfil e suas fotos", "Suas curtidas e favoritos", "Todas as suas conversas" ])
 
     form = sheet.at_css("form.ds-form")

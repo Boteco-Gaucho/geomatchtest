@@ -16,6 +16,8 @@ module Api
           return render json: { error: 'Conta suspensa. Entre em contato com o suporte.' }, status: :forbidden
         end
 
+        user.unfreeze_account! # conta congelada volta ao entrar (ver User#freeze_account!)
+
         token = JwtService.encode(sub: user.id)
 
         response.set_header('Authorization', "Bearer #{token}")
