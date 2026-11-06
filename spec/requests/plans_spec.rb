@@ -83,6 +83,35 @@ RSpec.describe "Planos (/plans)", type: :request do
       expect(card(page, "plus").at_css(".pl-tag--recommended")).to be_nil
     end
 
+    describe "GET /plans/modal (upgrade para o Gold)" do
+      it "modo oculto: layout do mockup, Assinar Gold indo ao checkout e Agora não fechando" do
+        get "/plans/modal", params: { type: "invisible" }
+        expect(response).to have_http_status(:ok)
+        page = Nokogiri::HTML(response.body)
+
+        expect(response.body).not_to include("<html") # sem layout: o JS injeta no container
+        expect(page.at_css(".um-title").text.squish).to eq("Fique invisível com o Gold")
+        expect(page.at_css(".um-text").text.squish).to eq("Veja quem está por perto sem aparecer no mapa. Você decide quando ser visto.")
+        expect(page.css(".um-perks li").map { |li| li.text.squish })
+          .to eq([ "Modo oculto no mapa", "Ver quem curtiu você", "Mensagens ilimitadas", "Explorar outras cidades" ])
+        form = page.at_css("form.um-cta-form")
+        expect(form["action"]).to eq("/checkout?plan_id=#{gold.id}")
+        expect(form["data-turbo"]).to eq("false")
+        expect(page.at_css(".um-price").text).to eq("R$ 47,99/mês · cancele quando quiser")
+        expect(page.css(".close-modal-btn").map { |b| b["class"] }).to eq([ "close-modal-btn um-close", "close-modal-btn um-later" ])
+      end
+
+      it "sem plano Gold ativo, o botão leva a /plans" do
+        gold.update!(active: false)
+
+        get "/plans/modal", params: { type: "invisible" }
+        page = Nokogiri::HTML(response.body)
+
+        expect(page.at_css("a.um-cta")["href"]).to eq("/plans#plano-gold")
+        expect(page.css("form.um-cta-form")).to be_empty
+      end
+    end
+
     it "no Gold: 'Ativo até' no Gold, nada para assinar abaixo dele" do
       user.update!(plan: gold, premium_until: Time.zone.local(2126, 6, 2, 12))
 

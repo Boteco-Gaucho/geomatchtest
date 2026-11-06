@@ -1,0 +1,176 @@
+// =================================================================
+// Modal de upgrade para o Gold — app/views/plans/modal.html.erb
+// (Modo oculto de Meu Perfil, botão de modo oculto do mapa, olho de Explorar
+// cidades). Cartão escuro com brilho dourado. Medidas do mockup em 390px.
+// O JS fecha esmaecendo o .upgrade-modal-backdrop (opacity) — daí a transition.
+// =================================================================
+
+.upgrade-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 21px;
+  background: rgba(24, 21, 18, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  pointer-events: all;
+  transition: opacity 0.3s ease;
+  animation: um-fade-in 0.25s ease;
+}
+
+.um-card {
+  position: relative;
+  width: 100%;
+  max-width: 348px;
+  max-height: calc(100svh - 40px);
+  overflow-y: auto;
+  padding: 37px 24px 24px;
+  border: 1px solid rgba(201, 160, 82, 0.35);
+  border-radius: 28px;
+  background:
+    radial-gradient(260px 220px at 50% 0%, rgba(176, 138, 70, 0.38), rgba(176, 138, 70, 0)),
+    #1e1d1c;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.3;
+  text-align: center;
+  animation: um-slide-up 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+
+  svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  :where(h2, p, ul) { margin: 0; }
+  :where(ul) { padding: 0; list-style: none; }
+}
+
+.um-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 17px; height: 17px; stroke-width: 2.4; }
+}
+
+.um-icon {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto;
+  border: 1.5px solid rgba(201, 165, 95, 0.75);
+  border-radius: 50%;
+  background: #141210;
+  box-shadow: 0 0 34px rgba(201, 160, 82, 0.32);
+  color: #e2c58a;
+
+  svg { width: 33px; height: 33px; stroke-width: 1.7; }
+}
+
+.um-title {
+  margin-top: 27px;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 30px;
+  letter-spacing: -0.6px;
+
+  span {
+    background: linear-gradient(180deg, #f0dfb0 0%, #c9a052 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+.um-text {
+  margin: 10px -6px 0; // o texto do mockup ocupa um pouco além das margens do cartão
+  color: #b9b2a8;
+  font-size: 15px;
+  line-height: 23px;
+}
+
+.um-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 0 1px;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 24px;
+    color: #f4f1ec;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  svg { flex-shrink: 0; width: 17px; height: 17px; }
+  circle { fill: #e2c98f; stroke: none; }
+  path { stroke: #1e1d1c; stroke-width: 3; }
+}
+
+.um-cta-form { margin: 23px 0 0; }
+
+.um-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 53px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e8d29a 0%, #c9a052 100%);
+  box-shadow: 0 10px 28px rgba(201, 160, 82, 0.32);
+  color: #1c1a14;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+}
+
+a.um-cta { margin-top: 23px; }
+
+.um-price {
+  margin-top: 8px;
+  color: #8e877e;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.um-later {
+  display: block;
+  margin: 7px auto 0;
+  padding: 10px 20px;
+  border: 0;
+  background: none;
+  color: #cfc8be;
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes um-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes um-slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
