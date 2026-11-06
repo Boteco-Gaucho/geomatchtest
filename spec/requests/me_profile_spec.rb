@@ -67,17 +67,14 @@ RSpec.describe "Meu Perfil (/meu-perfil)", type: :request do
     expect(page.css(".me-settings .me-row-label").map(&:text))
       .to eq([ "Privacidade e localização", "Aparência", "Ajuda e suporte", "Sair", "Encerrar conta" ])
     expect(page.at_css(".me-settings a.me-row")["href"]).to eq("/privacidade")
-    delete_form = page.at_css(".me-settings form.me-row-form")
-    expect(delete_form["action"]).to eq("/users")
-    expect(delete_form.at_css("input[name=_method]")["value"]).to eq("delete")
-    expect(delete_form.at_css("button.me-row--danger")["data-turbo-confirm"]).to include("excluir sua conta")
+    expect(page.at_css(".me-settings button.me-row--danger")["data-action"]).to eq("delete-account-sheet#open")
     expect(body).to include('id="upgrade-modal-container"')
   end
 
   it "Sair abre a folha do mockup, que fica escondida até o toque e sai pela sessão do Devise" do
     page = Nokogiri::HTML(open_profile(create(:user, onboarding_completed: true, plan: free_plan)))
 
-    wrapper = page.at_css('[data-controller="logout-sheet"]')
+    wrapper = page.at_css('[data-controller~="logout-sheet"]')
     expect(wrapper["data-logout-sheet-url-value"]).to eq("/users/sign_out")
     expect(wrapper.at_css(".me-settings")).to be_present # o botão Sair fica dentro do controller
 

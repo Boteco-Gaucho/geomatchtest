@@ -14,9 +14,10 @@
   verification   = profile_verification_state(@user)
 %>
 
-<%# logout-sheet: o "Sair" das configurações abre a folha do fim da página %>
-<div data-controller="logout-sheet" data-logout-sheet-url-value="<%= destroy_user_session_path %>"
-     data-action="keydown.esc@window->logout-sheet#close turbo:before-cache@document->logout-sheet#reset">
+<%# Folhas do fim da página: "Sair" (logout-sheet) e "Encerrar conta" (delete-account-sheet) %>
+<div data-controller="logout-sheet delete-account-sheet" data-logout-sheet-url-value="<%= destroy_user_session_path %>"
+     data-action="keydown.esc@window->logout-sheet#close keydown.esc@window->delete-account-sheet#close
+                  turbo:before-cache@document->logout-sheet#reset turbo:before-cache@document->delete-account-sheet#reset">
 <div class="profile-dashboard-wrapper me-profile">
   <div class="me-column">
 
@@ -301,19 +302,17 @@
         <span class="me-row-label">Sair</span>
       </button>
 
-      <%# Encerrar conta: DELETE do Devise (registrations#destroy) com confirmação %>
-      <%= button_to user_registration_path, method: :delete,
-            data: { turbo_confirm: "Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita." },
-            class: "me-row me-row--danger", form_class: "me-row-form" do %>
+      <%# Encerrar conta: abre a folha de confirmação do fim da página %>
+      <button type="button" class="me-row me-row--danger" data-action="delete-account-sheet#open">
         <svg class="me-row-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         <span class="me-row-label">Encerrar conta</span>
-      <% end %>
+      </button>
     </section>
 
   </div>
 </div>
 
-<%# --- SAIR DA CONTA: folha inferior (logout_sheet_controller.js; estilos .ls-* em logout_sheet.scss).
+<%# --- SAIR DA CONTA: folha inferior (logout_sheet_controller.js; estilos .ls-* em profile_sheets.scss).
     "Continuar no GeoMatch", o toque fora, Esc e arrastar para baixo fecham; "Sair" faz o
     DELETE da sessão (Users::SessionsController#destroy, que também tira a pessoa do mapa). %>
 <div class="ls-backdrop" data-logout-sheet-target="backdrop" data-action="click->logout-sheet#backdropClick" hidden>
@@ -328,6 +327,43 @@
     <p class="ls-text" id="ls-text">Para ver quem está por perto de novo, é só entrar com seu e-mail e senha.</p>
     <button type="button" class="ls-stay" data-logout-sheet-target="stay" data-action="logout-sheet#close">Continuar no GeoMatch</button>
     <button type="button" class="ls-leave" data-logout-sheet-target="leave" data-action="logout-sheet#logout">Sair</button>
+  </div>
+</div>
+
+<%# --- ENCERRAR CONTA: folha inferior (delete_account_sheet_controller.js; estilos em profile_sheets.scss).
+    "Encerrar conta" só libera depois de digitar ENCERRAR e envia o DELETE /users do Devise
+    (registrations#destroy), que apaga a conta e tudo ligado a ela (ver associações em User). %>
+<div class="ls-backdrop" data-delete-account-sheet-target="backdrop" data-action="click->delete-account-sheet#backdropClick" hidden>
+  <div class="ls-sheet ds-sheet" role="dialog" aria-modal="true" aria-labelledby="ds-title" aria-describedby="ds-text"
+       data-delete-account-sheet-target="sheet"
+       data-action="touchstart->delete-account-sheet#dragStart touchmove->delete-account-sheet#dragMove touchend->delete-account-sheet#dragEnd">
+    <span class="ls-handle" aria-hidden="true"></span>
+    <span class="ls-icon ds-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M4 6.5h16"/><path d="M9 6.5V4.5h6v2"/><path d="M6.5 6.5l1 13.5h9l1-13.5"/><path d="M10.5 10.5v6M13.5 10.5v6"/></svg>
+    </span>
+    <h2 class="ls-title" id="ds-title">Encerrar sua conta?</h2>
+    <p class="ls-text" id="ds-text">Isso apaga tudo de forma permanente e não pode ser desfeito.</p>
+
+    <ul class="ds-list">
+      <% [ "Seu perfil e suas fotos", "Suas curtidas e favoritos", "Todas as suas conversas" ].each do |item| %>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <%= item %>
+        </li>
+      <% end %>
+    </ul>
+    <p class="ds-note">Tem Plus ou Gold? O plano acaba junto com a conta e nada mais é cobrado: os planos não renovam sozinhos.</p>
+
+    <%= form_with url: user_registration_path, method: :delete, class: "ds-form",
+                  data: { action: "submit->delete-account-sheet#submit" } do %>
+      <label class="ds-label" for="ds-confirm">Para confirmar, digite <strong>ENCERRAR</strong></label>
+      <input type="text" id="ds-confirm" class="ds-input" placeholder="ENCERRAR" autocomplete="off"
+             autocapitalize="characters" autocorrect="off" spellcheck="false"
+             data-delete-account-sheet-target="input" data-action="input->delete-account-sheet#check">
+      <button type="button" class="ls-stay ds-stay" data-delete-account-sheet-target="stay"
+              data-action="delete-account-sheet#close">Manter minha conta</button>
+      <button type="submit" class="ds-submit" data-delete-account-sheet-target="submit" disabled>Encerrar conta</button>
+    <% end %>
   </div>
 </div>
 

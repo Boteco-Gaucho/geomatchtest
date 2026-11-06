@@ -1,6 +1,8 @@
 // =================================================================
-// "Sair da sua conta?" — folha inferior de Meu Perfil (users/me_profile.html.erb,
-// logout_sheet_controller.js). Mockup de 739px de largura → ×0,528 para 390px.
+// Folhas inferiores de Meu Perfil (users/me_profile.html.erb): "Sair da sua conta?"
+// (.ls-*, logout_sheet_controller.js) e "Encerrar sua conta?" (.ls-* + .ds-*,
+// delete_account_sheet_controller.js). Base JS: bottom_sheet_controller.js.
+// Mockups de 739px de largura → ×0,528 para 390px.
 // =================================================================
 
 .ls-backdrop {
@@ -125,6 +127,127 @@
   &:disabled { opacity: 0.6; cursor: default; }
 }
 
+/* --- ENCERRAR CONTA --- */
+.ds-sheet {
+  --ds-red: #b8291f;
+  --ds-list-bg: #f8f0e6;
+  --ds-input-bg: #faf6ef;
+  --ds-input-border: #e8dfd2;
+  --ds-note: #4d4a46;
+  --ds-off: #f0c4c0;
+  --ds-off-text: #df8b84;
+
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ds-icon {
+  background: #fbe3e1;
+  color: var(--ds-red);
+}
+
+.ds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 20px 0 0;
+  padding: 14px 18px 15px;
+  border-radius: 15px;
+  background: var(--ds-list-bg);
+  list-style: none;
+  text-align: left;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+    color: var(--ds-red);
+  }
+}
+
+.ds-note {
+  margin: 12px 0 0;
+  color: var(--ds-note);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ds-form {
+  margin: 0;
+  text-align: left;
+}
+
+.ds-label {
+  display: block;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 17px;
+
+  strong { color: var(--ds-red); font-weight: 800; }
+}
+
+// .ds-sheet na frente: o input[type="text"] global (profile.scss) é mais específico que .ds-input
+.ds-sheet .ds-input {
+  display: block;
+  width: 100%;
+  height: 47px;
+  margin-top: 8px;
+  padding: 0 16px;
+  border: 1.5px solid var(--ds-input-border);
+  border-radius: 14px;
+  background: var(--ds-input-bg);
+  color: var(--ls-text);
+  font: inherit;
+  font-size: 16px; // 16px: o iOS não dá zoom ao focar
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.15s ease;
+
+  &::placeholder { color: #8a857f; opacity: 1; }
+  &:focus { border-color: #c9a052; }
+}
+
+.ds-stay { margin-top: 21px; }
+
+.ds-submit {
+  display: block;
+  width: 100%;
+  height: 50px;
+  margin-top: 8px;
+  border: 1.5px solid var(--ds-red);
+  border-radius: 999px;
+  background: none;
+  color: var(--ds-red);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:active:not(:disabled) { background: var(--ds-red); color: #fff; }
+
+  &:disabled {
+    border-color: var(--ds-off);
+    color: var(--ds-off-text);
+    cursor: default;
+  }
+}
+
 // Página parada atrás da folha
 html.ls-lock,
 html.ls-lock body { overflow: hidden; }
@@ -142,3 +265,17 @@ html.dark:not(.light-mode) .ls-sheet {
   --ls-stay-text: #161616;
   --ls-danger: #f87171;
 }
+
+.dark-mode .ds-sheet,
+html.dark:not(.light-mode) .ds-sheet {
+  --ds-red: #f87171;
+  --ds-list-bg: rgba(255, 255, 255, 0.05);
+  --ds-input-bg: rgba(255, 255, 255, 0.04);
+  --ds-input-border: var(--color-border, #333);
+  --ds-note: var(--color-text-secondary, #b3aea8);
+  --ds-off: rgba(248, 113, 113, 0.3);
+  --ds-off-text: rgba(248, 113, 113, 0.55);
+
+  .ds-icon { background: rgba(248, 113, 113, 0.14); }
+}
+

@@ -791,13 +791,6 @@ div.me-row:not(.wallet-banner) { cursor: default; }
   color: #6b6560;
 }
 
-/* Encerrar conta: o button_to põe a linha dentro de um <form>, então a divisória
-   vem do form (o ".me-row + .me-row" não alcança) */
-.me-row-form {
-  margin: 0;
-  border-top: 1px solid #f0e9df;
-}
-
 .me-row--danger {
   .me-row-label { color: #b42318; }
   .me-row-glyph { stroke: #b42318; }
@@ -912,7 +905,6 @@ html.dark:not(.light-mode) {
   .me-badge--plan { background: #2a2a2a; border: 1px solid #3d3d3d; }
   .me-badge--free { background: #2a2a2a; color: var(--color-text-secondary); }
 
-  .me-row-form { border-top-color: var(--color-border); }
   .me-row--danger .me-row-label { color: #f87171; }
   .me-row--danger .me-row-glyph { stroke: #f87171; }
   .me-plans-dots span.is-active { background: var(--color-text); }

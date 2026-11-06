@@ -105,3 +105,6 @@ application.register("privacy-toggle", PrivacyToggleController)
 
 import LogoutSheetController from "./logout_sheet_controller"
 application.register("logout-sheet", LogoutSheetController)
+
+import DeleteAccountSheetController from "./delete_account_sheet_controller"
+application.register("delete-account-sheet", DeleteAccountSheetController)

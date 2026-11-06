@@ -32,6 +32,16 @@ class User < ApplicationRecord
   has_many :favorites, dependent: :destroy
   has_many :favorited_users, through: :favorites, source: :favorited_user
 
+  # Encerrar conta (Meu Perfil): o que OUTRAS pessoas têm apontando para esta conta
+  # também sai — sem isto o DELETE /users quebrava na chave estrangeira (500) e a
+  # conta não era apagada. Nenhum desses models tem callback de destroy.
+  has_many :likes_received,         class_name: "Like",         foreign_key: :liked_id,          dependent: :delete_all
+  has_many :favorited_by,           class_name: "Favorite",     foreign_key: :favorited_user_id, dependent: :delete_all
+  has_many :notifications_as_actor, class_name: "Notification", foreign_key: :actor_id,          dependent: :delete_all
+  has_many :reactions, dependent: :delete_all
+  has_many :locations, dependent: :delete_all
+  has_many :profiles,  dependent: :delete_all
+
   # =========================================================
   # BLOQUEIOS
   # =========================================================
