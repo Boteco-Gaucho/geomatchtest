@@ -390,6 +390,166 @@ body:has(.au-main) { background: #f8f1e8; }
 
 .li-card .su-submit { margin-top: 22px; height: 54px; }
 
+/* ---------------- Esqueceu a senha? (devise/passwords/new) ---------------- */
+.su-page.fp-page { padding-top: 34px; }
+
+.fp-back {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: -1px;
+  color: var(--au-text);
+
+  svg { width: 20px; height: 20px; stroke-width: 2.2; }
+}
+
+// Chave dourada no círculo escuro, com o anel bege em volta
+.fp-icon {
+  display: grid;
+  place-items: center;
+  width: 63px;
+  height: 63px;
+  margin: 26px 0 0 5px;
+  border-radius: 50%;
+  background: #1e1e20;
+  box-shadow: 0 0 0 9px #efe5d6;
+  color: #d6b26a;
+
+  svg { width: 24px; height: 24px; stroke-width: 1.9; }
+}
+
+.su-title.fp-title { margin-top: 19px; font-size: 30px; }
+
+.su-subtitle.fp-subtitle {
+  max-width: 330px;
+  margin-top: 8px;
+  color: #4d4a46;
+  font-size: 15px;
+  line-height: 21.5px;
+}
+
+.su-card.fp-card { margin-top: 26px; padding-top: 22px; }
+
+.fp-card .su-submit { height: 53px; margin-top: 17px; }
+
+.fp-note {
+  margin: 17px auto 0;
+  max-width: 310px;
+  color: var(--au-faint);
+  font-size: 12.5px;
+  line-height: 17px;
+  text-align: center;
+}
+
+.su-errors p { margin: 0; }
+
+/* ---------------- Link enviado! (devise/passwords/sent) ---------------- */
+.su-page.rs-page { padding-top: 35px; }
+
+.rs-icon {
+  position: relative;
+  margin-top: 23px;
+
+  > svg { width: 24px; height: 24px; }
+}
+
+// Selo verde de "enviado" no canto do envelope
+.rs-badge {
+  position: absolute;
+  right: -10px;
+  bottom: -7px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid #f8f1e8;
+  border-radius: 50%;
+  background: #22a559;
+  color: #fff;
+
+  svg { width: 13px; height: 13px; stroke-width: 3; }
+}
+
+.su-subtitle.rs-subtitle {
+  max-width: 345px;
+  margin-top: 6px;
+
+  strong { color: var(--au-text); font-weight: 700; }
+}
+
+.rs-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 26px 0 0;
+  padding: 24px 22px 22px 21px;
+  border-radius: 26px;
+  background: var(--au-surface);
+  box-shadow: 0 10px 30px rgba(80, 60, 30, 0.07);
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 13px;
+    color: var(--au-text);
+    font-size: 14.5px;
+    line-height: 20.6px;
+  }
+
+  span {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: #f1ebe2;
+    color: #5e4a2c;
+
+    svg { width: 15px; height: 15px; stroke-width: 1.9; }
+  }
+}
+
+.rs-primary {
+  display: grid;
+  place-items: center;
+  height: 53.5px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e6c682 0%, #c99c4f 100%);
+  box-shadow: 0 10px 22px rgba(201, 156, 79, 0.28);
+  color: #1e1e20;
+  font-size: 15.5px;
+  font-weight: 800;
+  text-decoration: none;
+
+  &:hover { color: #1e1e20; filter: none; }
+  &:active { transform: scale(0.98); }
+}
+
+.rs-resend-form { margin: 10.5px 0 0; }
+
+.rs-resend {
+  display: block;
+  width: 100%;
+  height: 48.5px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--au-text);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled { color: var(--au-faint); cursor: default; }
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+.rs-page .su-login { margin-top: 20px; }
+
 /* ---------------- Rodapé ---------------- */
 .au-footer {
   padding: 30px 24px calc(36px + env(safe-area-inset-bottom, 0px));

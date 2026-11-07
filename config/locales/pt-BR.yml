@@ -27,6 +27,11 @@
         invalid: "não é válido"
         confirmation: "não coincide com %{attribute}"
         inclusion: "não está incluído na lista"
+        # Devise (Esqueceu a senha? com e-mail sem conta) — sem isto saía "translation missing"
+        not_found: "não foi encontrado"
+        already_confirmed: "já foi confirmado"
+        not_locked: "não está bloqueado"
+        expired: "expirou, peça um novo"
       models:
         user:
           attributes:

@@ -114,3 +114,6 @@ application.register("top-toast", TopToastController)
 
 import SignupFormController from "./signup_form_controller"
 application.register("signup-form", SignupFormController)
+
+import ResendTimerController from "./resend_timer_controller"
+application.register("resend-timer", ResendTimerController)

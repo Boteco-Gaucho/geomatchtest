@@ -5,11 +5,14 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     omniauth_callbacks: "users/omniauth_callbacks",
     registrations:      "users/registrations",
-    sessions:           "users/sessions"
+    sessions:           "users/sessions",
+    passwords:          "users/passwords"
   }
 
   devise_scope :user do
     delete "/logout", to: "users/sessions#destroy", as: :logout
+    # "Link enviado!" — depois do Enviar link do Esqueceu a senha?
+    get "/users/password/enviado", to: "users/passwords#sent", as: :password_reset_sent
   end
 
   # =================================================================

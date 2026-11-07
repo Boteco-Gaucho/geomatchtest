@@ -1,0 +1,44 @@
+<%# "Link enviado!" (/users/password/enviado) — depois do Enviar link do Esqueceu a senha?
+    (Users::PasswordsController#sent). Estilos .fp-*/.rs-* em auth.scss; a contagem do
+    "Reenviar link em 1:00" é do resend_timer_controller.js. %>
+<% provide :auth_chrome, "1" %>
+
+<div class="su-page fp-page rs-page">
+  <%= link_to new_user_password_path, class: "fp-back", aria: { label: "Voltar" } do %>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  <% end %>
+
+  <span class="fp-icon rs-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/></svg>
+    <span class="rs-badge"><svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.7 3.6L17.5 8.6"/></svg></span>
+  </span>
+
+  <h1 class="su-title fp-title">Link enviado!</h1>
+  <p class="su-subtitle fp-subtitle rs-subtitle">
+    Enviamos um link para <strong><%= @email %></strong>. Abra o e-mail e toque nele para criar uma nova senha.
+  </p>
+
+  <ul class="rs-tips">
+    <li>
+      <span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+      O link vale por tempo limitado, então use logo.
+    </li>
+    <li>
+      <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9h14l-1.3 10H6.3z"/><path d="M9 9a3 3 0 0 1 6 0"/></svg></span>
+      Não achou? Olhe a caixa de spam ou promoções.
+    </li>
+  </ul>
+
+  <%= link_to "Voltar para entrar", new_user_session_path, class: "rs-primary" %>
+
+  <%# Reenviar: o mesmo POST do Esqueceu a senha?, com o e-mail guardado na sessão %>
+  <%= form_with url: user_password_path, method: :post, scope: :user, class: "rs-resend-form",
+                data: { controller: "resend-timer", resend_timer_seconds_value: @resend_in } do |f| %>
+    <%= f.hidden_field :email, value: @email %>
+    <button type="submit" class="rs-resend" data-resend-timer-target="button" <%= "disabled" if @resend_in.positive? %>>
+      <span data-resend-timer-target="label"><%= @resend_in.positive? ? "Reenviar link em #{@resend_in / 60}:#{format('%02d', @resend_in % 60)}" : "Reenviar link" %></span>
+    </button>
+  <% end %>
+
+  <p class="su-login">E-mail errado? <%= link_to "Usar outro e-mail", new_user_password_path %></p>
+</div>
