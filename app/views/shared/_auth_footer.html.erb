@@ -1,0 +1,67 @@
+<%# Rodapé das telas de conta (Criar conta): escuro, cantos de cima arredondados, duas
+    colunas. Estilos .au-footer-* em auth.scss. Mesmos links do .site-footer do layout. %>
+<footer class="au-footer">
+  <div class="au-footer-cols">
+    <section>
+      <h2>Sobre</h2>
+      <ul>
+        <li><%= link_to "Vagas", "#" %></li>
+        <li><%= link_to "Acessibilidade", "#" %></li>
+        <li><%= link_to "Informações gerais", "#" %></li>
+        <li><%= link_to "Site do GeoMatch", root_path %></li>
+      </ul>
+    </section>
+    <section>
+      <h2>Ajuda</h2>
+      <ul>
+        <li><%= link_to "Central de Suporte", "/suporte" %></li>
+        <li><%= link_to "Centro de Segurança", "#" %></li>
+        <li><%= link_to "Relatório de Confiança", "#" %></li>
+        <li><%= link_to "Contato", "#" %></li>
+      </ul>
+    </section>
+    <section>
+      <h2>Legal</h2>
+      <ul>
+        <li><%= link_to "Termos de Uso", terms_of_use_path %></li>
+        <li><%= link_to "Política de Privacidade", privacy_policy_path %></li>
+        <li><%= link_to "Regras de Participação", "#" %></li>
+        <li><%= link_to "Política de Cookies", "#" %></li>
+      </ul>
+    </section>
+    <section>
+      <h2>Conecte-se</h2>
+      <ul class="au-social">
+        <li>
+          <%= link_to "#", aria: { label: "Instagram do GeoMatch" } do %>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.2 6.8v.01"/></svg>
+          <% end %>
+        </li>
+        <li>
+          <%= link_to "#", aria: { label: "Facebook do GeoMatch" } do %>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 21v-8h2.7l.4-3.2h-3.1V7.8c0-.9.3-1.6 1.6-1.6h1.7V3.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.4H8.4V13h2.8v8"/></svg>
+          <% end %>
+        </li>
+        <li>
+          <%= link_to "#", aria: { label: "LinkedIn do GeoMatch" } do %>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v7M7 7v.01M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg>
+          <% end %>
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="au-footer-apps">
+    <p>Baixe o app</p>
+    <div>
+      <%= link_to image_tag("appstore.png", alt: "Baixe na App Store"), "#" %>
+      <%= link_to image_tag("googleplay.png", alt: "Disponível no Google Play"),
+                  "https://play.google.com/store/apps/details?id=com.geomatch.app", target: "_blank", rel: "noopener" %>
+    </div>
+  </div>
+
+  <p class="au-footer-copy">
+    O GeoMatch faz parte da GeoMatch Inc.<br>
+    © <%= Time.current.year %> GeoMatch. Todos os direitos reservados.
+  </p>
+</footer>

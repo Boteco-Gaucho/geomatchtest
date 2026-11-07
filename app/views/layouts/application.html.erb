@@ -102,7 +102,10 @@
       </div>
     <% else %>
       <!-- Estrutura para usuários não autenticados (com header e footer ) -->
-      <% unless turbo_native_app? %>
+      <% if content_for?(:auth_chrome) && !turbo_native_app? %>
+        <%# Telas de conta com cabeçalho/rodapé do mockup (Criar conta) %>
+        <%= render "shared/auth_header" %>
+      <% elsif !turbo_native_app? %>
         <header class="site-header">
           <div class="container header-inner">
             <%= link_to root_path, class: "brand" do %>
@@ -117,12 +120,14 @@
         </header>
       <% end %>
 
-      <main class="site-content">
+      <main class="site-content<%= " au-main" if content_for?(:auth_chrome) %>">
         <%= yield %>
       </main>
     <% end %>
 
-    <% unless user_signed_in? || turbo_native_app? || @hide_layout_footer %>
+    <% if content_for?(:auth_chrome) && !user_signed_in? && !turbo_native_app? %>
+      <%= render "shared/auth_footer" %>
+    <% elsif !(user_signed_in? || turbo_native_app? || @hide_layout_footer) %>
       <!-- O Footer só é renderizado para usuários não autenticados -->
        <footer class="site-footer">
       <div class="container footer-inner">

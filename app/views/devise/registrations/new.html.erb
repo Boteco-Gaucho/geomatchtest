@@ -1,81 +1,103 @@
-<div class="devise-container">
-  <div class="devise-form-card">
-    <h2>Cadastre-se no GeoMatch</h2>
+<%# Criar conta (/users/sign_up — antes "Cadastre-se"). Estilos .su-* em auth.scss;
+    signup_form_controller.js: olho das senhas, "Mínimo de N caracteres" ficando verde e a
+    máscara do celular. Cabeçalho e rodapé próprios (shared/_auth_header e _auth_footer,
+    via :auth_chrome no layout). O celular vai como +55 + DDD + número
+    (Users::RegistrationsController#normalize_phone). %>
+<% provide :auth_chrome, "1" %>
+<% min_password = @minimum_password_length || Devise.password_length.min %>
+<% phone_digits = resource.phone.to_s.gsub(/\D/, "").sub(/\A55(?=\d{10,11}\z)/, "") %>
+<% phone_value  = phone_digits.length >= 10 ? "(#{phone_digits[0, 2]}) #{phone_digits[2..-5]}-#{phone_digits[-4..]}" : phone_digits %>
 
-    <%#
-      data: { turbo: false } no form_for é obrigatório com Devise + Turbo/Rails 8.
-      Sem isso o Turbo trata o redirect do Devise como um fetch e quebra o fluxo.
-    %>
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-      <%= render "devise/shared/error_messages", resource: resource %>
+<div class="su-page">
+  <h1 class="su-title">Crie sua conta</h1>
+  <p class="su-subtitle">Descubra quem está a até 300 m de você.</p>
 
-      <%# --- 1. Nome Completo --- %>
-      <div class="field">
-        <%= f.label :username, "Nome Completo" %>
-        <%= f.text_field :username,
-              autofocus: true,
-              placeholder: "Ex: João Silva",
-              required: true,
-              class: "form-input" %>
-      </div>
-
-      <%# --- 2. E-mail --- %>
-      <div class="field">
-        <%= f.label :email %>
-        <%= f.email_field :email,
-              autocomplete: "email",
-              placeholder: "seu.email@exemplo.com",
-              required: true,
-              class: "form-input" %>
-      </div>
-
-      <%# --- 3. Senha --- %>
-      <div class="field">
-        <%= f.label :password %>
-        <% if @minimum_password_length %>
-          <em class="password-hint">(<%= @minimum_password_length %> caracteres no mínimo)</em>
-        <% end %>
-        <%= f.password_field :password,
-              autocomplete: "new-password",
-              placeholder: "••••••••",
-              required: true,
-              class: "form-input" %>
-      </div>
-
-      <%# --- 4. Confirmação de Senha --- %>
-      <div class="field">
-        <%= f.label :password_confirmation, "Confirmação de Senha" %>
-        <%= f.password_field :password_confirmation,
-              autocomplete: "new-password",
-              placeholder: "••••••••",
-              required: true,
-              class: "form-input" %>
-      </div>
-
-      <%# --- 5. Termos e Políticas --- %>
-      <div class="terms-container">
-        <div class="checkbox-field">
-          <%= f.check_box :terms_of_use, id: "terms-check" %>
-          <label for="terms-check">
-            Li e aceito os <%= link_to "Termos de Uso", terms_path, target: "_blank" %>
-          </label>
-        </div>
-
-        <div class="checkbox-field">
-          <%= f.check_box :data_policy, id: "policy-check" %>
-          <label for="policy-check">
-            Aceito a <%= link_to "Política de Uso de Dados", privacy_path, target: "_blank" %>
-          </label>
-        </div>
-      </div>
-
-      <div class="actions">
-        <%= f.submit "Cadastrar", class: "btn btn-primary" %>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+               html: { class: "su-card", novalidate: false,
+                       data: { controller: "signup-form", signup_form_min_value: min_password } }) do |f| %>
+    <% if resource.errors.any? %>
+      <div class="su-errors" role="alert" data-turbo-cache="false">
+        <strong>Confira os dados abaixo:</strong>
+        <ul>
+          <% resource.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
       </div>
     <% end %>
 
-    <div class="devise-links">
-      <%= render "devise/shared/links" %>
+    <div class="su-field">
+      <%= f.label :username, "Nome completo", class: "su-label" %>
+      <div class="su-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <%= f.text_field :username, autofocus: true, autocomplete: "name", placeholder: "Ex.: João Silva", required: true %>
+      </div>
     </div>
-  </div>
+
+    <div class="su-field">
+      <%= f.label :email, "E-mail", class: "su-label" %>
+      <div class="su-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>
+        <%= f.email_field :email, autocomplete: "email", placeholder: "seu@email.com", required: true %>
+      </div>
+    </div>
+
+    <div class="su-field">
+      <%= f.label :phone, "Celular", class: "su-label" %>
+      <div class="su-input su-input--phone">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>
+        <span class="su-ddi" aria-hidden="true">+55</span>
+        <%= f.telephone_field :phone, value: phone_value, autocomplete: "tel-national",
+              inputmode: "numeric", placeholder: "(71) 99999-9999", required: true, maxlength: 15,
+              aria: { describedby: "su-phone-hint" }, data: { action: "input->signup-form#maskPhone" } %>
+      </div>
+      <p class="su-hint" id="su-phone-hint">Com DDD. Usado só para segurança da sua conta.</p>
+    </div>
+
+    <div class="su-field">
+      <%= f.label :password, "Senha", class: "su-label" %>
+      <div class="su-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <%= f.password_field :password, autocomplete: "new-password", placeholder: "••••••••", required: true,
+              minlength: min_password, aria: { describedby: "su-password-hint" },
+              data: { signup_form_target: "password", action: "input->signup-form#checkLength" } %>
+        <%= render "devise/registrations/eye_button" %>
+      </div>
+      <p class="su-hint su-hint--rule" id="su-password-hint" data-signup-form-target="rule">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        Mínimo de <%= min_password %> caracteres
+      </p>
+    </div>
+
+    <div class="su-field">
+      <%= f.label :password_confirmation, "Confirmar senha", class: "su-label" %>
+      <div class="su-input">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "••••••••", required: true %>
+        <%= render "devise/registrations/eye_button" %>
+      </div>
+    </div>
+
+    <div class="su-terms">
+      <label class="su-check">
+        <%= f.check_box :terms_of_use, id: "terms-check" %>
+        <span class="su-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>Li e aceito os <%= link_to "Termos de Uso", terms_path, target: "_blank", rel: "noopener" %></span>
+      </label>
+      <label class="su-check">
+        <%= f.check_box :data_policy, id: "policy-check" %>
+        <span class="su-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>Aceito a <%= link_to "Política de Uso de Dados", privacy_path, target: "_blank", rel: "noopener" %></span>
+      </label>
+    </div>
+
+    <%= f.submit "Criar conta", class: "su-submit" %>
+
+    <p class="su-privacy">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/></svg>
+      Sua localização exata nunca é mostrada
+    </p>
+  <% end %>
+
+  <p class="su-login">Já tem conta? <%= link_to "Entrar", new_session_path(resource_name) %></p>
 </div>

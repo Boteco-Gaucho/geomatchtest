@@ -111,3 +111,6 @@ application.register("delete-account-sheet", DeleteAccountSheetController)
 
 import TopToastController from "./top_toast_controller"
 application.register("top-toast", TopToastController)
+
+import SignupFormController from "./signup_form_controller"
+application.register("signup-form", SignupFormController)

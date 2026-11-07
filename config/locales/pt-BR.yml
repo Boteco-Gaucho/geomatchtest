@@ -51,6 +51,10 @@
         password: "Senha"
         password_confirmation: "Confirmação de senha"
         name: "Nome completo"
+        username: "Nome completo"
+        phone: "Celular"
+        terms_of_use: "Os Termos de Uso"
+        data_policy: "A Política de Uso de Dados"
         current_password: "Senha atual"
 
 # Adicione o bloco abaixo mantendo este alinhamento:

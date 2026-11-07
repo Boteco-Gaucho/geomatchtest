@@ -1,0 +1,8 @@
+<%# Cabeçalho das telas de conta (Criar conta): logo + "Entrar". Estilos .au-* em auth.scss.
+    Entra no lugar do .site-header quando a view faz provide :auth_chrome. %>
+<header class="au-header">
+  <%= link_to root_path, class: "au-brand", aria: { label: "GeoMatch — início" } do %>
+    <%= image_tag "logo-geomatch-dourada.png", alt: "GeoMatch", class: "au-brand-logo" %>
+  <% end %>
+  <%= link_to "Entrar", new_user_session_path, class: "au-login" %>
+</header>
