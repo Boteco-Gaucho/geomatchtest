@@ -1,5 +1,6 @@
 // =================================================================
-// Carteira (/carteira — pages/mimo_wallet.html.erb, wallet_controller.js).
+// Telas da carteira (wallet_controller.js): Carteira (pages/mimo_wallet), Adicionar
+// saldo (pages/mimo_deposit) e Sacar via Pix (pages/mimo_withdraw).
 // Mockup de 739px de largura → ×0,528 para 390px.
 // =================================================================
 
@@ -39,9 +40,21 @@
 /* --- Cabeçalho --- */
 .wl-appbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 13px;
   padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+}
+
+// Com subtítulo (Adicionar saldo, Sacar via Pix)
+.wl-appbar--sub { padding-top: calc(env(safe-area-inset-top, 0px) + 53px); }
+
+.wl-appbar-text { min-width: 0; }
+
+.wl-subtitle {
+  margin: 2px 0 0;
+  color: var(--wl-muted);
+  font-size: 14.5px;
+  line-height: 20px;
 }
 
 .wl-back {
@@ -320,9 +333,30 @@
   line-height: 20.6px;
 }
 
+// Com movimentações: um card por mês, com o nome do mês em cima
+.wl-history-card.is-list {
+  border: 0;
+  background: none;
+}
+
+.wl-month + .wl-month { margin-top: 20px; }
+
+.wl-month-label {
+  margin: 0 0 8px;
+  color: var(--wl-faint);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
 .wl-tx-list {
   margin: 0;
-  padding: 4px 16px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--wl-border);
+  border-radius: 21px;
+  background: var(--wl-surface);
   list-style: none;
 }
 
@@ -330,7 +364,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px 0;
+  min-height: 72.5px;
+  padding: 10px 17px 10px 16.5px;
 
   & + & { border-top: 1px solid var(--wl-border); }
 }
@@ -339,46 +374,337 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
 
-  svg { width: 17px; height: 17px; stroke-width: 2.2; }
+  svg { width: 18px; height: 18px; stroke-width: 2.2; }
 
-  &.is-in  { background: rgba(35, 135, 90, 0.1); color: var(--wl-in); }
-  &.is-out { background: rgba(184, 41, 31, 0.08); color: var(--wl-out); }
+  &.is-out  { background: #fde8da; color: #b4561f; }
+  &.is-add  { background: #e2efe8; color: #23714a; }
+  &.is-gift { background: var(--wl-icon-bg); color: var(--wl-icon); }
 }
 
 .wl-tx-main {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 
   strong {
     overflow: hidden;
     color: var(--wl-text);
-    font-size: 14.5px;
+    font-size: 15.5px;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   small {
-    color: var(--wl-faint);
-    font-size: 12.5px;
+    overflow: hidden;
+    color: var(--wl-muted);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 .wl-tx-value {
   flex-shrink: 0;
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 800;
   white-space: nowrap;
 
   &.is-in  { color: var(--wl-in); }
   &.is-out { color: var(--wl-text); }
+}
+
+/* ============ ADICIONAR SALDO / SACAR VIA PIX ============ */
+// Espaço para o rodapé fixo com o botão
+.wl-page--form { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+
+.wl-amount-card {
+  margin-top: 28px;
+  padding: 20px 20px 24px;
+  border: 1px solid var(--wl-border);
+  border-radius: 26px;
+  background: var(--wl-surface);
+  text-align: center;
+}
+
+.wl-amount-card--withdraw {
+  margin-top: 22px;
+  padding: 19px 20px 18.5px;
+}
+
+.wl-amount-card-label {
+  display: block;
+  color: var(--wl-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.wl-amount-edit {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.wl-amount-edit-currency {
+  color: var(--wl-gold-1);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.wl-amount-input,
+.wl-amount-mirror {
+  font-family: inherit;
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -1.6px;
+}
+
+// Sem cara de campo: o número grande do mockup, editável
+.wl-page .wl-amount-input {
+  width: auto;
+  min-width: 1ch;
+  height: 60px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--wl-text);
+  caret-color: var(--wl-gold-1);
+  outline: none;
+  text-align: left;
+
+  &:focus { border: 0; box-shadow: none; }
+}
+
+.wl-amount-mirror {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.wl-after {
+  display: inline-flex;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--wl-icon-bg);
+  color: var(--wl-muted);
+  font-size: 13.5px;
+
+  strong { color: var(--wl-text); font-weight: 800; }
+}
+
+.wl-available {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  color: var(--wl-muted);
+  font-size: 14px;
+
+  strong { margin-left: -4px; color: var(--wl-text); font-weight: 800; }
+}
+
+.wl-all {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: #1e1e20;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+// R$ 20 / 50 / 100 / Outro
+.wl-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+  margin-top: 17.5px;
+}
+
+.wl-preset,
+.wl-key {
+  border: 1.5px solid var(--wl-border);
+  background: var(--wl-surface);
+  color: var(--wl-text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-active {
+    border-color: #1e1e20;
+    background: #1e1e20;
+    color: #fff;
+  }
+
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+.wl-preset {
+  height: 51px;
+  border-radius: 16px;
+  font-size: 16px;
+}
+
+.wl-preset--other { font-size: 14.5px; }
+
+.wl-section-title {
+  margin: 21px 0 0;
+  line-height: 20px;
+  color: var(--wl-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+// Sempre numa linha; em tela estreita rola para o lado
+.wl-keys {
+  display: flex;
+  gap: 7px;
+  margin: 9.5px -20.5px 0;
+  padding: 0 20.5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.wl-key { flex-shrink: 0; }
+
+.wl-key {
+  height: 39px;
+  padding: 0 15px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.wl-page .wl-key-input {
+  display: block;
+  width: 100%;
+  height: 51px;
+  margin: 11px 0 0;
+  padding: 0 17px;
+  border: 1.5px solid var(--wl-border);
+  border-radius: 16px;
+  background: var(--wl-surface);
+  box-shadow: none;
+  color: var(--wl-text);
+  font: inherit;
+  font-size: 16.5px; // 16px+: o iOS não dá zoom ao focar
+  outline: none;
+
+  &::placeholder { color: var(--wl-faint); opacity: 1; }
+  &:focus { border-color: #c9a052; box-shadow: none; }
+}
+
+.wl-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 14px 18px 14px 16px;
+  border-radius: 18px;
+  background: #ede4d6;
+  color: var(--wl-text);
+  font-size: 14.5px;
+  line-height: 19px;
+
+  svg {
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+    stroke-width: 1.9;
+    color: #5e4a2c;
+  }
+
+  strong { font-weight: 800; }
+}
+
+.wl-presets + .wl-note { margin-top: 20.5px; }
+
+.wl-error {
+  display: none;
+  margin: 12px 0 0;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(184, 41, 31, 0.08);
+  color: var(--wl-out);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 19px;
+
+  &.is-visible { display: block; }
+}
+
+// Rodapé fixo: botão dourado + aviso
+.wl-footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  padding: 16.5px 20.5px calc(22px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--wl-border);
+  background: var(--wl-surface);
+}
+
+.wl-submit {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: 54px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e6c682 0%, #c99c4f 100%);
+  box-shadow: 0 10px 24px rgba(201, 156, 79, 0.28);
+  color: #1e1e20;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:active:not(:disabled) { transform: scale(0.98); }
+  &:disabled { opacity: 0.7; cursor: default; }
+  &:hover { filter: none; box-shadow: 0 10px 24px rgba(201, 156, 79, 0.28); }
+}
+
+.wl-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 9px 0 0;
+  color: var(--wl-faint);
+  font-size: 13px;
+
+  svg { width: 14px; height: 14px; stroke-width: 2; }
 }
 
 /* --- Rodapé --- */
@@ -410,6 +736,12 @@ html.dark:not(.light-mode) .wl-page {
   --wl-in: #4ade80;
   --wl-out: #f87171;
 
-  .wl-filter.is-active { border-color: #ece8e3; background: #ece8e3; color: #121212; }
+  .wl-filter.is-active,
+  .wl-preset.is-active,
+  .wl-key.is-active,
+  .wl-all { border-color: #ece8e3; background: #ece8e3; color: #121212; }
+  .wl-note { background: #24211c; svg { color: #d6b26a; } }
+  .wl-tx-icon.is-out { background: rgba(244, 143, 76, 0.14); color: #f4a06c; }
+  .wl-tx-icon.is-add { background: rgba(74, 222, 128, 0.12); color: #4ade80; }
   .wl-card { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
 }

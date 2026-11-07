@@ -92,127 +92,57 @@
     </div>
   </div>
 
-  <%# --- POPUP DE USUÁRIO CORRIGIDO --- %>
-  <div id="user-popup" class="user-popup-fullscreen hidden">
-    <div class="popup-overlay"></div>
-    
-    <div class="popup-content-fullscreen dsc-sheet" id="draggable-popup">
-      
-      <div class="dsc-drag-handle-area">
-        <div class="dsc-handle-bar"></div>
-      </div>
-
-      <button id="close-popup-btn" class="dsc-close-btn">
-        <i class="fas fa-arrow-down"></i>
-      </button>
-
-      <%# CONTEÚDO SCROLLÁVEL %>
-      <div class="dsc-scroll-content">
-        
-        <%# TOPO: FOTO IMERSIVA — slides injetados via JS %>
-        <div class="dsc-carousel-wrapper">
-          <div id="popup-carousel" class="dsc-main-carousel"></div>
-
-          <div class="dsc-carousel-indicators" id="popup-carousel-dots"></div>
-
-          <div class="dsc-cover-overlay">
-            <div class="dsc-cover-info">
-              <h2 class="dsc-cover-name">
-                <span id="popup-username"></span><span id="popup-age" class="dsc-cover-age"></span>
-                <img id="popup-verified-badge" src="<%= image_path('icone-verificar.png') %>" style="display:none; width:18px; height:18px; flex-shrink:0;" title="Perfil Verificado">
-              </h2>
-              <p class="dsc-cover-distance">
-                <i class="fas fa-location-arrow"></i>
-                <span id="popup-distance">0.0 km</span> de distância
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <%# ÁREA DOS BOTÕES DE AÇÃO - SEM FAIXA BRANCA %>
-        <div class="dsc-action-container">
-          
-          <%# 1. REJEITAR %>
-          <%= button_to reject_user_path(user_id: 0), method: :post, class: "dsc-action-btn btn-reject", form: { id: "popup-reject-form", class: "dsc-action-form", "data-base-action" => reject_user_path(user_id: 0) } do %>
-            <%= hidden_field_tag :source, "map" %> 
-            <%= image_tag "botao-rejeitar.svg", alt: "Rejeitar" %>
-          <% end %>
-
-          <%# 2. CHAT %>
-          <%= button_to start_chat_path(user_id: 0), method: :post, class: "dsc-action-btn btn-chat", form: { id: "popup-chat-form", class: "dsc-action-form", "data-base-action" => start_chat_path(user_id: 0) } do %>
-            <%= image_tag "mensagem-prata.svg", alt: "Chat" %>
-          <% end %>
-
-          <%# 3. LIKE %>
-          <%= button_to likes_path(user_id: 0), method: :post, class: "dsc-action-btn btn-like", form: { id: "popup-like-form", class: "dsc-action-form", "data-base-action" => likes_path(user_id: 0) } do %>
-            <%= hidden_field_tag :source, "map" %>
-            <div class="dsc-heart-icon-wrapper">
-              <%= image_tag "coracao-chapada.png", alt: "Curtir" %>
-            </div>
-          <% end %>
-
-          <%# 4. ENVIAR MIMO — id populado via JS em showUserPopup (map_3d.js),
-              mesmo padrão de popup-btn-report/popup-btn-block logo abaixo %>
-          <button type="button" id="popup-btn-mimo" class="dsc-action-btn btn-mimo" title="Enviar Mimo">
-            <span>🎁</span>
-          </button>
-        </div>
-
-        <%# DETALHES DO PERFIL %>
-        <div class="dsc-body-container">
-          <div class="dsc-info-card">
-            <h3 class="dsc-card-header">Sobre mim</h3>
-            <div class="dsc-card-content-center">
-              <p id="popup-bio" class="dsc-bio-text">Sem descrição.</p>
-            </div>
-          </div>
-
-          <div class="dsc-info-card">
-             <h3 class="dsc-card-header">Informações</h3>
-             <div class="dsc-basic-list">
-                <div class="dsc-basic-item">
-                    <span class="dsc-basic-icon"><i class="fas fa-venus-mars"></i></span>
-                    <span id="popup-gender" class="dsc-basic-text"></span>
-                </div>
-                <div class="dsc-basic-item">
-                    <span class="dsc-basic-icon"><i class="fas fa-search"></i></span>
-                    <span id="popup-interest" class="dsc-basic-text"></span>
-                </div>
-                <div class="dsc-basic-item">
-                  <span class="dsc-basic-icon"><i class="fas fa-map-marker-alt"></i></span>
-                  <span id="popup-location" class="dsc-basic-text"></span>
-                </div>
-             </div>
-          </div>
-
-          <div class="dsc-safety-area">
-            <div class="dsc-safety-divider"></div>
-            <button id="popup-btn-report" class="dsc-btn-safety">DENUNCIAR USUÁRIO</button>
-            <div class="dsc-safety-separator"></div>
-            <button id="popup-btn-block" class="dsc-btn-safety">BLOQUEAR USUÁRIO</button>
-            <div class="dsc-safety-divider"></div>
-          </div>
-          
-          <div class="dsc-bottom-spacer"></div>
-        </div>
-      </div>
+  <%# --- PERFIL COMPLETO: folha que sobe por cima do mapa ("Ver perfil" da prévia do pin).
+      O map_3d.js busca GET /users/:id?context=map (users/_full_profile com in_map) e põe
+      aqui dentro. Estilos .map-profile-* em map_profile.scss. %>
+  <div id="user-popup" class="map-profile" hidden>
+    <div class="map-profile-overlay" data-map-profile-close></div>
+    <div class="map-profile-sheet" role="dialog" aria-modal="true" aria-label="Perfil" tabindex="-1">
+      <div class="map-profile-body" id="map-profile-body"></div>
     </div>
   </div>
 
-  <%# Mini Card fixo — independente da rotação do mapa %>
-  <div id="mini-card-overlay" style="display:none; position:fixed; bottom:260px; left:50%; transform:translateX(-50%) translateY(30px); z-index:1000; width:210px; pointer-events:auto; opacity:0; transition:opacity 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1);">
-    <div style="border-radius:20px; overflow:hidden; position:relative; height:260px; box-shadow:0 8px 32px rgba(0,0,0,0.45);">
-      <img id="mco-avatar" src="" alt="" style="width:100%; height:100%; object-fit:cover; object-position:center 20%; display:block;">
-      <div style="position:absolute; bottom:0; left:0; right:0; height:60%; background:linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.38) 60%, transparent 100%); pointer-events:none;"></div>
-      <div style="position:absolute; bottom:52px; left:0; right:0; padding:0 14px;">
-        <div style="display:flex; align-items:center; gap:5px;">
-          <p id="mco-name" style="margin:0; font-weight:700; font-size:1.2rem; color:#fff; letter-spacing:-0.3px; text-shadow:0 1px 4px rgba(0,0,0,0.4);"></p>
-          <img id="mco-verified-badge" src="<%= image_path('icone-verificar.png') %>" style="display:none; width:16px; height:16px;" title="Perfil Verificado">
-        </div>
-        <p id="mco-distance" style="margin:3px 0 0; font-size:0.78rem; color:rgba(255,255,255,0.8);"></p>
-      </div>
-      <button id="mco-view-btn" style="position:absolute; bottom:12px; left:12px; right:12px; padding:10px 0; background:rgba(255,255,255,0.18); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.32); border-radius:999px; color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; letter-spacing:0.3px;">Ver Perfil</button>
+  <%# --- PRÉVIA DO PIN: cartão em cima do pin da pessoa (map_3d.js preenche e posiciona).
+      Estilos .pin-card-* em map_profile.scss. %>
+  <div id="mini-card-overlay" class="pin-card" hidden>
+    <div class="pin-card-photo">
+      <img class="pin-card-img" id="pin-card-img" src="" alt="">
+      <svg class="pin-card-placeholder" viewBox="0 0 114 118" aria-hidden="true"><circle cx="57" cy="28.5" r="25.5"/><path d="M3 115A54 51 0 0 1 111 115"/></svg>
+      <span class="pin-card-tap pin-card-tap--prev" id="pin-card-prev" aria-hidden="true"></span>
+      <span class="pin-card-tap pin-card-tap--next" id="pin-card-next" aria-hidden="true"></span>
+      <span class="pin-card-online" id="pin-card-online" hidden><i></i>Online</span>
+      <button type="button" class="pin-card-close" id="pin-card-close" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="pin-card-bars" id="pin-card-bars" aria-hidden="true"></div>
     </div>
+
+    <div class="pin-card-body">
+      <p class="pin-card-name">
+        <strong id="pin-card-name"></strong><span id="pin-card-age"></span>
+        <svg class="pin-card-verified" id="pin-card-verified" viewBox="0 0 24 24" role="img" aria-label="Perfil verificado" hidden><circle cx="12" cy="12" r="12"/><path d="M7.2 12.4l3.2 3.1 6.4-6.6"/></svg>
+      </p>
+      <p class="pin-card-distance">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="pin-card-distance"></span>
+      </p>
+
+      <div class="pin-card-actions">
+        <button type="button" class="pin-card-view" id="pin-card-view">Ver perfil</button>
+        <%# user_id=0: o map_3d.js troca pelo id da pessoa antes de mostrar %>
+        <%= button_to start_chat_path(user_id: 0), method: :post, class: "pin-card-round pin-card-chat",
+              form: { id: "pin-card-chat-form", class: "pin-card-form" },
+              aria: { label: "Mandar mensagem" }, title: "Mandar mensagem" do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <% end %>
+        <%= button_to likes_path(user_id: 0, source: "map"), method: :post, class: "pin-card-round pin-card-like",
+              form: { id: "pin-card-like-form", class: "pin-card-form" },
+              aria: { label: "Curtir" }, title: "Curtir" do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        <% end %>
+      </div>
+    </div>
+    <span class="pin-card-arrow" aria-hidden="true"></span>
   </div>
 
   <div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>

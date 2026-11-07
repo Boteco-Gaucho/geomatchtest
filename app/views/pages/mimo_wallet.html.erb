@@ -11,12 +11,7 @@
      data-wallet-reconcile-url-value="<%= reconcile_wallet_path %>"
      data-wallet-withdraw-page-url-value="<%= mimo_withdraw_page_path %>">
 
-  <header class="wl-appbar">
-    <%= link_to my_profile_path, class: "wl-back", aria: { label: "Voltar" } do %>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-    <% end %>
-    <h1 class="wl-title">Carteira</h1>
-  </header>
+  <%= render "pages/wallet_header", back: my_profile_path, title: "Carteira" %>
 
   <%= tag.section class: ["wl-card", ("is-balance-hidden" if @balance_hidden)],
                   data: { controller: "balance-visibility", balance_visibility_hidden_value: @balance_hidden } do %>

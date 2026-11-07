@@ -389,6 +389,48 @@
   .up-hero .pc-indicators { top: calc(14px + env(safe-area-inset-top, 0px)); }
 }
 
+// ---------- Na folha do perfil completo do mapa (/discover_3d) ----------
+// Alça em cima, estrela (e o Mimo) à esquerda, seta para baixo fechando à direita.
+.user-profile.is-in-map {
+  .up-handle {
+    position: absolute;
+    top: calc(7px + env(safe-area-inset-top, 0px));
+    left: 50%;
+    z-index: 25;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .up-hero .pc-indicators { top: calc(18px + env(safe-area-inset-top, 0px)); }
+
+  .up-fav,
+  .up-close,
+  .up-gift { top: calc(36px + env(safe-area-inset-top, 0px)); }
+
+  .up-fav { right: auto; left: 14px; }
+
+  .up-close {
+    position: absolute;
+    right: 14px;
+    z-index: 20;
+
+    svg { width: 22px; height: 22px; stroke-width: 2.4; }
+  }
+
+  .up-gift {
+    position: absolute;
+    left: 66px;
+    z-index: 20;
+
+    svg { width: 19px; height: 19px; stroke-width: 1.9; }
+  }
+
+  .up-place[hidden] { display: none; }
+}
+
 // ---------- Modo escuro (a foto fica igual) ----------
 .dark-mode .user-profile,
 html.dark:not(.light-mode) .user-profile {

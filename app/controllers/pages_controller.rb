@@ -77,13 +77,17 @@ class PagesController < ApplicationController
     @balance_hidden = cookies[:hide_wallet_balance] == "1" # o mesmo olho de Meu Perfil
   end
 
-  # Depósito de saldo — valores pré-definidos, envia para /wallet/deposit.
+  # Adicionar saldo — R$ 20 / 50 / 100 ou outro valor, envia para /wallet/deposit.
+  # O saldo atual alimenta o "Saldo depois" (wallet_controller.js).
   def mimo_deposit
     @hide_sidebar = true
+    @wallet       = current_user.wallet
   end
 
   # Saque para PIX — envia para /wallet/withdraw.
+  # Sacar via Pix — disponível e chave Pix salva já vêm desenhados; envia para /wallet/withdraw.
   def mimo_withdraw
     @hide_sidebar = true
+    @wallet       = current_user.wallet
   end
 end

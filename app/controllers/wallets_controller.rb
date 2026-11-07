@@ -220,7 +220,7 @@ class WalletsController < ApplicationController
   WITHDRAWAL_STATUS_LABELS = {
     "pending"  => "Aguardando aprovação",
     "approved" => "Aprovado — em processamento",
-    "paid"     => "Pago",
+    "paid"     => "Concluído",
     "rejected" => "Recusado — valor devolvido ao saldo"
   }.freeze
 

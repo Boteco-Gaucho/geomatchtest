@@ -1,44 +1,66 @@
-<div class="gm-mimo-wrapper"
+<%# Sacar via Pix (/carteira/sacar, "Sacar via Pix" da Carteira). Estilos .wl-* em wallet.scss.
+    wallet_controller.js (mode "withdraw"): o valor grande é editável e começa no disponível;
+    "Sacar tudo" volta a ele. A chave Pix salva já vem preenchida. "Sacar R$ X" envia
+    POST /wallet/withdraw e volta para a Carteira. %>
+<% available_cents = @wallet ? @wallet.available_balance_cents : 0 %>
+<% minimum_cents   = WithdrawalService::MINIMUM_AMOUNT_CENTS %>
+<% key_types = [ [ "cpf", "CPF", "000.000.000-00", "numeric" ], [ "email", "E-mail", "seunome@email.com", "email" ],
+                 [ "phone", "Telefone", "(00) 00000-0000", "tel" ], [ "random", "Aleatória", "Cole sua chave aleatória", "text" ] ] %>
+<% key_type = key_types.map(&:first).include?(@wallet&.pix_key_type) ? @wallet.pix_key_type : "cpf" %>
+<% current  = key_types.find { |k| k.first == key_type } %>
+<% money = ->(cents) { number_to_currency(cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+<div class="wl-page wl-page--form"
      data-controller="wallet"
-     data-wallet-show-url-value="<%= wallet_path %>"
+     data-wallet-mode-value="withdraw"
+     data-wallet-verb-value="Sacar"
+     data-wallet-available-value="<%= available_cents %>"
+     data-wallet-minimum-value="<%= minimum_cents %>"
+     data-wallet-key-type-value="<%= key_type %>"
      data-wallet-withdraw-url-value="<%= withdraw_wallet_path %>"
      data-wallet-wallet-page-url-value="<%= mimo_wallet_page_path %>">
 
-  <div class="gm-mimo-appbar">
-    <%= link_to mimo_wallet_page_path, class: "gm-mimo-back" do %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  <%= render "pages/wallet_header", back: mimo_wallet_page_path, title: "Sacar via Pix",
+             subtitle: "O dinheiro vai direto para a sua conta." %>
+
+  <section class="wl-amount-card wl-amount-card--withdraw">
+    <label class="wl-amount-card-label" for="wl-amount">Quanto você quer sacar?</label>
+    <div class="wl-amount-edit">
+      <span class="wl-amount-edit-currency">R$</span>
+      <input id="wl-amount" class="wl-amount-input" type="text" inputmode="numeric" autocomplete="off"
+             value="<%= number_with_precision(available_cents / 100.0, precision: 2, delimiter: ".", separator: ",") %>"
+             data-wallet-target="amount" data-action="input->wallet#typeAmount focus->wallet#focusAmount">
+      <span class="wl-amount-mirror" data-wallet-target="amountMirror" aria-hidden="true"></span>
+    </div>
+    <p class="wl-available">
+      Disponível: <strong><%= money.(available_cents) %></strong>
+      <button type="button" class="wl-all" data-action="wallet#withdrawAll">Sacar tudo</button>
+    </p>
+  </section>
+
+  <h2 class="wl-section-title" id="wl-key-title">Para onde vai o dinheiro?</h2>
+  <div class="wl-keys" role="group" aria-labelledby="wl-key-title">
+    <% key_types.each do |value, label, placeholder, inputmode| %>
+      <button type="button" class="wl-key<%= " is-active" if value == key_type %>" aria-pressed="<%= value == key_type %>"
+              data-wallet-target="keyOption" data-key-type="<%= value %>" data-placeholder="<%= placeholder %>"
+              data-inputmode="<%= inputmode %>" data-action="wallet#selectKeyType"><%= label %></button>
     <% end %>
-    <h1>Sacar para Pix</h1>
-    <span class="gm-mimo-appbar-spacer"></span>
   </div>
+  <input class="wl-key-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+         aria-label="Chave Pix" placeholder="<%= current[2] %>" inputmode="<%= current[3] %>"
+         value="<%= @wallet&.pix_key %>" data-wallet-target="keyInput">
 
-  <div class="gm-saque-body">
-    <div>
-      <label class="gm-saque-label" for="saque-amount">Valor a sacar</label>
-      <input id="saque-amount" class="gm-saque-input" data-wallet-target="amountInput" inputmode="numeric" placeholder="R$ 0,00">
-      <div class="gm-saque-avail">Saldo disponível: <span data-wallet-target="availableText">—</span></div>
-    </div>
-
-    <div>
-      <span class="gm-saque-label">Tipo de chave Pix</span>
-      <div class="gm-saque-key-list" data-wallet-target="keyOptions">
-        <% [["cpf", "CPF"], ["email", "E-mail"], ["phone", "Telefone"], ["random", "Chave aleatória"]].each do |value, label| %>
-          <button type="button" class="gm-saque-key-opt" data-key-type="<%= value %>" data-action="wallet#selectKeyType">
-            <span class="gm-saque-key-dot"></span><%= label %>
-          </button>
-        <% end %>
-      </div>
-      <input class="gm-saque-key-input" data-wallet-target="keyInput" style="margin-top:10px" placeholder="Digite sua chave Pix">
-    </div>
-
-    <div class="gm-mimo-error-banner" data-wallet-target="error"></div>
-
+  <p class="wl-note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
     <%# Lê a constante do serviço para o texto nunca divergir da regra aplicada. %>
-    <div class="gm-saque-aviso">Valor mínimo para saque: <strong><%= Money.new(WithdrawalService::MINIMUM_AMOUNT_CENTS, "BRL").format %></strong>. O processamento pode levar até 1 dia útil.</div>
+    <span>Saque mínimo de <strong><%= money.(minimum_cents) %></strong>. O valor cai na sua conta em até 1 dia útil.</span>
+  </p>
 
-    <button type="button" class="gm-mimo-btn gm-mimo-btn--gold" data-wallet-target="withdrawButton" data-action="wallet#withdraw">
-      <span class="gm-mimo-spinner"></span>
-      <span class="gm-mimo-btn-label">Confirmar Saque</span>
+  <p class="wl-error" role="alert" data-wallet-target="error"></p>
+
+  <div class="wl-footer">
+    <button type="button" class="wl-submit" data-wallet-target="submit" data-action="wallet#submit">
+      <span data-wallet-target="submitLabel"><%= available_cents.positive? ? "Sacar #{money.(available_cents)}" : "Sacar" %></span>
     </button>
+    <p class="wl-footer-note">Confira sua chave Pix antes de confirmar.</p>
   </div>
 </div>

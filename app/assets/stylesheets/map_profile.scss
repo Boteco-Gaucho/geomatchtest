@@ -1,0 +1,363 @@
+// =================================================================
+// Mapa (/discover_3d — users/discover_3d.html.erb, map_3d.js):
+//   .pin-card-*    prévia em cima do pin da pessoa
+//   .map-profile-* folha do perfil completo (conteúdo: users/_full_profile com
+//                  in_map — estilos .up-* em user_profile.scss)
+// Mockups em 390px.
+// =================================================================
+
+/* ---------------- Prévia do pin ---------------- */
+.pin-card {
+  --pin-text: #1c1c1e;
+  --pin-muted: #5c5955;
+  --pin-surface: #fff;
+  --pin-border: #e6ddd0;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 242px;
+  border-radius: 24px;
+  pointer-events: auto; // o .discover-fullscreen-container deixa os cliques passarem (none)
+  background: var(--pin-surface);
+  box-shadow: 0 14px 34px rgba(30, 24, 18, 0.24);
+  color: var(--pin-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transform-origin: var(--pin-arrow-x, 50%) 100%;
+  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+
+  &[hidden] { display: none; }
+  &.is-open { opacity: 1; transform: none; }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  p { margin: 0; }
+}
+
+.pin-card-photo {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  background: #4a3f36;
+}
+
+.pin-card-img {
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+
+  .pin-card.has-photo & { display: block; }
+}
+
+// Sem foto: silhueta
+.pin-card-placeholder {
+  position: absolute;
+  top: 49px;
+  left: 50%;
+  width: 58px;
+  height: 60px;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.45);
+  stroke-width: 6;
+
+  .pin-card.has-photo & { display: none; }
+}
+
+// Toque à esquerda / à direita troca a foto
+.pin-card-tap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 50%;
+
+  &--prev { left: 0; }
+  &--next { right: 0; }
+}
+
+.pin-card-online {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 23.5px;
+  padding: 0 10px 0 9px;
+  border-radius: 999px;
+  background: rgba(28, 24, 20, 0.74);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+
+  &[hidden] { display: none; }
+
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3bc175;
+  }
+}
+
+.pin-card-close {
+  position: absolute;
+  top: 6.5px;
+  right: 6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(28, 24, 20, 0.62);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 15px; height: 15px; stroke-width: 2.6; }
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+.pin-card-bars {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+
+  span {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.45);
+
+    &.is-active { background: #fff; }
+  }
+}
+
+.pin-card-body { padding: 12px 12.5px 11px 14.5px; }
+
+.pin-card-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  line-height: 21px;
+  white-space: nowrap;
+
+  strong {
+    overflow: hidden;
+    font-weight: 800;
+    text-overflow: ellipsis;
+  }
+
+  span { margin-left: -2px; font-weight: 400; }
+}
+
+.pin-card-verified {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+
+  &[hidden] { display: none; }
+  circle { fill: #3b82f6; stroke: none; }
+  path { stroke: #fff; stroke-width: 2.6; }
+}
+
+.pin-card-distance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: var(--pin-muted);
+  font-size: 12.5px;
+  line-height: 17px;
+
+  svg { flex: 0 0 auto; width: 13px; height: 13px; stroke-width: 2; }
+}
+
+.pin-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8.5px;
+  margin-top: 8px;
+}
+
+.pin-card-view {
+  flex: 1;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: #1e1e20;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.98); }
+  &:hover { filter: none; box-shadow: none; }
+}
+
+.pin-card-form { margin: 0; }
+
+.pin-card-round {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #1e1e20;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 18px; height: 18px; stroke-width: 2; }
+  &:active:not(:disabled) { transform: scale(0.95); }
+  &:hover { filter: none; box-shadow: none; }
+}
+
+.pin-card-chat { background: linear-gradient(180deg, #e6c682 0%, #c99c4f 100%); }
+
+.pin-card-like {
+  border: 1.5px solid var(--pin-border);
+  background: var(--pin-surface);
+
+  svg { width: 19px; height: 19px; }
+
+  // Já curtiu: coração cheio
+  &.is-liked { cursor: default; }
+  &.is-liked svg { fill: #e0245e; stroke: #e0245e; }
+}
+
+// Seta apontando para o pin
+.pin-card-arrow {
+  position: absolute;
+  top: 100%;
+  left: var(--pin-arrow-x, 50%);
+  width: 0;
+  height: 0;
+  margin-left: -9px;
+  border-top: 10px solid var(--pin-surface);
+  border-right: 9px solid transparent;
+  border-left: 9px solid transparent;
+}
+
+/* ---------------- Folha do perfil completo ---------------- */
+.map-profile {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  pointer-events: auto;
+
+  &[hidden] { display: none; }
+}
+
+.map-profile-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 16, 12, 0.45);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  .map-profile.is-open & { opacity: 1; }
+}
+
+.map-profile-sheet {
+  position: absolute;
+  inset: 0;
+  max-width: 560px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #f9f2e8;
+  outline: none;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  -webkit-overflow-scrolling: touch;
+
+  .map-profile.is-open & { transform: translateY(0); }
+  &.is-dragging { transition: none; }
+}
+
+.map-profile-loading,
+.map-profile-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  color: #5c5955;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  text-align: center;
+}
+
+.map-profile-loading span {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e6ddd0;
+  border-top-color: #c99c4f;
+  border-radius: 50%;
+  animation: map-profile-spin 0.8s linear infinite;
+}
+
+@keyframes map-profile-spin {
+  to { transform: rotate(360deg); }
+}
+
+.map-profile-error {
+  strong { color: #1c1c1e; font-size: 16px; }
+  p { margin: 0; }
+
+  button {
+    height: 44px;
+    margin-top: 6px;
+    padding: 0 26px;
+    border: 0;
+    border-radius: 999px;
+    background: #1e1e20;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.dark-mode .pin-card,
+html.dark:not(.light-mode) .pin-card {
+  --pin-text: var(--color-text, #ece8e3);
+  --pin-muted: var(--color-text-secondary, #b3aea8);
+  --pin-surface: #1e1e20;
+  --pin-border: #3a3a3c;
+
+  .pin-card-view { background: #ece8e3; color: #121212; }
+  .pin-card-like { color: #ece8e3; }
+}
+
+.dark-mode .map-profile-sheet,
+html.dark:not(.light-mode) .map-profile-sheet { background: var(--color-background, #121212); }

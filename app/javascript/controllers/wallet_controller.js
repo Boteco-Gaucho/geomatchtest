@@ -1,33 +1,61 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Cobre as 3 telas da carteira (Fase 4 + Fase 5.2):
-//   Carteira  — saldo (/wallet) + extrato (/wallet/transactions)
-//   Saque     — envia POST /wallet/withdraw com valor + chave Pix
-//   Depósito  — envia POST /wallet/deposit e redireciona ao checkout do Mercado Pago
+// Telas da carteira (estilos .wl-* em wallet.scss):
+//   Carteira (pages/mimo_wallet)     — saldo (/wallet) + histórico (/wallet/transactions),
+//                                      agrupado por mês, com filtros Tudo / Entradas / Saídas
+//   Adicionar saldo (mimo_deposit)   — mode "deposit": valor editável + R$ 20/50/100/Outro,
+//                                      POST /wallet/deposit → checkout do Mercado Pago
+//   Sacar via Pix (mimo_withdraw)    — mode "withdraw": valor editável + "Sacar tudo" + chave Pix,
+//                                      POST /wallet/withdraw → volta à Carteira
+const MONTHS       = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+                      "agosto", "setembro", "outubro", "novembro", "dezembro"]
+const MONTHS_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+const MAX_DIGITS   = 9 // até R$ 9.999.999,99
+
+// Ícone e texto de cada tipo de movimentação (o JSON também serve o app nativo,
+// por isso os nomes da tela ficam aqui e não no servidor)
+const ENTRY_STYLES = {
+  withdrawal:    { title: "Saque para Pix",   icon: '<path d="M12 19V5M6 11l6-6 6 6"/>', tone: "out" },
+  deposit:       { title: "Saldo adicionado", icon: '<path d="M12 5v14M5 12h14"/>', tone: "add", detail: "via Mercado Pago" },
+  mimo_received: { icon: '<rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-3.5-5-1.2C7 8 9.5 8 12 8zM12 8c1.5-3 5-3.5 5-1.2C17 8 14.5 8 12 8z"/>', tone: "gift" }
+}
+
 export default class extends Controller {
   static targets = [
-    "balance", "reserved", "history", "filter",                                        // carteira
-    "amountInput", "availableText", "keyOptions", "keyInput", "error", "withdrawButton", // saque
-    "depositAmountInput", "depositError", "depositButton"                              // depósito
+    "balance", "reserved", "history", "filter",                       // carteira
+    "amount", "amountMirror", "after", "preset", "keyOption", "keyInput",
+    "error", "submit", "submitLabel"                                  // adicionar / sacar
   ]
 
   static values = {
     showUrl: String,
     transactionsUrl: String,
-    withdrawUrl: String,
+    reconcileUrl: String,
     withdrawPageUrl: String,
     walletPageUrl: String,
     depositUrl: String,
-    reconcileUrl: String
+    withdrawUrl: String,
+    mode: String,                 // "deposit" | "withdraw"
+    verb: String,                 // "Adicionar" | "Sacar" (texto do botão)
+    available: Number,            // centavos disponíveis
+    minimum: Number,              // centavos mínimos (regra do servidor)
+    keyType: { type: String, default: "cpf" }
   }
 
-  selectedKeyType = null
-  entries = null       // extrato carregado (carteira)
-  historyFilter = "all" // Tudo / Entradas / Saídas
+  entries = null        // histórico carregado
+  historyFilter = "all"
 
   connect() {
-    this.load()
+    if (this.hasHistoryTarget || this.hasBalanceTarget) this.load()
+    if (this.hasAmountTarget) {
+      this.amountCents = this.parseAmountToCents(this.amountTarget.value)
+      this.refreshAmount()
+      // A largura do valor depende da fonte (Inter): mede de novo quando ela chegar
+      document.fonts?.ready.then(() => { if (this.element.isConnected) this.refreshAmount() })
+    }
   }
+
+  // ═════════════════════════ CARTEIRA ═════════════════════════
 
   // Em série, não em paralelo: GET /wallet concilia os depósitos pendentes contra
   // o Mercado Pago antes de responder, e o extrato precisa ser lido DEPOIS disso —
@@ -36,8 +64,7 @@ export default class extends Controller {
     if (this.returningFromCheckout() && this.hasReconcileUrlValue) {
       await this.forceReconcile()
     }
-
-    if (this.hasBalanceTarget || this.hasAmountInputTarget) await this.loadWallet()
+    if (this.hasBalanceTarget) await this.loadWallet()
     if (this.hasHistoryTarget) await this.loadTransactions()
   }
 
@@ -60,19 +87,14 @@ export default class extends Controller {
     }
   }
 
-  // ───────────────────────── CARTEIRA ─────────────────────────
   async loadWallet() {
     try {
       const wallet = await this.fetchJson(this.showUrlValue)
 
-      // O card diz "Saldo disponível", então precisa mostrar o DISPONÍVEL, não o
-      // total: um saque solicitado reserva o valor (pending_withdrawal_cents) e
-      // só sai do balance quando o pagamento é confirmado. Mostrar o total aqui
-      // fazia parecer que o pedido de saque não tinha surtido efeito nenhum.
-      // Só o número: o "R$" fica à parte no card (pages/mimo_wallet.html.erb)
-      if (this.hasBalanceTarget) {
-        this.balanceTarget.textContent = this.formatNumber(wallet.available_balance_cents || 0)
-      }
+      // O card diz "Saldo disponível", então mostra o DISPONÍVEL, não o total: um
+      // saque solicitado reserva o valor (pending_withdrawal_cents) até ser pago.
+      // Só o número: o "R$" fica à parte no card.
+      this.balanceTarget.textContent = this.formatNumber(wallet.available_balance_cents || 0)
 
       // O valor reservado não some — ele fica explícito, aguardando o saque.
       if (this.hasReservedTarget) {
@@ -81,17 +103,6 @@ export default class extends Controller {
           ? `${this.formatCents(reserved)} reservado em saque solicitado`
           : ""
         this.reservedTarget.classList.toggle("is-visible", reserved > 0)
-      }
-
-      if (this.hasAvailableTextTarget) {
-        this.availableTextTarget.textContent = this.formatCents(wallet.available_balance_cents || 0)
-      }
-      if (this.hasAmountInputTarget && wallet.available_balance_cents > 0) {
-        this.amountInputTarget.value = this.formatCents(wallet.available_balance_cents)
-      }
-      if (this.hasKeyInputTarget && wallet.pix_key) {
-        this.keyInputTarget.value = wallet.pix_key
-        if (wallet.pix_key_type) this.applyKeyType(wallet.pix_key_type)
       }
     } catch (e) {
       console.error("[Wallet] loadWallet falhou:", e)
@@ -104,6 +115,7 @@ export default class extends Controller {
       this.entries = data.transactions || []
       this.renderHistory()
     } catch (e) {
+      this.historyTarget.classList.remove("is-list")
       this.historyTarget.innerHTML = this.emptyHtml("Não foi possível carregar o extrato.", "Verifique sua conexão e abra a carteira de novo.")
       console.error("[Wallet] loadTransactions falhou:", e)
     }
@@ -133,30 +145,53 @@ export default class extends Controller {
         in:  ["Nenhuma entrada ainda", "Saldo adicionado e mimos recebidos aparecem aqui."],
         out: ["Nenhuma saída ainda", "Seus saques via Pix aparecem aqui."]
       }[this.historyFilter]
+      this.historyTarget.classList.remove("is-list")
       this.historyTarget.innerHTML = this.emptyHtml(title, text)
       return
     }
 
-    this.historyTarget.innerHTML = `<ul class="wl-tx-list">${entries.map((entry) => {
-      const isIn = entry.amount_cents >= 0
-      const arrow = isIn ? '<path d="M12 19V5M6 11l6-6 6 6"/>' : '<path d="M12 5v14M6 13l6 6 6-6"/>'
+    // Um bloco por mês ("OUTUBRO"; com o ano quando não é o atual), na ordem do JSON
+    const groups = []
+    entries.forEach((entry) => {
+      const date = new Date(entry.created_at)
+      const key = Number.isNaN(date.getTime()) ? "" : `${date.getFullYear()}-${date.getMonth()}`
+      let group = groups[groups.length - 1]
+      if (!group || group.key !== key) {
+        group = { key, label: this.monthLabel(date), entries: [] }
+        groups.push(group)
+      }
+      group.entries.push(entry)
+    })
 
-      // status_label distingue "saque pago" de "saque só solicitado" — sem ele
-      // um pedido pendente aparece idêntico a um pagamento já concluído.
-      const status = entry.status_label
-        ? ` <span class="wl-tx-status">· ${this.escapeHtml(entry.status_label)}</span>`
-        : ""
+    this.historyTarget.classList.add("is-list")
+    this.historyTarget.innerHTML = groups.map((group) => `
+      <div class="wl-month">
+        ${group.label ? `<h3 class="wl-month-label">${this.escapeHtml(group.label)}</h3>` : ""}
+        <ul class="wl-tx-list">${group.entries.map((entry) => this.entryHtml(entry)).join("")}</ul>
+      </div>`).join("")
+  }
 
-      return `
-        <li class="wl-tx">
-          <span class="wl-tx-icon ${isIn ? "is-in" : "is-out"}" aria-hidden="true"><svg viewBox="0 0 24 24">${arrow}</svg></span>
-          <span class="wl-tx-main">
-            <strong>${this.escapeHtml(entry.description)}</strong>
-            <small>${this.formatDate(entry.created_at)}${status}</small>
-          </span>
-          <span class="wl-tx-value ${isIn ? "is-in" : "is-out"}">${isIn ? "+" : "−"} ${this.formatCents(Math.abs(entry.amount_cents))}</span>
-        </li>`
-    }).join("")}</ul>`
+  entryHtml(entry) {
+    const isIn = entry.amount_cents >= 0
+    const style = ENTRY_STYLES[entry.type] || {
+      icon: isIn ? '<path d="M12 19V5M6 11l6-6 6 6"/>' : '<path d="M12 5v14M6 13l6 6 6-6"/>',
+      tone: isIn ? "add" : "out"
+    }
+    const title = style.title || entry.description
+    // status_label distingue "saque pago" de "saque só solicitado" — sem ele
+    // um pedido pendente aparece idêntico a um pagamento já concluído.
+    const detail = entry.status_label || style.detail
+    const meta = [this.formatShortDate(entry.created_at), detail].filter(Boolean).join(" · ")
+
+    return `
+      <li class="wl-tx">
+        <span class="wl-tx-icon is-${style.tone}" aria-hidden="true"><svg viewBox="0 0 24 24">${style.icon}</svg></span>
+        <span class="wl-tx-main">
+          <strong>${this.escapeHtml(title)}</strong>
+          <small>${this.escapeHtml(meta)}</small>
+        </span>
+        <span class="wl-tx-value ${isIn ? "is-in" : "is-out"}">${isIn ? "+" : "−"} ${this.formatCents(Math.abs(entry.amount_cents))}</span>
+      </li>`
   }
 
   emptyHtml(title, text) {
@@ -174,145 +209,142 @@ export default class extends Controller {
     if (this.hasWithdrawPageUrlValue) window.location.href = this.withdrawPageUrlValue
   }
 
-  // ───────────────────────── SAQUE ─────────────────────────
-  selectKeyType(event) {
-    this.applyKeyType(event.currentTarget.dataset.keyType)
+  // ═════════════════════ ADICIONAR / SACAR ═════════════════════
+
+  // Digitar no valor grande: só dígitos, que entram pela direita (5 → 0,05 → 0,50 → 5,00)
+  typeAmount() {
+    const digits = this.amountTarget.value.replace(/\D/g, "").replace(/^0+/, "").slice(0, MAX_DIGITS)
+    this.amountCents = digits ? parseInt(digits, 10) : 0
+    this.markPreset(null)
+    this.refreshAmount()
   }
 
-  applyKeyType(keyType) {
-    this.selectedKeyType = keyType
-    this.keyOptionsTarget.querySelectorAll(".gm-saque-key-opt").forEach((opt) => {
-      opt.classList.toggle("is-selected", opt.dataset.keyType === keyType)
+  // Cursor sempre no fim: os dígitos entram pela direita
+  focusAmount() {
+    requestAnimationFrame(() => {
+      const end = this.amountTarget.value.length
+      this.amountTarget.setSelectionRange(end, end)
     })
   }
 
-  async withdraw() {
+  pickPreset(event) {
+    this.amountCents = parseInt(event.currentTarget.dataset.amountCents, 10)
+    this.markPreset(event.currentTarget)
+    this.refreshAmount()
+  }
+
+  // "Outro": zera e abre o teclado para digitar
+  pickOther(event) {
+    this.amountCents = 0
+    this.markPreset(event.currentTarget)
+    this.refreshAmount()
+    this.amountTarget.focus()
+  }
+
+  withdrawAll() {
+    this.amountCents = this.availableValue
+    this.refreshAmount()
+  }
+
+  markPreset(active) {
+    // Digitado à mão: vale o botão do mesmo valor, se houver; senão "Outro"
+    if (!active && this.hasPresetTarget) {
+      active = this.presetTargets.find((btn) => parseInt(btn.dataset.amountCents, 10) === this.amountCents) ||
+               this.presetTargets.find((btn) => !btn.dataset.amountCents)
+    }
+    this.presetTargets.forEach((btn) => {
+      btn.classList.toggle("is-active", btn === active)
+      btn.setAttribute("aria-pressed", String(btn === active))
+    })
+  }
+
+  refreshAmount() {
+    const text = this.formatNumber(this.amountCents)
+    this.amountTarget.value = text
     this.hideError()
 
-    const amountCents = this.parseAmountToCents(this.amountInputTarget.value)
-    if (!amountCents || amountCents <= 0) {
-      this.showError("Informe um valor válido para o saque.")
-      return
+    // O campo cresce com o número (o espelho invisível mede a largura)
+    if (this.hasAmountMirrorTarget) {
+      this.amountMirrorTarget.textContent = text
+      this.amountTarget.style.width = `${Math.ceil(this.amountMirrorTarget.offsetWidth) + 2}px`
     }
-
-    const pixKey = this.hasKeyInputTarget ? this.keyInputTarget.value.trim() : ""
-    if (!pixKey || !this.selectedKeyType) {
-      this.showError("Selecione o tipo de chave e informe a chave Pix.")
-      return
+    if (this.hasAfterTarget) {
+      this.afterTarget.textContent = this.formatCents(this.availableValue + this.amountCents)
     }
-
-    this.setLoading(true)
-
-    try {
-      const response = await fetch(this.withdrawUrlValue, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-CSRF-Token": this.csrfToken()
-        },
-        body: JSON.stringify({ amount_cents: amountCents, pix_key: pixKey, pix_key_type: this.selectedKeyType })
-      })
-
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        this.showError(data.error || "Não foi possível processar o saque.")
-        this.setLoading(false)
-        return
-      }
-
-      window.location.href = this.hasWalletPageUrlValue ? this.walletPageUrlValue : "/carteira"
-    } catch (e) {
-      console.error("[Wallet] withdraw falhou:", e)
-      this.showError("Falha de conexão. Verifique sua internet e tente novamente.")
-      this.setLoading(false)
+    if (this.hasSubmitLabelTarget && !this.busy) {
+      this.submitLabelTarget.textContent = this.amountCents > 0
+        ? `${this.verbValue} ${this.formatCents(this.amountCents)}`
+        : this.verbValue
     }
   }
 
-  // ───────────────────────── DEPÓSITO ─────────────────────────
-  selectDepositPreset(event) {
-    const cents = parseInt(event.currentTarget.dataset.amountCents, 10)
-    if (this.hasDepositAmountInputTarget) this.depositAmountInputTarget.value = this.formatCents(cents)
-
-    this.element.querySelectorAll(".gm-deposit-preset").forEach((btn) => {
-      btn.classList.toggle("is-selected", parseInt(btn.dataset.amountCents, 10) === cents)
+  selectKeyType(event) {
+    const option = event.currentTarget
+    this.keyTypeValue = option.dataset.keyType
+    this.keyOptionTargets.forEach((btn) => {
+      btn.classList.toggle("is-active", btn === option)
+      btn.setAttribute("aria-pressed", String(btn === option))
     })
-    this.hideDepositError()
+    this.keyInputTarget.placeholder = option.dataset.placeholder
+    this.keyInputTarget.inputMode = option.dataset.inputmode
+    this.keyInputTarget.focus()
   }
 
-  // Digitar um valor manualmente desmarca qualquer preset selecionado — o
-  // input de texto é sempre a fonte de verdade do valor a depositar.
-  clearDepositPreset() {
-    this.element.querySelectorAll(".gm-deposit-preset").forEach((btn) => btn.classList.remove("is-selected"))
+  submit() {
+    if (this.busy) return
+    if (this.modeValue === "deposit") return this.deposit()
+    if (this.modeValue === "withdraw") return this.withdraw()
   }
 
   async deposit() {
-    this.hideDepositError()
-
-    const amountCents = this.hasDepositAmountInputTarget ? this.parseAmountToCents(this.depositAmountInputTarget.value) : 0
-    if (!amountCents || amountCents < 500) {
-      this.showDepositError("Informe um valor de pelo menos R$ 5,00.")
-      return
+    if (this.amountCents < this.minimumValue) {
+      return this.showError(`O valor mínimo é ${this.formatCents(this.minimumValue)}.`)
     }
 
-    this.setDepositLoading(true)
-
+    this.setBusy(true, "Abrindo o Mercado Pago...")
     try {
-      const response = await fetch(this.depositUrlValue, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-CSRF-Token": this.csrfToken()
-        },
-        body: JSON.stringify({ amount_cents: amountCents })
-      })
-
-      const data = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        this.showDepositError(data.error || "Não foi possível iniciar o depósito.")
-        this.setDepositLoading(false)
-        return
-      }
-
+      const data = await this.postJson(this.depositUrlValue, { amount_cents: this.amountCents })
       window.location.href = data.checkout_url
     } catch (e) {
-      console.error("[Wallet] deposit falhou:", e)
-      this.showDepositError("Falha de conexão. Verifique sua internet e tente novamente.")
-      this.setDepositLoading(false)
+      this.showError(e.userMessage || "Não deu para iniciar o pagamento. Verifique sua conexão e tente de novo.")
+      this.setBusy(false)
     }
   }
 
-  setDepositLoading(isLoading) {
-    if (!this.hasDepositButtonTarget) return
-    this.depositButtonTarget.classList.toggle("is-loading", isLoading)
-    this.depositButtonTarget.disabled = isLoading
+  async withdraw() {
+    if (this.amountCents < this.minimumValue) {
+      return this.showError(`O saque mínimo é ${this.formatCents(this.minimumValue)}.`)
+    }
+    if (this.amountCents > this.availableValue) {
+      return this.showError(`Você tem ${this.formatCents(this.availableValue)} disponível para sacar.`)
+    }
+    const pixKey = this.keyInputTarget.value.trim()
+    if (!pixKey) {
+      this.keyInputTarget.focus()
+      return this.showError("Informe a sua chave Pix.")
+    }
+
+    this.setBusy(true, "Enviando pedido...")
+    try {
+      await this.postJson(this.withdrawUrlValue, {
+        amount_cents: this.amountCents, pix_key: pixKey, pix_key_type: this.keyTypeValue
+      })
+      window.location.href = this.hasWalletPageUrlValue ? this.walletPageUrlValue : "/carteira"
+    } catch (e) {
+      this.showError(e.userMessage || "Não deu para pedir o saque. Verifique sua conexão e tente de novo.")
+      this.setBusy(false)
+    }
   }
 
-  showDepositError(message) {
-    if (!this.hasDepositErrorTarget) return
-    this.depositErrorTarget.textContent = message
-    this.depositErrorTarget.classList.add("is-visible")
-  }
-
-  hideDepositError() {
-    if (!this.hasDepositErrorTarget) return
-    this.depositErrorTarget.classList.remove("is-visible")
-  }
-
-  // ───────────────────────── Helpers ─────────────────────────
-  async fetchJson(url) {
-    const response = await fetch(url, { headers: { Accept: "application/json" } })
-    if (!response.ok) throw new Error(`GET ${url} -> ${response.status}`)
-    return response.json()
-  }
-
-  setLoading(isLoading) {
-    if (!this.hasWithdrawButtonTarget) return
-    this.withdrawButtonTarget.classList.toggle("is-loading", isLoading)
-    this.withdrawButtonTarget.disabled = isLoading
+  setBusy(busy, label) {
+    this.busy = busy
+    this.submitTarget.disabled = busy
+    this.submitTarget.classList.toggle("is-loading", busy)
+    if (busy) {
+      this.submitLabelTarget.textContent = label
+    } else {
+      this.refreshAmount()
+    }
   }
 
   showError(message) {
@@ -326,12 +358,36 @@ export default class extends Controller {
     this.errorTarget.classList.remove("is-visible")
   }
 
+  // ═════════════════════════ Helpers ═════════════════════════
+
+  async fetchJson(url) {
+    const response = await fetch(url, { headers: { Accept: "application/json" } })
+    if (!response.ok) throw new Error(`GET ${url} -> ${response.status}`)
+    return response.json()
+  }
+
+  // Erro do servidor (ex.: saldo insuficiente) vira e.userMessage, com a 1ª letra maiúscula
+  async postJson(url, body) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", "X-CSRF-Token": this.csrfToken() },
+      body: JSON.stringify(body)
+    })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const error = new Error(`POST ${url} -> ${response.status}`)
+      if (data.error) error.userMessage = data.error.charAt(0).toUpperCase() + data.error.slice(1)
+      throw error
+    }
+    return data
+  }
+
   formatNumber(cents) {
     return (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   formatCents(cents) {
-    return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    return `R$ ${this.formatNumber(cents)}`
   }
 
   // Aceita "R$ 120,00", "120,00", "120.00" ou "120"
@@ -344,12 +400,18 @@ export default class extends Controller {
     return Number.isNaN(amount) ? 0 : Math.round(amount * 100)
   }
 
-  formatDate(iso) {
+  // "25 out"
+  formatShortDate(iso) {
     const date = new Date(iso)
     if (Number.isNaN(date.getTime())) return ""
-    const day = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
-    const time = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-    return `${day}, ${time}`
+    return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`
+  }
+
+  // "OUTUBRO" (o CSS põe em maiúsculas); "OUTUBRO 2025" quando não é o ano atual
+  monthLabel(date) {
+    if (Number.isNaN(date.getTime())) return ""
+    const month = MONTHS[date.getMonth()]
+    return date.getFullYear() === new Date().getFullYear() ? month : `${month} ${date.getFullYear()}`
   }
 
   escapeHtml(str) {

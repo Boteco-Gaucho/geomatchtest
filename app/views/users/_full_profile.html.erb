@@ -8,16 +8,22 @@
                     a seta fecha o sheet e o X / coração jogam o card do lead
                     (lead_swipe_controller). Sem ele é a página /users/:id
                     (user_profile_controller: voltar e o X).
+      in_map      — true na folha do perfil completo do mapa (/discover_3d — vem de
+                    GET /users/:id?context=map, aberto pelo map_3d.js): alça, estrela à
+                    esquerda, seta para baixo fechando, distância no lugar da cidade
+                    (o JS preenche) e X / coração com source=map (o JS fecha a folha).
       liked       — já curtiu (coração marcado e desabilitado)
       favorite_id — id do favorito (estrela marcada); omitido = consulta aqui
 
     No próprio perfil somem as ações, a estrela e Denunciar/Bloquear. %>
 <% in_sheet    = local_assigns.fetch(:in_sheet, false) %>
+<% in_map      = local_assigns.fetch(:in_map, false) %>
 <% liked       = local_assigns.fetch(:liked, false) %>
 <% favorite_id = local_assigns.key?(:favorite_id) ? favorite_id : current_user.favorites.where(favorited_user_id: user.id).pick(:id) %>
 <% own_profile = user == current_user %>
 <% has_photos  = user.has_real_avatar? || user.album_photos.attached? %>
 <% first_name  = user.display_name.to_s.split.first %>
+<% shown_name  = in_map ? user.display_name : first_name %>
 <% place       = profile_place(user) %>
 <% facts = [
      [ "person", profile_gender_label(user) ],
@@ -28,8 +34,8 @@
 <% heart_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>'.html_safe %>
 <% x_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'.html_safe %>
 
-<%= tag.div class: [ "user-profile", ("is-in-sheet" if in_sheet) ],
-            data: (in_sheet ? {} : { controller: "user-profile", user_profile_fallback_value: lead_path }) do %>
+<%= tag.div class: [ "user-profile", ("is-in-sheet" if in_sheet), ("is-in-map" if in_map) ],
+            data: (in_sheet || in_map ? { user_id: user.id } : { controller: "user-profile", user_profile_fallback_value: lead_path }) do %>
   <section class="up-hero <%= has_photos ? 'has-photos' : 'is-empty' %>">
     <% if has_photos %>
       <%= render "shared/profile_carousel", user: user, show_gradient: false %>
@@ -41,7 +47,12 @@
     <% end %>
     <div class="up-shade" aria-hidden="true"></div>
 
-    <% if in_sheet %>
+    <% if in_map %>
+      <span class="up-handle" aria-hidden="true"></span>
+      <button type="button" class="up-round up-close" aria-label="Fechar perfil" data-map-profile-close>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    <% elsif in_sheet %>
       <button type="button" class="up-round up-back" aria-label="Voltar" data-action="lead-swipe#closeProfile">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
@@ -49,6 +60,15 @@
       <%= link_to lead_path, class: "up-round up-back", aria: { label: "Voltar" },
                   data: { action: "user-profile#back" } do %>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      <% end %>
+    <% end %>
+
+    <% if in_map && !own_profile %>
+      <%# Enviar Mimo: entrada do catálogo já com a pessoa escolhida (não está no mockup;
+          era o 🎁 do popup antigo do mapa) %>
+      <%= link_to mimo_catalog_page_path(receiver_id: user.id), class: "up-round up-gift",
+                  aria: { label: "Enviar Mimo" }, title: "Enviar Mimo" do %>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-3-5-3.5-5-1.2C7 8 9.5 8 12 8zM12 8c1.5-3 5-3.5 5-1.2C17 8 14.5 8 12 8z"/></svg>
       <% end %>
     <% end %>
 
@@ -66,13 +86,19 @@
         <span class="up-online"><i></i>Online agora</span>
       <% end %>
       <h1 class="up-name">
-        <strong><%= first_name %></strong>
+        <strong><%= shown_name %></strong>
         <% if user.public_age %><span class="up-age"><%= user.public_age %></span><% end %>
         <% if user.verified? %>
           <svg class="up-verified" viewBox="0 0 24 24" role="img" aria-label="Perfil verificado"><circle cx="12" cy="12" r="12"/><path d="M7.2 12.4l3.2 3.1 6.4-6.6"/></svg>
         <% end %>
       </h1>
-      <% if place %>
+      <% if in_map %>
+        <%# "Menos de 300 m de você" — o map_3d.js preenche com a distância do mapa %>
+        <p class="up-place" data-map-profile-distance hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span></span>
+        </p>
+      <% elsif place %>
         <p class="up-place">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <%= place %>
@@ -83,7 +109,13 @@
 
   <% unless own_profile %>
     <div class="up-actions">
-      <% if in_sheet %>
+      <% if in_map %>
+        <%= button_to reject_user_path(user_id: user.id, source: "map"), method: :post,
+              class: "up-action up-pass", aria: { label: "Agora não" }, title: "Agora não",
+              form: { class: "up-action-form", data: { map_profile_dismiss: true } } do %>
+          <%= x_svg %>
+        <% end %>
+      <% elsif in_sheet %>
         <%# Mesmo efeito do X do card: fecha o sheet e joga o card para a esquerda %>
         <button type="button" class="up-action up-pass" aria-label="Agora não" title="Agora não"
                 data-action="lead-swipe#rejectFromProfile"><%= x_svg %></button>
@@ -98,11 +130,17 @@
       <%= button_to start_chat_path(user_id: user.id), method: :post,
             class: "up-message", form: { class: "up-action-form up-message-form" } do %>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Mandar mensagem
+        <%= in_map ? "Mensagem" : "Mandar mensagem" %>
       <% end %>
 
       <% if liked %>
         <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"><%= heart_svg %></button>
+      <% elsif in_map %>
+        <%= button_to likes_path(user_id: user.id, source: "map"), method: :post,
+              class: "up-action up-like", aria: { label: "Curtir #{first_name}" }, title: "Curtir",
+              form: { class: "up-action-form", data: { map_profile_dismiss: true } } do %>
+          <%= heart_svg %>
+        <% end %>
       <% elsif in_sheet %>
         <%# Mesmo efeito do coração do card: fecha o sheet e joga o card para a direita %>
         <button type="button" class="up-action up-like" aria-label="Curtir <%= first_name %>" title="Curtir"
@@ -121,7 +159,7 @@
     <section class="up-card <%= 'is-own' if own_profile %>">
       <% if user.bio.present? %>
         <div class="up-section">
-          <h2 class="up-label">Sobre</h2>
+          <h2 class="up-label"><%= in_map ? "Sobre mim" : "Sobre" %></h2>
           <p class="up-bio"><%= user.bio %></p>
         </div>
       <% end %>
@@ -177,7 +215,7 @@
 
   <%# Modal de limite (curtidas/mensagens do plano Free) — o Turbo Stream escreve aqui.
       No /lead a própria página já tem o #upgrade-modal-container. %>
-  <% unless in_sheet %>
+  <% unless in_sheet || in_map %>
     <div id="upgrade-modal-container"></div>
   <% end %>
 <% end %>

@@ -215,18 +215,20 @@ function hideLoadingAnimation() {
   // Implementação pode ser vazia ou remover skeletons
 }
 
+// Folha do perfil completo (#user-popup — conteúdo de GET /users/:id?context=map)
 function closeUserPopup() {
   const popup = document.getElementById("user-popup");
-  if (popup) {
-    popup.classList.add("hidden");
-    popup.classList.remove("show");
-    const content = popup.querySelector(".popup-content-fullscreen");
-    if(content) content.classList.remove("expanded");
-    const rejectInput = document.getElementById("popup-reject-input");
-    const likeInput = document.getElementById("popup-like-input");
-    if(rejectInput) rejectInput.value = "";
-    if(likeInput) likeInput.value = "";
-  }
+  if (!popup || popup.hidden) return;
+
+  popup.classList.remove("is-open");
+  const sheet = popup.querySelector(".map-profile-sheet");
+  if (sheet) sheet.style.transform = "";
+  clearTimeout(popup._closeTimer);
+  popup._closeTimer = setTimeout(() => {
+    popup.hidden = true;
+    const body = document.getElementById("map-profile-body");
+    if (body) body.innerHTML = "";
+  }, 300);
 }
 
 // --- Funções Cinematográficas ---
@@ -295,50 +297,122 @@ function hiddenFromOthers() {
   return !!data && (data.invisible === 'true' || data.sharingLocation === 'false');
 }
 
+// "Menos de 300 m de você" — a posição no mapa é aproximada (quadrícula de 100 m),
+// então a distância vai arredondada para cima, de 100 em 100 m
+function distanceLabel(km) {
+  const meters = Number(km) * 1000;
+  if (!Number.isFinite(meters)) return "";
+  if (meters < 1000) return `Menos de ${Math.max(100, Math.ceil(meters / 100) * 100)} m de você`;
+  return `A ${(meters / 1000).toFixed(1).replace(".", ",")} km de você`;
+}
+
+// Prévia do pin (#mini-card-overlay): cartão preso em cima do pin da pessoa,
+// com fotos, Ver perfil, mensagem e curtir.
+// Este arquivo roda duas vezes na página (application.js e o include do discover_3d):
+// os botões são religados a cada abertura (.onclick) e a pessoa aberta fica no próprio
+// elemento (card._user), que as duas cópias enxergam.
+let pinCardUser = null;
+let pinCardPhotos = [];
+let pinCardIndex = 0;
+
 function openCinematicPopup(user) {
-  const overlay = document.getElementById('mini-card-overlay');
-  if (!overlay) return;
+  const card = document.getElementById('mini-card-overlay');
+  if (!card) return;
 
-  const username = user.username || user.display_name || 'Usuário';
+  clearTimeout(card._closeTimer);
+  pinCardUser = user;
+  card._user = user;
+  pinCardIndex = 0;
+  pinCardPhotos = (user.photos_urls && user.photos_urls.length) ? user.photos_urls
+                : (user.avatar_url ? [user.avatar_url] : []);
+
   const age = userAge(user);
-  const distVal = user.distance_km || user.distance;
+  document.getElementById('pin-card-name').textContent = user.username || user.display_name || 'Usuário';
+  document.getElementById('pin-card-age').textContent = age ? ` ${age}` : '';
+  document.getElementById('pin-card-verified').hidden = !user.verified;
+  document.getElementById('pin-card-distance').textContent = distanceLabel(user.distance_km ?? user.distance);
+  document.getElementById('pin-card-online').hidden = !user.online;
 
-  // Título: "Username, Idade"
-  const nameEl = document.getElementById('mco-name');
-  nameEl.innerHTML = `<span style="font-weight:bold">${username}</span>${age ? `<span style="font-weight:normal">, ${age}</span>` : ''}`;
-
-  // Avatar
-  document.getElementById('mco-avatar').src = user.avatar_url || '/default-avatar.png';
-
-  // Badge de verificado
-  const verifiedBadge = document.getElementById('mco-verified-badge');
-  if (verifiedBadge) verifiedBadge.style.display = user.verified ? 'block' : 'none';
-
-  // Distância
-  const distEl = document.getElementById('mco-distance');
-  distEl.textContent = distVal ? `a ${distVal} km` : '';
-  distEl.style.display = distVal ? '' : 'none';
-
-  // Registra o clique em "Ver Perfil" — clona para evitar listeners acumulados
-  const btn = document.getElementById('mco-view-btn');
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  newBtn.addEventListener('click', () => { closeCinematicPopup(); showUserPopup(user); });
-
-  // Anima entrada de baixo para cima
-  overlay.style.display = 'block';
-  requestAnimationFrame(() => {
-    overlay.style.opacity = '1';
-    overlay.style.transform = 'translateX(-50%) translateY(0)';
+  // user_id=0 nas URLs dos formulários → id da pessoa
+  [['pin-card-chat-form', 'chat'], ['pin-card-like-form', 'like']].forEach(([id]) => {
+    const form = document.getElementById(id);
+    if (!form) return;
+    if (!form.dataset.baseAction) form.dataset.baseAction = form.getAttribute('action');
+    form.action = form.dataset.baseAction
+      .replace(/\/0(\/?)(\?|$)/, `/${user.id}$1$2`)
+      .replace('user_id=0', `user_id=${user.id}`);
   });
+  setPinCardLiked(!!user.liked);
+
+  document.getElementById('pin-card-close').onclick = (e) => { e.stopPropagation(); closeCinematicPopup(); };
+  document.getElementById('pin-card-prev').onclick = () => stepPinCardPhoto(-1);
+  document.getElementById('pin-card-next').onclick = () => stepPinCardPhoto(1);
+  document.getElementById('pin-card-view').onclick = () => { closeCinematicPopup(); showUserPopup(user); };
+  // Cliques no cartão não chegam ao mapa (que fecharia a prévia)
+  card.onclick = (e) => e.stopPropagation();
+
+  renderPinCardPhoto();
+  card.hidden = false;
+  card.classList.remove('is-open');
+  positionPinCard();
+  requestAnimationFrame(() => card.classList.add('is-open'));
+}
+
+function renderPinCardPhoto() {
+  const img = document.getElementById('pin-card-img');
+  const bars = document.getElementById('pin-card-bars');
+  const card = document.getElementById('mini-card-overlay');
+  const url = pinCardPhotos[pinCardIndex];
+
+  card.classList.toggle('has-photo', !!url);
+  if (url) img.src = url; else img.removeAttribute('src');
+  bars.innerHTML = pinCardPhotos.length > 1
+    ? pinCardPhotos.map((_, i) => `<span class="${i === pinCardIndex ? 'is-active' : ''}"></span>`).join('')
+    : '';
+}
+
+function stepPinCardPhoto(step) {
+  if (pinCardPhotos.length < 2) return;
+  const next = pinCardIndex + step;
+  if (next < 0 || next >= pinCardPhotos.length) return;
+  pinCardIndex = next;
+  renderPinCardPhoto();
+}
+
+function setPinCardLiked(liked) {
+  const btn = document.querySelector('#pin-card-like-form button');
+  if (!btn) return;
+  btn.classList.toggle('is-liked', liked);
+  btn.disabled = liked;
+  btn.setAttribute('aria-label', liked ? 'Você já curtiu' : 'Curtir');
+  btn.title = liked ? 'Você já curtiu' : 'Curtir';
+}
+
+// Acompanha o pin a cada quadro do mapa (voo da câmera, giro, arrastar)
+function positionPinCard() {
+  const card = document.getElementById('mini-card-overlay');
+  if (!card || card.hidden || !pinCardUser || !map) return;
+  const marker = mapboxUserMarkers[pinCardUser.id];
+  if (!marker) return;
+
+  const point = map.project(marker.getLngLat());
+  const width = card.offsetWidth;
+  const height = card.offsetHeight;
+  const MARGIN = 12;
+  const left = Math.min(Math.max(point.x - width / 2, MARGIN), window.innerWidth - width - MARGIN);
+  const top = Math.max(point.y - 23 - 12 - height, MARGIN); // 23 = meio pin, 12 = seta + folga
+
+  card.style.left = `${left}px`;
+  card.style.top = `${top}px`;
+  card.style.setProperty('--pin-arrow-x', `${Math.min(Math.max(point.x - left, 24), width - 24)}px`);
 }
 
 function closeCinematicPopup() {
-  const overlay = document.getElementById('mini-card-overlay');
-  if (overlay) {
-    overlay.style.opacity = '0';
-    overlay.style.transform = 'translateX(-50%) translateY(30px)';
-    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+  const card = document.getElementById('mini-card-overlay');
+  if (card && !card.hidden) {
+    card.classList.remove('is-open');
+    clearTimeout(card._closeTimer);
+    card._closeTimer = setTimeout(() => { card.hidden = true; pinCardUser = null; card._user = null; }, 220);
   }
   if (activeMarkerEl) { activeMarkerEl.style.opacity = '1'; activeMarkerEl = null; }
   resetCamera();
@@ -510,7 +584,6 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
           e.stopPropagation();
           if (activeMarkerEl && activeMarkerEl !== el) activeMarkerEl.style.opacity = '1';
           activeMarkerEl = el;
-          el.style.opacity = '0';
           isCinematicMode = true;
           document.body.classList.add('cinematic-mode');
           stopRotation();
@@ -553,7 +626,7 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
             // Corrige referência: getElement() já retorna a .premium-marker div
             const markerEl = mapboxUserMarkers[user.id]?.getElement();
             if (activeMarkerEl && activeMarkerEl !== markerEl) activeMarkerEl.style.opacity = '1';
-            if (markerEl) { activeMarkerEl = markerEl; markerEl.style.opacity = '0'; }
+            if (markerEl) activeMarkerEl = markerEl;
 
             isCinematicMode = true;
             document.body.classList.add('cinematic-mode');
@@ -690,7 +763,6 @@ function _handleMapRealtime(data) {
     const latest = mapboxUserData[uid] || userData;
     if (activeMarkerEl && activeMarkerEl !== el) activeMarkerEl.style.opacity = '1';
     activeMarkerEl = el;
-    el.style.opacity = '0';
     isCinematicMode = true;
     document.body.classList.add('cinematic-mode');
     stopRotation();
@@ -704,193 +776,107 @@ function _handleMapRealtime(data) {
   filterMarkersByRange();
 }
 
-function showUserPopup(user) {
-  const userPopup = document.getElementById("user-popup");
-  if (!userPopup) return;
+// "Ver perfil": busca o perfil completo no servidor (o mesmo de /users/:id, variante
+// do mapa) e abre a folha por cima do mapa
+async function showUserPopup(user) {
+  const popup = document.getElementById("user-popup");
+  const body = document.getElementById("map-profile-body");
+  if (!popup || !body) return;
 
-  userPopup.dataset.userId = user.id;
+  clearTimeout(popup._closeTimer);
+  // Fora do .discover-fullscreen-container (fixed, que prende o z-index): só assim a
+  // folha fica por cima da barra de navegação de baixo, como no mockup
+  if (popup.parentElement !== document.body) document.body.appendChild(popup);
+  popup.dataset.userId = user.id;
+  body.innerHTML = '<div class="map-profile-loading"><span></span>Carregando perfil...</div>';
+  const sheet = popup.querySelector(".map-profile-sheet");
+  sheet.scrollTop = 0;
+  popup.hidden = false;
+  requestAnimationFrame(() => popup.classList.add("is-open"));
 
-  // --- Carrossel de fotos ---
-  const carousel   = document.getElementById('popup-carousel');
-  const dotsWrap   = document.getElementById('popup-carousel-dots');
-  if (carousel) {
-    const photos = (user.photos_urls && user.photos_urls.length > 0)
-      ? user.photos_urls
-      : [user.avatar_url || '/default-avatar.png'];
+  try {
+    const response = await fetch(`/users/${encodeURIComponent(user.id)}?context=map`, { headers: { Accept: "text/html" } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const html = await response.text();
+    if (popup.dataset.userId !== String(user.id)) return; // abriu outro perfil no meio
 
-    carousel.innerHTML = photos
-      .map(url => `<img src="${url}" class="dsc-carousel-slide" draggable="false">`)
-      .join('');
-    carousel.scrollLeft = 0;
-
-    // Limpa zonas de toque do usuário anterior
-    carousel.parentElement.querySelectorAll('.dsc-tap-zone').forEach(z => z.remove());
-
-    if (dotsWrap) {
-      dotsWrap.innerHTML = photos.length > 1
-        ? photos.map((_, i) => `<span class="dsc-dot${i === 0 ? ' active' : ''}"></span>`).join('')
-        : '';
-
-      const updateDots = () => {
-        const idx = Math.round(carousel.scrollLeft / Math.max(carousel.offsetWidth, 1));
-        dotsWrap.querySelectorAll('.dsc-dot').forEach((d, i) =>
-          d.classList.toggle('active', i === idx)
-        );
-      };
-
-      // scrollend dispara uma vez ao parar (preciso); fallback com debounce para browsers antigos
-      if ('onscrollend' in window) {
-        carousel.onscrollend = updateDots;
-        carousel.onscroll = null;
-      } else {
-        let t;
-        carousel.onscroll = () => { clearTimeout(t); t = setTimeout(updateDots, 80); };
-      }
-
-      if (photos.length > 1) {
-        const goTo = (idx) => carousel.scrollTo({ left: idx * carousel.offsetWidth, behavior: 'smooth' });
-        const wrapper = carousel.parentElement;
-
-        const prev = document.createElement('div');
-        prev.className = 'dsc-tap-zone dsc-tap-prev';
-        prev.addEventListener('click', () => {
-          const cur = Math.round(carousel.scrollLeft / Math.max(carousel.offsetWidth, 1));
-          if (cur > 0) goTo(cur - 1);
-        });
-
-        const next = document.createElement('div');
-        next.className = 'dsc-tap-zone dsc-tap-next';
-        next.addEventListener('click', () => {
-          const cur = Math.round(carousel.scrollLeft / Math.max(carousel.offsetWidth, 1));
-          if (cur < photos.length - 1) goTo(cur + 1);
-        });
-
-        wrapper.appendChild(prev);
-        wrapper.appendChild(next);
-      }
+    body.innerHTML = html;
+    const distance = body.querySelector("[data-map-profile-distance]");
+    const label = distanceLabel(user.distance_km ?? user.distance);
+    if (distance && label) {
+      distance.querySelector("span").textContent = label;
+      distance.hidden = false;
     }
+    sheet.focus({ preventScroll: true });
+  } catch (error) {
+    console.error("[GeoMatch] Perfil do mapa:", error);
+    body.innerHTML = `
+      <div class="map-profile-error">
+        <strong>Não deu para abrir o perfil</strong>
+        <p>Verifique a conexão e tente de novo.</p>
+        <button type="button" data-map-profile-close>Fechar</button>
+      </div>`;
+  }
+}
+
+// Fechar a folha (seta, fora dela, Esc, arrastar para baixo) e reagir às ações dela
+// e da prévia do pin
+function initProfileSheetAndPinCard() {
+  const popup = document.getElementById("user-popup");
+  const sheet = popup?.querySelector(".map-profile-sheet");
+  const card = document.getElementById("mini-card-overlay");
+
+  if (popup && !popup.dataset.wired) {
+    popup.dataset.wired = "1";
+    popup.addEventListener("click", (e) => {
+      if (e.target.closest("[data-map-profile-close]")) { e.preventDefault(); closeUserPopup(); }
+    });
+
+    // Arrastar para baixo fecha — só com a folha no topo da rolagem
+    let startY = null, delta = 0;
+    sheet.addEventListener("touchstart", (e) => {
+      if (sheet.scrollTop > 0 || e.target.closest(".pc-slides")) { startY = null; return; }
+      startY = e.touches[0].clientY; delta = 0;
+      sheet.classList.add("is-dragging");
+    }, { passive: true });
+    sheet.addEventListener("touchmove", (e) => {
+      if (startY === null) return;
+      delta = Math.max(0, e.touches[0].clientY - startY);
+      if (delta > 0 && e.cancelable) e.preventDefault();
+      sheet.style.transform = delta ? `translateY(${delta}px)` : "";
+    }, { passive: false });
+    sheet.addEventListener("touchend", () => {
+      if (startY === null) return;
+      sheet.classList.remove("is-dragging");
+      startY = null;
+      if (delta > 110) closeUserPopup(); else sheet.style.transform = "";
+    });
   }
 
-  // --- Nome ---
-  const nameEl = userPopup.querySelector("#popup-username");
-  if (nameEl) nameEl.textContent = user.username || user.display_name || "Usuário";
+  if (!window._mapProfileKeysWired) {
+    window._mapProfileKeysWired = true;
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (popup && !popup.hidden) closeUserPopup();
+      else if (card && !card.hidden) closeCinematicPopup();
+    });
 
-  // --- Idade ---
-  const ageEl = userPopup.querySelector("#popup-age");
-  if (ageEl) {
-    const age = userAge(user);
-    ageEl.textContent = age ? `, ${age}` : '';
-  }
-
-  // --- Verificado ---
-  const verifiedBadge = userPopup.querySelector("#popup-verified-badge");
-  if (verifiedBadge) verifiedBadge.style.display = user.verified ? "inline-block" : "none";
-
-  // --- Localização ---
-  const loc = userPopup.querySelector("#popup-location");
-  if (loc) loc.textContent = user.city || "Localização desconhecida";
-
-  // --- Distância ---
-  const distEl = userPopup.querySelector("#popup-distance");
-  const distVal = user.distance_km || user.distance;
-  if (distEl) distEl.textContent = distVal ? `${distVal} km` : "";
-
-  const bio = userPopup.querySelector("#popup-bio");
-  if(bio) bio.textContent = user.bio || "Não informado!";
-
-  const genderElement = userPopup.querySelector("#popup-gender");
-  if (genderElement) {
-    const genderValue = user.gender ? user.gender.toLowerCase() : "";
-    let genderText = "Não informado";
-    if (genderValue === 'homem' || genderValue === 'male') {
-      genderText = 'Masculino';
-    } else if (genderValue === 'mulher' || genderValue === 'female') {
-      genderText = 'Feminino';
-    } else if (genderValue === 'não binário' || genderValue === 'nao binario' || genderValue === 'non-binary') {
-      genderText = 'Não Binário';
-    } else if (genderValue === 'nao-dizer') {
-      genderText = 'Prefere não dizer';
-    }
-    genderElement.textContent = genderText;
-  }
-
-  const interest = userPopup.querySelector("#popup-interest");
-  if(interest) interest.textContent = user.interested_in ? `Busca: ${user.interested_in}` : "Busca: Todos";
-
-  const tagsContainer = userPopup.querySelector("#popup-tags-container");
-  const tagsList = userPopup.querySelector("#popup-tags-list");
-  
-  if(tagsList) {
-      tagsList.innerHTML = ""; 
-      if (user.hobbies_list && Array.isArray(user.hobbies_list) && user.hobbies_list.length > 0) {
-          tagsContainer.style.display = "block";
-          user.hobbies_list.forEach(tag => {
-              const span = document.createElement("span");
-              span.className = "tag-pill";
-              span.textContent = tag;
-              tagsList.appendChild(span);
-          });
-      } else {
-          tagsContainer.style.display = "none";
+    // Curtir / Agora não: o servidor responde 200 (source=map). Deu match: o servidor
+    // redireciona para a conversa e o Turbo segue sozinho.
+    document.addEventListener("turbo:submit-end", (e) => {
+      if (!e.detail.success) return;
+      const form = e.target;
+      if (form.matches("[data-map-profile-dismiss]")) {
+        // Curtiu pelo perfil: a prévia daquela pessoa já abre com o coração cheio
+        const id = popup?.dataset.userId;
+        if (form.action.includes("like") && id && mapboxUserData[id]) mapboxUserData[id].liked = true;
+        closeUserPopup();
+      } else if (form.id === "pin-card-like-form" && card?._user) {
+        card._user.liked = true; // o mesmo objeto do mapboxUserData da cópia que abriu
+        setPinCardLiked(true);
       }
+    });
   }
-
-  const content = userPopup.querySelector(".popup-content-fullscreen");
-  if(content) content.classList.remove("expanded");
-
-  const forms = [
-      document.getElementById("popup-reject-form"),
-      document.getElementById("popup-chat-form"),
-      document.getElementById("popup-like-form")
-  ];
-
-  forms.forEach(form => {
-        if (form) {
-          let baseUrl = form.getAttribute("data-base-action");
-          if (!baseUrl) { baseUrl = form.action; form.setAttribute("data-base-action", baseUrl); }
-          const newUrl = baseUrl.replace(/\/0\/?(\?.*)?$/, '/' + user.id + '$1');
-          if (newUrl.includes("user_id=")) {
-              form.action = newUrl.replace("user_id=0", `user_id=${user.id}`);
-          } else {
-              form.action = newUrl;
-          }
-        }
-  });
-
-  // --- Botões de segurança: Denunciar / Bloquear ---
-  const reportBtn = document.getElementById('popup-btn-report');
-  const blockBtn  = document.getElementById('popup-btn-block');
-
-  if (reportBtn) {
-    reportBtn.onclick = () => {
-      if (typeof Turbo !== 'undefined') {
-        Turbo.visit(`/report_incident?user_id=${user.id}`);
-      } else {
-        window.location.href = `/report_incident?user_id=${user.id}`;
-      }
-    };
-  }
-
-  if (blockBtn) {
-    const displayName = user.username || user.display_name || 'Usuário';
-    blockBtn.onclick = () => openBlockConfirm(displayName, `/users/${user.id}/block`);
-  }
-
-  // --- Botão "Enviar Mimo": leva ao catálogo já com o destinatário selecionado ---
-  const mimoBtn = document.getElementById('popup-btn-mimo');
-  if (mimoBtn) {
-    mimoBtn.onclick = () => {
-      const url = `/mimos/catalogo?receiver_id=${user.id}`;
-      if (typeof Turbo !== 'undefined') {
-        Turbo.visit(url);
-      } else {
-        window.location.href = url;
-      }
-    };
-  }
-
-  userPopup.classList.remove("hidden");
-  userPopup.classList.add("show");
 }
 
 function initializeMapAndLocation() {
@@ -949,6 +935,7 @@ function initializeMapAndLocation() {
   console.log('[GeoMatch] Mapbox Map instanciado ✓', map);
 
   map.on('click', () => { if (isCinematicMode || cinematicPopup) closeCinematicPopup(); });
+  map.on('move', positionPinCard);
 
   map.once('load', () => {
     console.log('[GeoMatch] Mapbox map.load disparado ✓');
@@ -1205,9 +1192,7 @@ document.addEventListener("turbo:load", () => {
   const fabCenterMap = document.getElementById("fab-center-map");
   const toggleVisibilityBtn = document.getElementById("toggle-visibility-btn");
   const fabLiveTracking = document.getElementById("fab-live-tracking");
-  const closePopupBtn = document.getElementById("close-popup-btn");
-  const popupOverlay = document.querySelector(".popup-overlay");
-  const userPopup = document.getElementById("user-popup");
+  initProfileSheetAndPinCard();
 
   // SLIDER DE RAIO
   if (rangeSlider && rangeValueText) {
@@ -1430,85 +1415,6 @@ document.addEventListener("turbo:load", () => {
     });
   }
 
-  // FECHAR POPUP APÓS AÇÃO
-  document.addEventListener("turbo:submit-end", (e) => {
-    const formId = e.target.id;
-    if (formId === "popup-like-form" || formId === "popup-reject-form") {
-      if (e.detail.success) { closeUserPopup(); }
-    }
-  });
-
-  if (closePopupBtn) {
-    const newBtn = closePopupBtn.cloneNode(true);
-    closePopupBtn.parentNode.replaceChild(newBtn, closePopupBtn);
-    newBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeUserPopup();
-    });
-  }
-
-  if (popupOverlay) {
-    popupOverlay.addEventListener("click", (e) => { closeUserPopup(); });
-  }
-
-  // DRAG / SWIPE NO POPUP
-  const popupContent = document.querySelector(".popup-content-fullscreen");
-  const popupHandle = document.querySelector(".popup-drag-handle-area");
-  
-  if (popupContent) {
-      let startY = 0;
-      let currentY = 0;
-      let isDragging = false;
-      let startHeight = 0;
-      const THRESHOLD = 100;
-
-      const isExpanded = () => popupContent.classList.contains("expanded");
-
-      const onTouchStart = (e) => {
-          const detailsContainer = document.getElementById("popup-full-details");
-          const scrollTop = detailsContainer ? detailsContainer.scrollTop : 0;
-          if (isExpanded() && scrollTop > 0 && !popupHandle.contains(e.target)) { return; }
-          isDragging = true;
-          startY = e.touches[0].clientY;
-          startHeight = popupContent.offsetHeight;
-          popupContent.style.transition = "none";
-      };
-
-      const onTouchMove = (e) => {
-          if (!isDragging) return;
-          currentY = e.touches[0].clientY;
-          const deltaY = startY - currentY; 
-          if (!isExpanded() && deltaY > 0) {
-               e.preventDefault();
-               popupContent.style.height = `${startHeight + deltaY}px`;
-          } 
-          else if (isExpanded() && deltaY < 0) {
-               const detailsContainer = document.getElementById("popup-full-details");
-               if (!detailsContainer || detailsContainer.scrollTop <= 0) {
-                   e.preventDefault();
-                   popupContent.style.height = `${startHeight + deltaY}px`;
-               }
-          }
-      };
-
-      const onTouchEnd = (e) => {
-          if (!isDragging) return;
-          isDragging = false;
-          popupContent.style.transition = "height 0.3s cubic-bezier(0.25, 1, 0.5, 1)";
-          popupContent.style.height = ""; 
-          const deltaY = startY - currentY;
-          if (!isExpanded()) {
-              if (deltaY > THRESHOLD) { popupContent.classList.add("expanded"); }
-          } else {
-              if (deltaY < -THRESHOLD) { popupContent.classList.remove("expanded"); }
-          }
-      };
-
-      popupContent.addEventListener("touchstart", onTouchStart, { passive: false });
-      popupContent.addEventListener("touchmove", onTouchMove, { passive: false });
-      popupContent.addEventListener("touchend", onTouchEnd);
-  }
-
   // Liga rastreamento automaticamente ao abrir o mapa — sempre ligado por padrão,
   // sem depender do estado anterior da sessão ou de qualquer storage.
   setTimeout(() => {
@@ -1575,7 +1481,6 @@ document.addEventListener("turbo:load", () => {
     @keyframes markerPulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6), 0 4px 15px rgba(0,0,0,0.15); } 70% { box-shadow: 0 0 0 12px rgba(34,197,94,0), 0 4px 15px rgba(0,0,0,0.15); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0), 0 4px 15px rgba(0,0,0,0.15); } }
     .mapboxgl-marker { pointer-events: auto !important; }
     body.cinematic-mode .premium-marker { box-shadow: none !important; animation-play-state: paused !important; border-color: rgba(34,197,94,0.4) !important; }
-    #mco-view-btn:active { transform: scale(0.95); }
   `;
   document.head.appendChild(style);
 });

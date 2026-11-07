@@ -1,0 +1,11 @@
+<%# Cabeçalho das telas da carteira (Carteira, Adicionar saldo, Sacar via Pix): voltar + título
+    dourado + subtítulo opcional. Estilos .wl-appbar em wallet.scss. %>
+<header class="wl-appbar<%= " wl-appbar--sub" if local_assigns[:subtitle] %>">
+  <%= link_to back, class: "wl-back", aria: { label: "Voltar" } do %>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  <% end %>
+  <div class="wl-appbar-text">
+    <h1 class="wl-title"><%= title %></h1>
+    <% if local_assigns[:subtitle] %><p class="wl-subtitle"><%= subtitle %></p><% end %>
+  </div>
+</header>

@@ -1,45 +1,58 @@
-<div class="gm-mimo-wrapper"
+<%# Adicionar saldo (/mimos/depositar, "Adicionar" da Carteira). Estilos .wl-* em wallet.scss.
+    wallet_controller.js (mode "deposit"): o valor grande é editável; R$ 20 / 50 / 100 preenchem,
+    "Outro" deixa digitar. "Adicionar R$ X" envia POST /wallet/deposit e abre o checkout do
+    Mercado Pago. %>
+<% available_cents = @wallet ? @wallet.available_balance_cents : 0 %>
+<% minimum_cents   = WalletDepositService::MINIMUM_DEPOSIT_CENTS %>
+<% default_cents   = 5_000 %>
+<% money = ->(cents) { number_to_currency(cents / 100.0, unit: "R$ ", separator: ",", delimiter: ".") } %>
+<div class="wl-page wl-page--form"
      data-controller="wallet"
-     data-wallet-deposit-url-value="<%= deposit_wallet_path %>"
-     data-wallet-wallet-page-url-value="<%= mimo_wallet_page_path %>">
+     data-wallet-mode-value="deposit"
+     data-wallet-verb-value="Adicionar"
+     data-wallet-available-value="<%= available_cents %>"
+     data-wallet-minimum-value="<%= minimum_cents %>"
+     data-wallet-deposit-url-value="<%= deposit_wallet_path %>">
 
-  <div class="gm-mimo-appbar">
-    <%= link_to mimo_wallet_page_path, class: "gm-mimo-back" do %>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  <%= render "pages/wallet_header", back: mimo_wallet_page_path, title: "Adicionar saldo",
+             subtitle: "Coloque saldo na sua carteira e use quando quiser." %>
+
+  <section class="wl-amount-card">
+    <label class="wl-amount-card-label" for="wl-amount">Valor a adicionar</label>
+    <div class="wl-amount-edit">
+      <span class="wl-amount-edit-currency">R$</span>
+      <input id="wl-amount" class="wl-amount-input" type="text" inputmode="numeric" autocomplete="off"
+             value="<%= number_with_precision(default_cents / 100.0, precision: 2, delimiter: ".", separator: ",") %>"
+             aria-describedby="wl-after"
+             data-wallet-target="amount" data-action="input->wallet#typeAmount focus->wallet#focusAmount">
+      <span class="wl-amount-mirror" data-wallet-target="amountMirror" aria-hidden="true"></span>
+    </div>
+    <p class="wl-after" id="wl-after">Saldo depois: <strong data-wallet-target="after"><%= money.(available_cents + default_cents) %></strong></p>
+  </section>
+
+  <div class="wl-presets" role="group" aria-label="Valores">
+    <% [ 2_000, 5_000, 10_000 ].each do |cents| %>
+      <button type="button" class="wl-preset<%= " is-active" if cents == default_cents %>" aria-pressed="<%= cents == default_cents %>"
+              data-wallet-target="preset" data-amount-cents="<%= cents %>" data-action="wallet#pickPreset">R$ <%= cents / 100 %></button>
     <% end %>
-    <h1>Adicionar Saldo</h1>
-    <span class="gm-mimo-appbar-spacer"></span>
+    <button type="button" class="wl-preset wl-preset--other" aria-pressed="false"
+            data-wallet-target="preset" data-action="wallet#pickOther">Outro</button>
   </div>
 
-  <div class="gm-deposit-body">
-    <p class="gm-deposit-intro">
-      Escolha um valor para adicionar à sua carteira. Depois é só usar o saldo
-      para presentear Mimos na hora, sem precisar de cartão.
-    </p>
+  <p class="wl-note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 7V5.5A1.5 1.5 0 0 0 17.5 4h-12A1.5 1.5 0 0 0 4 5.5V18a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-3"/><path d="M20 8H6a2 2 0 0 1-2-2"/><path d="M20 12h-3a2 2 0 0 0 0 4h3z"/></svg>
+    <span>O saldo fica guardado na sua carteira, e você pode sacar via Pix quando quiser.</span>
+  </p>
 
-    <div class="gm-deposit-presets">
-      <% [2000, 5000, 10000].each do |cents| %>
-        <button type="button" class="gm-deposit-preset" data-amount-cents="<%= cents %>" data-action="wallet#selectDepositPreset">
-          <%= Money.new(cents, "BRL").format %>
-        </button>
-      <% end %>
-    </div>
+  <p class="wl-error" role="alert" data-wallet-target="error"></p>
 
-    <div class="gm-deposit-custom">
-      <label class="gm-saque-label" for="deposit-amount">Ou digite outro valor</label>
-      <input id="deposit-amount"
-             class="gm-saque-input"
-             data-wallet-target="depositAmountInput"
-             data-action="input->wallet#clearDepositPreset"
-             inputmode="numeric"
-             placeholder="R$ 0,00">
-    </div>
-
-    <div class="gm-mimo-error-banner" data-wallet-target="depositError"></div>
-
-    <button type="button" class="gm-mimo-btn gm-mimo-btn--gold" data-wallet-target="depositButton" data-action="wallet#deposit">
-      <span class="gm-mimo-spinner"></span>
-      <span class="gm-mimo-btn-label">Ir para o pagamento</span>
+  <div class="wl-footer">
+    <button type="button" class="wl-submit" data-wallet-target="submit" data-action="wallet#submit">
+      <span data-wallet-target="submitLabel">Adicionar <%= money.(default_cents) %></span>
     </button>
+    <p class="wl-footer-note">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Você conclui o pagamento no Mercado Pago
+    </p>
   </div>
 </div>

@@ -103,11 +103,16 @@ class UsersController < ApplicationController
   end
 
 
+  # ?context=map: o mapa (/discover_3d, map_3d.js) busca só o perfil, sem layout, e
+  # abre na folha do perfil completo (users/_full_profile com in_map).
   def show
     @user = User.with_attached_avatar.with_attached_album_photos.find(params[:id])
+    in_map = params[:context] == "map"
 
     # SEGURANÇA: Verifica bloqueios antes de mostrar o perfil
     if current_user.excluded_user_ids.include?(@user.id)
+      return head(:not_found) if in_map
+
       redirect_to discover_3d_path, alert: "Perfil indisponível."
       return
     end
@@ -117,6 +122,8 @@ class UsersController < ApplicationController
     # O próprio usuário continua vendo o seu perfil normalmente.
     # Conta congelada: mesma regra — ninguém vê o perfil enquanto estiver congelada.
     if (@user.invisible? || @user.account_frozen?) && @user.id != current_user.id
+      return head(:not_found) if in_map
+
       redirect_to discover_3d_path, alert: "Perfil indisponível."
       return
     end
@@ -125,7 +132,14 @@ class UsersController < ApplicationController
     @liked       = current_user.likes.where(liked_id: @user.id, is_like: [ true, nil ]).exists?
     @favorite_id = current_user.favorites.where(favorited_user_id: @user.id).pick(:id)
 
+    if in_map
+      render partial: "users/full_profile",
+             locals: { user: @user, liked: @liked, favorite_id: @favorite_id, in_map: true }
+    end
+
   rescue ActiveRecord::RecordNotFound
+    return head(:not_found) if params[:context] == "map"
+
     redirect_to discover_3d_path, alert: "Usuário não encontrado."
   end
 
