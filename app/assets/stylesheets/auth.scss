@@ -1,29 +1,44 @@
 // =================================================================
-// Telas de conta — Criar conta (devise/registrations/new, .su-*), com cabeçalho e
-// rodapé próprios (shared/_auth_header e _auth_footer, .au-*).
+// Telas de conta — Entrar, Criar conta, Esqueceu a senha? e Link enviado! (devise/*),
+// com cabeçalho e rodapé próprios (shared/_auth_header e _auth_footer, .au-*).
+// As cores ficam em variáveis no body da página (cabeçalho, conteúdo e rodapé) e têm
+// versão para o modo escuro (html.dark-mode) no fim do arquivo.
 // Mockup de 356px de largura → ×1,0955 para 390px.
 // =================================================================
 
-.au-main {
+body:has(.au-main) {
   --au-bg: #f8f1e8;
   --au-text: #1c1c1c;
+  --au-text-2: #3d3a36;     // subtítulos e textos de apoio
   --au-muted: #5c5955;
   --au-faint: #8a857f;
-  --au-surface: #fff;
+  --au-hint: #6b665f;
+  --au-placeholder: #a39e97;
+  --au-surface: #fff;        // cartões, campos, pílulas
   --au-border: #ece4d8;
+  --au-divider: #f0e9df;
+  --au-chip: #f1ebe2;        // fundo dos ícones das dicas
+  --au-chip-icon: #5e4a2c;
+  --au-halo: #efe5d6;        // anel em volta do ícone (chave, envelope)
+  --au-box-border: #d9d1c5;  // caixa de seleção vazia
+  --au-check-bg: #1e1e20;    // caixa marcada
+  --au-check: #fff;
   --au-gold-1: #a98146;
   --au-gold-2: #8a6532;
   --au-link: #8a6532;
   --au-ok: #1f9d55;
+  --au-footer-bg: #121212;
 
+  background: var(--au-bg);
+}
+
+.au-main {
   min-height: calc(100vh - 100px);
   min-height: calc(100dvh - 100px);
   padding-bottom: 0;
   background: var(--au-bg);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
-body:has(.au-main) { background: #f8f1e8; }
 
 /* ---------------- Cabeçalho ---------------- */
 .au-header {
@@ -32,14 +47,14 @@ body:has(.au-main) { background: #f8f1e8; }
   justify-content: space-between;
   max-width: 560px;
   margin: 0 auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 52.5px) 20.5px 0 19.5px;
-  background: #f8f1e8;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20.5px 0 19.5px;
+  background: var(--au-bg);
 }
 
 .au-brand { display: block; line-height: 0; }
 
 .au-brand-logo {
-  width: 130px;
+  width: 104px;
   height: auto;
   filter: drop-shadow(0 2px 6px rgba(80, 60, 30, 0.18));
 }
@@ -49,24 +64,24 @@ body:has(.au-main) { background: #f8f1e8; }
   align-items: center;
   height: 39.5px;
   padding: 0 18px;
-  border: 1px solid #ece4d8;
+  border: 1px solid var(--au-border);
   border-radius: 999px;
-  background: #fff;
-  color: #1c1c1c;
+  background: var(--au-surface);
+  color: var(--au-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 13.5px;
   font-weight: 700;
   text-decoration: none;
   box-shadow: 0 2px 8px rgba(80, 60, 30, 0.05);
 
-  &:hover { color: #1c1c1c; filter: none; transform: none; }
+  &:hover { color: var(--au-text); filter: none; transform: none; }
 }
 
 /* ---------------- Criar conta ---------------- */
 .su-page {
   max-width: 560px;
   margin: 0 auto;
-  padding: 30px 20.5px 230px 19.5px; // o respiro grande antes do rodapé é do mockup
+  padding: 24px 20.5px 72px 19.5px;
   color: var(--au-text);
 
   svg {
@@ -92,7 +107,7 @@ body:has(.au-main) { background: #f8f1e8; }
 
 .su-subtitle {
   margin: 4px 0 0 4px;
-  color: #3d3a36;
+  color: var(--au-text-2);
   font-size: 14px;
   line-height: 20px;
 }
@@ -165,7 +180,7 @@ body:has(.au-main) { background: #f8f1e8; }
     font-size: 15px;
     outline: none;
 
-    &::placeholder { color: #a39e97; opacity: 1; }
+    &::placeholder { color: var(--au-placeholder); opacity: 1; }
     &:focus { border: 0; box-shadow: none; }
   }
 }
@@ -208,7 +223,7 @@ body:has(.au-main) { background: #f8f1e8; }
 
 .su-hint {
   margin: 6px 0 0;
-  color: #6b665f;
+  color: var(--au-hint);
   font-size: 11.5px;
   line-height: 15px;
 }
@@ -230,7 +245,7 @@ body:has(.au-main) { background: #f8f1e8; }
   gap: 15px;
   margin-top: 20px;
   padding-top: 18px;
-  border-top: 1px solid #f0e9df;
+  border-top: 1px solid var(--au-divider);
 }
 
 .su-check {
@@ -238,7 +253,7 @@ body:has(.au-main) { background: #f8f1e8; }
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #3d3a36;
+  color: var(--au-text-2);
   font-size: 13.5px;
   line-height: 18px;
   cursor: pointer;
@@ -265,17 +280,17 @@ body:has(.au-main) { background: #f8f1e8; }
   place-items: center;
   width: 24px;
   height: 24px;
-  border: 1.5px solid #d9d1c5;
+  border: 1.5px solid var(--au-box-border);
   border-radius: 7px;
-  background: #fff;
-  color: #fff;
+  background: var(--au-surface);
+  color: var(--au-check);
   transition: background-color 0.15s ease, border-color 0.15s ease;
 
   svg { width: 14px; height: 14px; stroke-width: 2.8; opacity: 0; }
 
   .su-check input:checked + & {
-    border-color: #1e1e20;
-    background: #1e1e20;
+    border-color: var(--au-check-bg);
+    background: var(--au-check-bg);
 
     svg { opacity: 1; }
   }
@@ -318,7 +333,7 @@ body:has(.au-main) { background: #f8f1e8; }
 
 .su-login {
   margin: 22px 0 0;
-  color: #3d3a36;
+  color: var(--au-text-2);
   font-size: 13.5px;
   text-align: center;
 
@@ -334,9 +349,9 @@ body:has(.au-main) { background: #f8f1e8; }
   height: 29px;
   margin: 0 0 0 5px;
   padding: 0 12px 0 9px;
-  border: 1px solid #ece4d8;
+  border: 1px solid var(--au-border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--au-surface);
   color: var(--au-text);
   font-size: 12.5px;
   font-weight: 700;
@@ -391,7 +406,7 @@ body:has(.au-main) { background: #f8f1e8; }
 .li-card .su-submit { margin-top: 22px; height: 54px; }
 
 /* ---------------- Esqueceu a senha? (devise/passwords/new) ---------------- */
-.su-page.fp-page { padding-top: 34px; }
+.su-page.fp-page { padding-top: 16px; }
 
 .fp-back {
   display: grid;
@@ -413,7 +428,7 @@ body:has(.au-main) { background: #f8f1e8; }
   margin: 26px 0 0 5px;
   border-radius: 50%;
   background: #1e1e20;
-  box-shadow: 0 0 0 9px #efe5d6;
+  box-shadow: 0 0 0 9px var(--au-halo);
   color: #d6b26a;
 
   svg { width: 24px; height: 24px; stroke-width: 1.9; }
@@ -424,7 +439,7 @@ body:has(.au-main) { background: #f8f1e8; }
 .su-subtitle.fp-subtitle {
   max-width: 330px;
   margin-top: 8px;
-  color: #4d4a46;
+  color: var(--au-text-2);
   font-size: 15px;
   line-height: 21.5px;
 }
@@ -445,7 +460,7 @@ body:has(.au-main) { background: #f8f1e8; }
 .su-errors p { margin: 0; }
 
 /* ---------------- Link enviado! (devise/passwords/sent) ---------------- */
-.su-page.rs-page { padding-top: 35px; }
+.su-page.rs-page { padding-top: 16px; }
 
 .rs-icon {
   position: relative;
@@ -463,7 +478,7 @@ body:has(.au-main) { background: #f8f1e8; }
   place-items: center;
   width: 26px;
   height: 26px;
-  border: 2.5px solid #f8f1e8;
+  border: 2.5px solid var(--au-bg);
   border-radius: 50%;
   background: #22a559;
   color: #fff;
@@ -505,8 +520,8 @@ body:has(.au-main) { background: #f8f1e8; }
     height: 28px;
     margin-top: -4px;
     border-radius: 50%;
-    background: #f1ebe2;
-    color: #5e4a2c;
+    background: var(--au-chip);
+    color: var(--au-chip-icon);
 
     svg { width: 15px; height: 15px; stroke-width: 1.9; }
   }
@@ -554,7 +569,7 @@ body:has(.au-main) { background: #f8f1e8; }
 .au-footer {
   padding: 30px 24px calc(36px + env(safe-area-inset-bottom, 0px));
   border-radius: 30px 30px 0 0;
-  background: #121212;
+  background: var(--au-footer-bg);
   color: #e8e2d8;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -636,14 +651,28 @@ body:has(.au-main) { background: #f8f1e8; }
   line-height: 18px;
 }
 
-.dark-mode .au-main,
-html.dark:not(.light-mode) .au-main {
+// ---------------- Modo escuro ----------------
+.dark-mode body:has(.au-main),
+html.dark:not(.light-mode) body:has(.au-main) {
   --au-bg: var(--color-background, #121212);
-  --au-text: var(--color-text, #ece8e3);
-  --au-muted: var(--color-text-secondary, #b3aea8);
+  --au-text: #ece8e3;
+  --au-text-2: #cfc8bf;
+  --au-muted: #b3aea8;
+  --au-faint: #9a948c;
+  --au-hint: #a39e97;
+  --au-placeholder: #7d7871;
   --au-surface: #1e1e20;
   --au-border: #3a3a3c;
-  --au-gold-1: #e0bd77;
+  --au-divider: #2e2e30;
+  --au-chip: #2a2620;
+  --au-chip-icon: #d6b26a;
+  --au-halo: #2a2620;
+  --au-box-border: #55555a;
+  --au-check-bg: #e0bd77;
+  --au-check: #1e1e20;
+  --au-gold-1: #e6c27e;
   --au-gold-2: #c9a052;
-  --au-link: #d6b26a;
+  --au-link: #e0bd77;
+  --au-ok: #4ade80;
+  --au-footer-bg: #1b1b1d;
 }
