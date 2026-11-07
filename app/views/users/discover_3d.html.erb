@@ -46,11 +46,7 @@
   </div>
 
   <%# Avisos dos botões (tempo real, modo oculto) — preenchido por showMapToast em map_3d.js %>
-  <div id="map-toast" class="map-toast" role="status" aria-live="polite" hidden>
-    <span class="map-toast__icon"></span>
-    <span class="map-toast__text"><strong class="map-toast__title"></strong><span class="map-toast__body"></span></span>
-    <button type="button" class="map-toast__action" hidden></button>
-  </div>
+  <%= render "shared/map_toast" %>
 
   <div class="map-fab-container">
     <%# Tempo real: seta cheia = ligado; seta riscada (.is-off) = desligado %>

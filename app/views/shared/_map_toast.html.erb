@@ -1,0 +1,7 @@
+<%# Aviso em pílula no topo — preenchido por showMapToast (map_toast.js). No mapa fica dentro
+    do .discover-fullscreen-container; em Meu Perfil vai fixo no topo (page: true). %>
+<div id="map-toast" class="map-toast<%= " map-toast--page" if local_assigns[:page] %>" role="status" aria-live="polite" hidden>
+  <span class="map-toast__icon"></span>
+  <span class="map-toast__text"><strong class="map-toast__title"></strong><span class="map-toast__body"></span></span>
+  <button type="button" class="map-toast__action" hidden></button>
+</div>

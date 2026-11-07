@@ -111,8 +111,10 @@
       <div class="me-plan-toggles">
         <%# Modo oculto: visibility_toggle_controller (fora do Gold o servidor
             responde 403 e o controller abre o modal de upgrade) %>
+        <%# toast: o mesmo aviso do mapa ao ligar/desligar (shared/_map_toast, no fim da página) %>
         <div class="me-toggle-row <%= 'is-invisible' if @user.invisible? %>" data-controller="visibility-toggle"
-             data-visibility-toggle-invisible-value="<%= @user.invisible? %>">
+             data-visibility-toggle-invisible-value="<%= @user.invisible? %>"
+             data-visibility-toggle-toast-value="true">
           <div class="me-toggle-text">
             <strong>Modo oculto</strong>
             <span>Navegue no mapa sem aparecer nele</span>
@@ -411,3 +413,6 @@
 
 <%# Modal de upgrade do "Modo oculto" (visibility_toggle_controller.js injeta aqui) %>
 <div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>
+
+<%# Aviso do "Modo oculto" — o mesmo do mapa (visibility_toggle_controller.js) %>
+<%= render "shared/map_toast", page: true %>

@@ -324,6 +324,15 @@
   &.is-visible { opacity: 1; transform: none; }
   &[hidden] { display: none; }
 }
+// Fora do mapa (Meu Perfil): fixo no topo da tela, por cima de tudo
+.map-toast.map-toast--page {
+  position: fixed;
+  z-index: 100001;
+  top: calc(env(safe-area-inset-top, 0px) + 53px);
+  max-width: 420px;
+  margin: 0 auto;
+  cursor: pointer;
+}
 .map-toast__icon {
   flex-shrink: 0; display: grid; place-items: center;
   width: 40px; height: 40px; border-radius: 50%;

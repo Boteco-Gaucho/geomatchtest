@@ -1,15 +1,17 @@
 import { Controller } from "@hotwired/stimulus"
 import { openUpgradeModal } from "../upgrade_modal"
+import { MAP_TOASTS, showMapToast } from "../map_toast"
 
 // Botão "modo invisível" (navegação 100% oculta) — usado na galeria de perfis.
 //
 // Mesmo contrato do FAB de visibilidade do mapa 3D:
 //   POST /users/toggle_visibility → { invisible: bool }
 //   403 + { upgrade_required: true } → abre o modal de planos (recurso Gold)
+// toast (Meu Perfil): mostra o mesmo aviso do mapa — "Modo oculto ativado/desativado"
 export default class extends Controller {
   // switch (opcional): interruptor "Modo oculto" de Meu Perfil (aria-checked)
   static targets = ["eyeOpen", "eyeClosed", "switch"]
-  static values  = { invisible: Boolean }
+  static values  = { invisible: Boolean, toast: Boolean }
 
   connect() {
     this.render()
@@ -33,6 +35,7 @@ export default class extends Controller {
       const data = await response.json()
       this.invisibleValue = data.invisible
       this.render()
+      if (this.toastValue) showMapToast(data.invisible ? MAP_TOASTS.hiddenOn : MAP_TOASTS.hiddenOff)
     } catch (e) {
       console.error("[GeoMatch] Erro ao alternar visibilidade:", e)
     }
