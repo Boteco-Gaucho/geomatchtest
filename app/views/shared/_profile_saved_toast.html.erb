@@ -1,0 +1,8 @@
+<%# "Perfil atualizado" — depois do Salvar da edição do perfil (users#update, flash[:profile_saved]).
+    Componente: shared/_top_toast. %>
+<%= render layout: "shared/top_toast", locals: {
+      title: "Perfil atualizado",
+      text: "Quem está por perto já vê suas novidades.",
+      icon_class: "tt-icon--success", closable: true, extra_class: "tt-toast--saved" } do %>
+  <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.7 3.6L17.5 8.6"/></svg>
+<% end %>

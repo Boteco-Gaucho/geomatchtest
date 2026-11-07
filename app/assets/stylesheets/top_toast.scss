@@ -100,6 +100,51 @@
   svg { width: 11px; height: 11px; stroke-width: 3; }
 }
 
+/* Perfil atualizado: check branco no círculo verde, com halo */
+.tt-icon--success {
+  background: var(--tt-green);
+  box-shadow: 0 0 0 3px #d8efe1;
+  color: #fff;
+
+  > svg { width: 18px; height: 18px; stroke-width: 2.6; }
+}
+
+// Com o X à direita (perfil atualizado)
+.tt-toast--closable { padding-right: 8px; }
+
+.tt-close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #8a857f;
+  cursor: pointer;
+
+  svg { width: 17px; height: 17px; stroke-width: 2; }
+  &:hover { filter: none; transform: none; box-shadow: none; }
+}
+
+// Perfil atualizado (mockup): aviso um pouco mais largo e arredondado, ícone com
+// halo afastado da borda, texto em 13px
+.tt-toast.tt-toast--saved {
+  top: calc(env(safe-area-inset-top, 0px) + 52px);
+  width: calc(100% - 33px);
+  gap: 12px;
+  padding: 9px 8px 9px 10px;
+  border-radius: 24px;
+
+  .tt-icon { width: 38px; height: 38px; margin: 0 0 0 3px; }
+  .tt-title { font-size: 16px; line-height: 20px; }
+  .tt-text { font-size: 13px; line-height: 14.5px; }
+  .tt-body { gap: 4px; }
+}
+
 /* Idade escondida: calendário com "?" no círculo escuro */
 .tt-icon--age-hidden {
   background: var(--tt-dark);
@@ -179,3 +224,7 @@ html.dark:not(.light-mode) .tt-toast {
 
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
+
+.dark-mode .tt-icon--success,
+html.dark:not(.light-mode) .tt-icon--success { box-shadow: 0 0 0 3px rgba(34, 165, 89, 0.25); }
+

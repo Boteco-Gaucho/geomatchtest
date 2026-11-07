@@ -1,9 +1,12 @@
 <%# Aviso no topo da tela (top_toast_controller.js; estilos .tt-* em top_toast.scss).
     Desce, some sozinho depois de `duration` ms, e tocar fecha antes. Uso:
-      render layout: "shared/top_toast", locals: { title:, text:, icon_class:, bar: } — o
-      bloco é o ícone (svg). bar: true mostra a barra de tempo (conta descongelada). %>
-<% bar = local_assigns.fetch(:bar, false) %>
-<div class="tt-toast<%= " tt-toast--timed" if bar %>" role="status" aria-live="polite"
+      render layout: "shared/top_toast", locals: { title:, text:, icon_class:, bar:, closable:, extra_class: }
+    — o bloco é o ícone (svg). bar: true mostra a barra de tempo (conta descongelada);
+    closable: true mostra o X à direita (perfil atualizado); extra_class vai no aviso. %>
+<% bar      = local_assigns.fetch(:bar, false) %>
+<% closable = local_assigns.fetch(:closable, false) %>
+<div class="tt-toast<%= " tt-toast--timed" if bar %><%= " tt-toast--closable" if closable %> <%= local_assigns[:extra_class] %>"
+     role="status" aria-live="polite"
      data-controller="top-toast" data-top-toast-duration-value="<%= local_assigns.fetch(:duration, 5000) %>"
      data-action="click->top-toast#dismiss turbo:before-cache@document->top-toast#remove">
   <span class="tt-icon <%= local_assigns[:icon_class] %>" aria-hidden="true"><%= yield %></span>
@@ -11,5 +14,10 @@
     <strong class="tt-title"><%= title %></strong>
     <span class="tt-text"><%= text %></span>
   </span>
+  <% if closable %>
+    <button type="button" class="tt-close" aria-label="Fechar aviso">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  <% end %>
   <% if bar %><span class="tt-bar" aria-hidden="true"></span><% end %>
 </div>

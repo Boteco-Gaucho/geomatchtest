@@ -362,7 +362,8 @@ class UsersController < ApplicationController
     if @user.update(user_update_params)
       # Volta para a aba em que a pessoa tocou "Salvar" (Editar ou Pré-visualizar)
       back_to = params[:return_tab] == "preview" ? preview_profile_path : edit_profile_path
-      redirect_to back_to, notice: "Perfil atualizado!", status: :see_other
+      flash[:profile_saved] = true # aviso "Perfil atualizado" (shared/_profile_saved_toast)
+      redirect_to back_to, status: :see_other
     else
       @tab = "edit"
       render :edit, status: :unprocessable_entity

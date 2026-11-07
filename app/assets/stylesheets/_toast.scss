@@ -55,6 +55,18 @@
     }
   }
 
+  // Confirmação (verde) — ex.: "Você já está autenticado." (shared/_flash)
+  &--success {
+    background: rgba(10, 24, 16, 0.92);
+    border: 1px solid rgba(74, 222, 128, 0.45);
+    color: #6ee7a0;
+
+    .toast__close {
+      color: rgba(110, 231, 160, 0.7);
+      &:hover { color: #6ee7a0; }
+    }
+  }
+
   &--hiding {
     animation: toast-out 0.3s ease-in both;
   }

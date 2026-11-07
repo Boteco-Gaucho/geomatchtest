@@ -1,6 +1,12 @@
 <% flash.each do |type, message| %>
-  <% next if type.to_s == "account_unfrozen" # aviso próprio: shared/_unfreeze_toast %>
-  <div class="toast toast--<%= type.to_s == 'alert' ? 'alert' : 'notice' %>"
+  <%# Avisos próprios no topo: shared/_unfreeze_toast e shared/_profile_saved_toast %>
+  <% next if %w[account_unfrozen profile_saved].include?(type.to_s) %>
+  <%# "Você já está autenticado." chega do Devise como alerta (ao reabrir o app já logado),
+      mas não é erro: aparece em verde %>
+  <% tone = if message == t("devise.failure.already_authenticated") then "success"
+            elsif type.to_s == "alert" then "alert"
+            else "notice" end %>
+  <div class="toast toast--<%= tone %>"
        data-controller="toast"
        role="alert"
        aria-live="polite">
