@@ -52,7 +52,7 @@ RSpec.describe "Criar conta", type: :request do
   end
 
   it "as outras páginas sem login continuam com o cabeçalho e o rodapé de sempre" do
-    get "/users/sign_in"
+    get "/users/password/new"
     page = Nokogiri::HTML(response.body)
 
     expect(page.at_css(".site-header")).to be_present
