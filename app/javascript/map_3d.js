@@ -20,6 +20,17 @@ setTimeout(() => {
 // --- Configurações e Estado Global ---
 const INITIAL_RANGE_METERS = 150;
 const FETCH_COOLDOWN_MS = 10000;
+// Deslocamento a partir do qual a câmera volta a centralizar na pessoa e a busca é refeita
+const RECENTER_AFTER_METERS = 150;
+
+function distanceMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (deg) => deg * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 const STORAGE_KEYS = {
   RANGE: "geomatch_range",
   INVISIBLE_MODE: "geomatch_invisible_mode",
@@ -37,6 +48,9 @@ const HIDDEN_REFRESH_MS = 60000;
 // de fato até 300 m: a folga evita tirar do radar quem está perto da borda
 const APPROX_POSITION_TOL_M = 110;
 let fixedUserLat = null;
+// De onde veio a posição atual: "gps" ou a salva no banco ("db_fallback"/"db_no_geo").
+// Com a do banco, a primeira leitura real do GPS move a câmera (trackingCallback).
+let locationSource = null;
 let fixedUserLng = null;
 let currentRangeMeters = parseInt(localStorage.getItem(STORAGE_KEYS.RANGE)) || INITIAL_RANGE_METERS;
 // Filtro de gênero SEMPRE inicia em "all" (Todos) — não persiste entre visitas.
@@ -952,6 +966,7 @@ function initializeMapAndLocation() {
     if (coords && coords.lat && coords.lng) {
       fixedUserLat = coords.lat;
       fixedUserLng = coords.lng;
+      locationSource = coords.source;
       window.presenceSetLocation?.(coords.lat, coords.lng);
 
       // jumpTo (sem animação): o loader ainda está visível, então não há "pulo" para o usuário.
@@ -1100,7 +1115,10 @@ document.addEventListener("turbo:load", () => {
             : null
           );
         },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
+        // maximumAge 30s: o iPhone costuma ter uma leitura recente e responde na hora;
+        // com 0 ele espera um fix novo e, pelo navegador, passava dos 8s e caía na
+        // posição salva no banco (o bairro de antes)
+        { enableHighAccuracy: true, maximumAge: 30000, timeout: 8000 }
       );
     });
   }
@@ -1273,10 +1291,27 @@ document.addEventListener("turbo:load", () => {
   // MODO TEMPO REAL (FOLLOW ME)
   // Callback reutilizado tanto na inicialização automática quanto no click manual
   const trackingCallback = (newLat, newLng) => {
+    // O mapa abriu na posição salva (o GPS demorou) ou a pessoa andou bastante:
+    // leva a câmera até a posição real e refaz a busca na hora
+    const movedMeters = (fixedUserLat && fixedUserLng)
+      ? distanceMeters(fixedUserLat, fixedUserLng, newLat, newLng)
+      : Infinity;
+    const recenter = locationSource !== "gps" || movedMeters > RECENTER_AFTER_METERS;
+
     fixedUserLat = newLat;
     fixedUserLng = newLng;
+    locationSource = "gps";
     window.presenceSetLocation?.(newLat, newLng);
     updateRadarVisuals();
+
+    if (recenter) {
+      // Com a prévia de um pin aberta a câmera não se mexe sozinha
+      if (!isCinematicMode) map.easeTo({ center: [newLng, newLat], duration: 900 });
+      lastUserFetchTime = Date.now();
+      loadNearbyUsers(newLat, newLng, currentRangeMeters, currentGenderFilter);
+      return;
+    }
+
     const now = Date.now();
     if (now - lastUserFetchTime > FETCH_COOLDOWN_MS) {
       lastUserFetchTime = now;
