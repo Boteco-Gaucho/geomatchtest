@@ -93,7 +93,8 @@
     <% if user_signed_in? %>
       <!-- Estrutura principal com Sidebar e Conteúdo para usuários autenticados -->
       <div class="authenticated-layout">
-        <% unless turbo_native_app? || @hide_sidebar %>
+        <%# :bare_page — página sozinha, sem navegação (ex.: Política de privacidade) %>
+        <% unless turbo_native_app? || @hide_sidebar || content_for?(:bare_page) %>
           <%= render 'layouts/sidebar' %>
         <% end %>
         <main class="site-content">
@@ -105,7 +106,7 @@
       <% if content_for?(:auth_chrome) && !turbo_native_app? %>
         <%# Telas de conta com cabeçalho/rodapé do mockup (Criar conta) %>
         <%= render "shared/auth_header" %>
-      <% elsif !turbo_native_app? %>
+      <% elsif !turbo_native_app? && !content_for?(:bare_page) %>
         <header class="site-header">
           <div class="container header-inner">
             <%= link_to root_path, class: "brand" do %>
@@ -127,7 +128,7 @@
 
     <% if content_for?(:auth_chrome) && !user_signed_in? && !turbo_native_app? %>
       <%= render "shared/auth_footer" %>
-    <% elsif !(user_signed_in? || turbo_native_app? || @hide_layout_footer) %>
+    <% elsif !(user_signed_in? || turbo_native_app? || @hide_layout_footer || content_for?(:bare_page)) %>
       <!-- O Footer só é renderizado para usuários não autenticados -->
        <footer class="site-footer">
       <div class="container footer-inner">

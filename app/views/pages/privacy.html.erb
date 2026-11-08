@@ -1,120 +1,137 @@
-<div class="legal-container">
-  <div class="legal-content">
-    <h1>Política de Privacidade do GeoMatch</h1>
-    <p class="last-updated">Data da última atualização: <%= Time.current.strftime("%d/%m/%Y") %></p>
+<%# Política de privacidade (/politica-de-privacidade) — aberta pelo "Ler a política completa"
+    da tela Privacidade e localização e pelo link da Criar conta. Estilos .lg-* em legal.scss.
+    "Entendi" volta para Meu Perfil (sem conta: para a Criar conta). A data é fixa: muda só
+    quando o texto da política mudar. %>
+<% provide :bare_page, "1" %>
+<% updated_on = Date.new(2026, 11, 7) %>
+<% back_path  = user_signed_in? ? privacy_settings_path : new_user_registration_path %>
+<% done_path  = user_signed_in? ? my_profile_path : new_user_registration_path %>
+<% sections = [
+     [ "controlador", "Controlador" ], [ "dados", "Dados coletados" ], [ "finalidades", "Finalidades" ],
+     [ "compartilhamento", "Compartilhamento" ], [ "transferencia", "Transferência" ], [ "retencao", "Retenção" ],
+     [ "direitos", "Seus direitos" ], [ "seguranca", "Segurança" ], [ "criancas", "Crianças" ], [ "contato", "Contato" ]
+   ] %>
 
+<div class="lg-page">
+  <header class="lg-head">
+    <%= link_to back_path, class: "lg-back", aria: { label: "Voltar" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
+    <div>
+      <h1 class="lg-title">Política de privacidade</h1>
+      <p class="lg-updated">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+        Atualizada em <%= updated_on.strftime("%d/%m/%Y") %>
+      </p>
+    </div>
+  </header>
+
+  <section class="lg-intro">
     <p>Esta Política de Privacidade descreve como o <strong>GeoMatch</strong> ("nós", "nosso", "conosco") coleta, usa, armazena, compartilha e protege suas informações pessoais ao utilizar nosso aplicativo e serviços relacionados. Estamos empenhados em proteger sua privacidade e em cumprir a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).</p>
+    <p class="lg-intro-note">Ao utilizar o GeoMatch, você concorda com a coleta e o uso de suas informações conforme descrito nesta Política de Privacidade.</p>
+  </section>
 
-    <p>Ao utilizar o GeoMatch, você concorda com a coleta e o uso de suas informações conforme descrito nesta Política de Privacidade.</p>
-
-    <h2>1. Controlador de Dados Pessoais</h2>
-    <p>O controlador de seus dados pessoais é GeoMatch LTDA, com sede em geomatch.com.br.</p>
-
-    <h2>2. Dados Pessoais Coletados</h2>
-    <p>Coletamos diferentes tipos de dados para fornecer e melhorar nossos serviços a você:</p>
-    
-    <h3>2.1. Dados Fornecidos por Você</h3>
+  <nav class="lg-toc" aria-labelledby="lg-toc-title">
+    <h2 class="lg-kicker" id="lg-toc-title">Nesta página</h2>
     <ul>
+      <% sections.each_with_index do |(id, label), i| %>
+        <li><a href="#<%= id %>"><span><%= i + 1 %></span> <%= label %></a></li>
+      <% end %>
+    </ul>
+  </nav>
+
+  <section class="lg-card" id="controlador">
+    <h2 class="lg-h"><span>1</span>Controlador de Dados Pessoais</h2>
+    <p>O controlador de seus dados pessoais é GeoMatch LTDA, com sede em geomatch.com.br.</p>
+  </section>
+
+  <section class="lg-card" id="dados">
+    <h2 class="lg-h"><span>2</span>Dados Pessoais Coletados</h2>
+    <p>Coletamos diferentes tipos de dados para fornecer e melhorar nossos serviços a você:</p>
+
+    <h3 class="lg-kicker">2.1 Dados fornecidos por você</h3>
+    <ul class="lg-list">
       <li><strong>Dados de Registro:</strong> Nome completo, data de nascimento, gênero, e-mail, número de telefone (opcional), fotos de perfil, descrição pessoal e preferências de busca.</li>
       <li><strong>Dados de Perfil:</strong> Informações adicionais que você pode optar por adicionar ao seu perfil, como interesses, hobbies, altura, educação e profissão.</li>
       <li><strong>Comunicações:</strong> Mensagens trocadas com outros usuários através do aplicativo.</li>
     </ul>
 
-    <h3>2.2. Dados Coletados Automaticamente</h3>
-    <ul>
-      <li><strong>Dados de Localização:</strong> Coletamos sua localização precisa (GPS) em tempo real, enquanto o aplicativo está em uso, para fornecer a funcionalidade de GeoMatch. <strong>Ao aceitar estes termos, você concorda explicitamente com o compartilhamento da sua localização em tempo real com outros usuários dentro do raio de 300 metros.</strong></li>
+    <h3 class="lg-kicker">2.2 Dados coletados automaticamente</h3>
+    <ul class="lg-list">
+      <li>
+        <strong>Dados de Localização:</strong> Coletamos sua localização precisa (GPS) em tempo real, enquanto o aplicativo está em uso, para fornecer a funcionalidade de GeoMatch.
+        <p class="lg-callout">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <strong>Ao aceitar estes termos, você concorda explicitamente com o compartilhamento da sua localização em tempo real com outros usuários dentro do raio de 300 metros.</strong>
+        </p>
+      </li>
       <li><strong>Dados de Uso:</strong> Informações sobre como você acessa e usa o aplicativo, incluindo seu endereço IP, tipo de dispositivo, sistema operacional e atividade no aplicativo.</li>
       <li><strong>Cookies:</strong> Utilizamos cookies para personalizar sua experiência.</li>
     </ul>
+  </section>
 
-    <h2>3. Finalidade do Uso dos Dados e Bases Legais</h2>
-    <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
-        <thead>
-          <tr style="background: rgba(255,255,255,0.05); text-align: left;">
-            <th style="padding: 10px; border: 1px solid var(--color-border);">Finalidade</th>
-            <th style="padding: 10px; border: 1px solid var(--color-border);">Dados Envolvidos</th>
-            <th style="padding: 10px; border: 1px solid var(--color-border);">Base Legal (LGPD)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Fornecer e operar o aplicativo</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Registro, perfil, localização, uso</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);"><strong>Execução de Contrato</strong></td>
-          </tr>
-          <tr>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Permitir interações (GeoMatch)</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Perfil, localização, mensagens</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);"><strong>Consentimento</strong> e Execução de Contrato</td>
-          </tr>
-           <tr>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Segurança e prevenção a fraudes</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Dados de registro, uso</td>
-            <td style="padding: 10px; border: 1px solid var(--color-border);">Legítimo Interesse e Obrigação Legal</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <section class="lg-card" id="finalidades">
+    <h2 class="lg-h"><span>3</span>Finalidade do Uso dos Dados e Bases Legais</h2>
+    <% [ [ "Fornecer e operar o aplicativo", "registro, perfil, localização, uso", "Execução de Contrato" ],
+         [ "Permitir interações (GeoMatch)", "perfil, localização, mensagens", "Consentimento e Execução de Contrato" ],
+         [ "Segurança e prevenção a fraudes", "dados de registro, uso", "Legítimo Interesse e Obrigação Legal" ] ].each do |purpose, data, basis| %>
+      <div class="lg-purpose">
+        <strong><%= purpose %></strong>
+        <p><b>Dados:</b> <%= data %></p>
+        <span class="lg-basis"><%= basis %></span>
+      </div>
+    <% end %>
+  </section>
 
-    <h2>4. Compartilhamento de Dados Pessoais</h2>
+  <section class="lg-card" id="compartilhamento">
+    <h2 class="lg-h"><span>4</span>Compartilhamento de Dados Pessoais</h2>
     <p>Para operar o GeoMatch, podemos compartilhar seus dados pessoais com:</p>
-    <ul>
+    <ul class="lg-list">
       <li><strong>Outros Usuários:</strong> Sua localização em tempo real (dentro do raio de 300 metros), fotos de perfil e informações do seu perfil são compartilhadas com usuários próximos.</li>
       <li><strong>Prestadores de Serviços:</strong> Empresas de hospedagem, análise de dados e suporte.</li>
       <li><strong>Autoridades Legais:</strong> Se exigido por lei ou ordem judicial.</li>
     </ul>
+  </section>
 
-    <h2>5. Transferência Internacional de Dados</h2>
+  <section class="lg-card" id="transferencia">
+    <h2 class="lg-h"><span>5</span>Transferência Internacional de Dados</h2>
     <p>Seus dados podem ser armazenados em servidores fora do Brasil. Garantimos que essas transferências cumpram a LGPD.</p>
+  </section>
 
-    <h2>6. Retenção de Dados</h2>
+  <section class="lg-card" id="retencao">
+    <h2 class="lg-h"><span>6</span>Retenção de Dados</h2>
     <p>Manteremos seus dados apenas pelo tempo necessário para cumprir as finalidades coletadas ou requisitos legais.</p>
+  </section>
 
-    <h2>7. Direitos do Titular dos Dados (LGPD)</h2>
-    <p>Você tem direito a: Confirmação e Acesso, Retificação, Anonimização ou Eliminação, Portabilidade, e Revogação do Consentimento. Para exercer esses direitos, contate: suporte@geomatch.com.br</p>
+  <section class="lg-card" id="direitos">
+    <h2 class="lg-h"><span>7</span>Direitos do Titular dos Dados (LGPD)</h2>
+    <p>Você tem direito a:</p>
+    <ul class="lg-chips">
+      <% [ "Confirmação e Acesso", "Retificação", "Anonimização ou Eliminação", "Portabilidade", "Revogação do Consentimento" ].each do |right| %>
+        <li><%= right %></li>
+      <% end %>
+    </ul>
+    <p>Para exercer esses direitos, contate: <%= mail_to "suporte@geomatch.com.br", nil, class: "lg-mail" %></p>
+  </section>
 
-    <h2>8. Segurança dos Dados</h2>
+  <section class="lg-card" id="seguranca">
+    <h2 class="lg-h"><span>8</span>Segurança dos Dados</h2>
     <p>Implementamos medidas de segurança técnicas e administrativas. No entanto, nenhum método é 100% seguro.</p>
+  </section>
 
-    <h2>9. Privacidade de Crianças</h2>
+  <section class="lg-card" id="criancas">
+    <h2 class="lg-h"><span>9</span>Privacidade de Crianças</h2>
     <p>O GeoMatch não se destina a menores de 18 anos. Não coletamos intencionalmente dados de crianças.</p>
+  </section>
 
-    <h2>10. Contato</h2>
-    <p>Dúvidas? Entre em contato:<br>
-    <strong>GeoMatch Suporte</strong><br>
-    E-mail: suporte@geomatch.com.br</p>
+  <section class="lg-card" id="contato">
+    <h2 class="lg-h"><span>10</span>Contato</h2>
+    <p>Dúvidas? Entre em contato:</p>
+    <%= mail_to "suporte@geomatch.com.br", class: "lg-contact" do %>
+      <span class="lg-contact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/></svg></span>
+      <span><strong>GeoMatch Suporte</strong><small>suporte@geomatch.com.br</small></span>
+    <% end %>
+  </section>
 
-    <div class="legal-footer">
-      <%= link_to "Voltar para o Cadastro", new_user_registration_path, class: "btn-back" %>
-    </div>
-  </div>
+  <%= link_to "Entendi", done_path, class: "lg-done" %>
 </div>
-
-<%# Reutilizando o mesmo estilo para manter consistência %>
-<style>
-  .legal-container {
-    padding: 40px 20px;
-    background-color: var(--color-background);
-    min-height: 100vh;
-    color: var(--color-text);
-  }
-  .legal-content {
-    max-width: 800px;
-    margin: 0 auto;
-    background: var(--color-section-light);
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  }
-  .legal-content h1 { font-size: 2rem; margin-bottom: 10px; color: var(--color-primary); }
-  .legal-content h2 { font-size: 1.4rem; margin-top: 30px; margin-bottom: 15px; color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 5px;}
-  .legal-content h3 { font-size: 1.1rem; margin-top: 20px; color: var(--color-text); font-weight: bold;}
-  .legal-content p, .legal-content li { line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 15px; }
-  .legal-content ul { padding-left: 20px; margin-bottom: 20px; }
-  .legal-content li { margin-bottom: 8px; }
-  .last-updated { font-style: italic; font-size: 0.9rem; color: #888; }
-  .legal-footer { margin-top: 40px; text-align: center; }
-  .btn-back { background: var(--color-primary); color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; }
-  .btn-back:hover { opacity: 0.9; }
-</style>
