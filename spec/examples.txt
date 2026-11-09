@@ -359,3 +359,4 @@ C:/Users/Brendo/AppData/Local/Temp/claude/94b977b3f8298918/f10f0d83-d725-43b5-92
 C:/Users/Brendo/AppData/Local/Temp/claude/94b977b3f8298918/f10f0d83-d725-43b5-9228-02475c7aa7b5/scratchpad/freeze_flow_spec.rb[1:15] | passed  | 24.17 seconds   |
 C:/Users/Brendo/AppData/Local/Temp/claude/94b977b3f8298918/f10f0d83-d725-43b5-9228-02475c7aa7b5/scratchpad/gps_spec.rb[1:1]          | passed  | 19.16 seconds   |
 C:/Users/Brendo/AppData/Local/Temp/claude/94b977b3f8298918/f10f0d83-d725-43b5-9228-02475c7aa7b5/scratchpad/map_flow_spec.rb[1:1]     | passed  | 34.77 seconds   |
+C:/Users/Brendo/AppData/Local/Temp/claude/94b977b3f8298918/f10f0d83-d725-43b5-9228-02475c7aa7b5/scratchpad/map_flow_spec.rb[1:2]     | failed  | 24.2 seconds    |
