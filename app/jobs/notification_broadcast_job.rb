@@ -2,6 +2,10 @@
 class NotificationBroadcastJob < ApplicationJob
   queue_as :default
 
+  # Curtida desfeita dentro da janela (Like::UNDO_WINDOW): a notificação foi apagada antes
+  # de o job rodar — não há o que enviar
+  discard_on ActiveJob::DeserializationError
+
   def perform(notification)
     # Renderiza a notificação como HTML parcial
     html = ApplicationController.render(

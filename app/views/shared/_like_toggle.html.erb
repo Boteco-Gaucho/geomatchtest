@@ -1,0 +1,15 @@
+<%# Coração do mapa que curte e, por alguns segundos, descurte (like_toggle_controller.js;
+    anel do tempo em map_profile.scss). Locals: classes, user_id, like (Like ou nil).
+    Na prévia do pin o map_3d.js troca a pessoa com o evento "like-toggle:load". %>
+<% like = local_assigns[:like] %>
+<button type="button" class="<%= classes %> like-toggle"
+        data-controller="like-toggle"
+        data-like-toggle-user-id-value="<%= local_assigns[:user_id].to_i %>"
+        data-like-toggle-liked-value="<%= like.present? %>"
+        data-like-toggle-like-id-value="<%= like&.id.to_i %>"
+        data-like-toggle-undo-seconds-value="<%= like ? like.undo_seconds_left : 0 %>"
+        data-action="like-toggle#toggle like-toggle:load->like-toggle#load"
+        aria-pressed="<%= like.present? %>" aria-label="Curtir" title="Curtir">
+  <svg class="like-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+  <svg class="like-ring" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20.5" pathLength="100"/></svg>
+</button>

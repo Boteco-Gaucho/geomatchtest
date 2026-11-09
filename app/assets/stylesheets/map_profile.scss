@@ -245,9 +245,8 @@
 
   svg { width: 19px; height: 19px; }
 
-  // Já curtiu: coração cheio
-  &.is-liked { cursor: default; }
-  &.is-liked svg { fill: #e0245e; stroke: #e0245e; }
+  // Curtido: coração cheio (o anel do tempo vem de .like-toggle, abaixo)
+  &.is-liked .like-heart { fill: #e0245e; stroke: #e0245e; }
 }
 
 // Seta apontando para o pin
@@ -261,6 +260,52 @@
   border-top: 10px solid var(--pin-surface);
   border-right: 9px solid transparent;
   border-left: 9px solid transparent;
+}
+
+/* ---------------- Coração que curte e desfaz ----------------
+   shared/_like_toggle + like_toggle_controller.js (prévia do pin e perfil completo):
+   cheio na hora do toque e, enquanto dá para desfazer, um anel em volta esvazia. */
+.like-toggle {
+  position: relative;
+  overflow: visible;
+
+  .like-heart { transition: transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1), fill 0.15s ease; }
+  &.is-liked .like-heart { transform: scale(1.08); }
+  &.is-locked { cursor: default; }
+  &:disabled { opacity: 1; }
+
+  // .like-toggle svg.like-ring vence o "svg { … }" dos botões (.up-like, .pin-card-round)
+  svg.like-ring {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+    opacity: 0;
+    pointer-events: none;
+    transform: rotate(-90deg);
+    transition: opacity 0.2s ease;
+
+    circle {
+      fill: none;
+      stroke: #e0245e;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 0;
+    }
+  }
+
+  &.is-undoable svg.like-ring { opacity: 1; }
+  &.is-counting svg.like-ring circle { animation: like-undo var(--like-undo-ms, 8000ms) linear forwards; }
+}
+
+@keyframes like-undo {
+  to { stroke-dashoffset: 100; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .like-toggle .like-heart { transition: none; }
 }
 
 /* ---------------- Folha do perfil completo ---------------- */

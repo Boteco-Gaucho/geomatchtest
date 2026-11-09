@@ -300,8 +300,8 @@ function openCinematicPopup(user) {
   document.getElementById('pin-card-distance').textContent = distanceLabel(user.distance_km ?? user.distance);
   document.getElementById('pin-card-online').hidden = !user.online;
 
-  // user_id=0 nas URLs dos formulários → id da pessoa
-  [['pin-card-chat-form', 'chat'], ['pin-card-like-form', 'like']].forEach(([id]) => {
+  // user_id=0 na URL do formulário de mensagem → id da pessoa
+  [['pin-card-chat-form', 'chat']].forEach(([id]) => {
     const form = document.getElementById(id);
     if (!form) return;
     if (!form.dataset.baseAction) form.dataset.baseAction = form.getAttribute('action');
@@ -309,7 +309,7 @@ function openCinematicPopup(user) {
       .replace(/\/0(\/?)(\?|$)/, `/${user.id}$1$2`)
       .replace('user_id=0', `user_id=${user.id}`);
   });
-  setPinCardLiked(!!user.liked);
+  loadPinCardLike(user);
 
   document.getElementById('pin-card-close').onclick = (e) => { e.stopPropagation(); closeCinematicPopup(); };
   document.getElementById('pin-card-prev').onclick = () => stepPinCardPhoto(-1);
@@ -368,13 +368,17 @@ function stepPinCardPhoto(step) {
   renderPinCardPhoto();
 }
 
-function setPinCardLiked(liked) {
-  const btn = document.querySelector('#pin-card-like-form button');
-  if (!btn) return;
-  btn.classList.toggle('is-liked', liked);
-  btn.disabled = liked;
-  btn.setAttribute('aria-label', liked ? 'Você já curtiu' : 'Curtir');
-  btn.title = liked ? 'Você já curtiu' : 'Curtir';
+// Coração da prévia (like_toggle_controller.js): passa a pessoa e o estado da curtida,
+// inclusive quanto falta da janela para desfazer
+function loadPinCardLike(user) {
+  const button = document.querySelector('#pin-card-like-slot .like-toggle');
+  if (!button) return;
+  const undoSeconds = user.like_undo_until
+    ? Math.max(0, Math.ceil((user.like_undo_until - Date.now()) / 1000))
+    : (user.like_undo_seconds || 0);
+  button.dispatchEvent(new CustomEvent('like-toggle:load', {
+    detail: { userId: user.id, liked: !!user.liked, likeId: user.like_id || 0, undoSeconds }
+  }));
 }
 
 // Acompanha o pin a cada quadro do mapa (voo da câmera, giro, arrastar)
@@ -810,7 +814,24 @@ async function showUserPopup(user) {
 
 // Fechar a folha (seta, fora dela, Esc, arrastar para baixo) e reagir às ações dela
 // e da prévia do pin
+let likeSyncWired = false;
+
 function initProfileSheetAndPinCard() {
+  if (!likeSyncWired) {
+    likeSyncWired = true;
+    document.addEventListener("like-toggle:changed", (e) => {
+      const { userId, liked, likeId, undoUntil } = e.detail || {};
+      const user = mapboxUserData[userId];
+      if (!user) return;
+      Object.assign(user, { liked, like_id: likeId, like_undo_until: undoUntil, like_undo_seconds: 0 });
+      // A outra cópia do arquivo pode ter a prévia aberta para essa pessoa
+      const card = document.getElementById("mini-card-overlay");
+      if (card?._user && card._user.id === userId && card._user !== user) {
+        Object.assign(card._user, { liked, like_id: likeId, like_undo_until: undoUntil, like_undo_seconds: 0 });
+      }
+    });
+  }
+
   const popup = document.getElementById("user-popup");
   const sheet = popup?.querySelector(".map-profile-sheet");
   const card = document.getElementById("mini-card-overlay");
@@ -850,20 +871,12 @@ function initProfileSheetAndPinCard() {
       else if (card && !card.hidden) closeCinematicPopup();
     });
 
-    // Curtir / Agora não: o servidor responde 200 (source=map). Deu match: o servidor
-    // redireciona para a conversa e o Turbo segue sozinho.
+    // "Agora não": o servidor responde 200 (source=map) e a folha fecha. Curtir é do
+    // like_toggle_controller.js (curte e, por alguns segundos, desfaz).
     document.addEventListener("turbo:submit-end", (e) => {
       if (!e.detail.success) return;
       const form = e.target;
-      if (form.matches("[data-map-profile-dismiss]")) {
-        // Curtiu pelo perfil: a prévia daquela pessoa já abre com o coração cheio
-        const id = popup?.dataset.userId;
-        if (form.action.includes("like") && id && mapboxUserData[id]) mapboxUserData[id].liked = true;
-        closeUserPopup();
-      } else if (form.id === "pin-card-like-form" && card?._user) {
-        card._user.liked = true; // o mesmo objeto do mapboxUserData da cópia que abriu
-        setPinCardLiked(true);
-      }
+      if (form.matches("[data-map-profile-dismiss]")) closeUserPopup();
     });
   }
 }

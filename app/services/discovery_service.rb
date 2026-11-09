@@ -42,8 +42,8 @@ class DiscoveryService
       end
     end
 
-    # Coração da prévia do pin (map_3d.js) já marcado em quem a pessoa curtiu
-    liked_ids = @user.likes.where(is_like: [ true, nil ]).pluck(:liked_id).to_set
+    # Coração da prévia do pin (map_3d.js): quem a pessoa curtiu e se ainda dá para desfazer
+    likes_by_user = @user.likes.positive.index_by(&:liked_id)
 
     query.map do |u|
       # Posição aproximada (nunca a do GPS) e distância até ela — limitada ao raio,
@@ -70,7 +70,9 @@ class DiscoveryService
         verified: u.verified,
         photos_urls: build_photos_urls(u),
         age: u.public_age, # nil quando a pessoa escondeu a idade (Gold)
-        liked: liked_ids.include?(u.id)
+        liked: likes_by_user.key?(u.id),
+        like_id: likes_by_user[u.id]&.id,
+        like_undo_seconds: likes_by_user[u.id]&.undo_seconds_left.to_i
       }
     end
   end

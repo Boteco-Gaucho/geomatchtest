@@ -133,8 +133,9 @@ class UsersController < ApplicationController
     @favorite_id = current_user.favorites.where(favorited_user_id: @user.id).pick(:id)
 
     if in_map
+      like_record = current_user.likes.positive.find_by(liked_id: @user.id)
       render partial: "users/full_profile",
-             locals: { user: @user, liked: @liked, favorite_id: @favorite_id, in_map: true }
+             locals: { user: @user, liked: @liked, favorite_id: @favorite_id, in_map: true, like_record: like_record }
     end
 
   rescue ActiveRecord::RecordNotFound

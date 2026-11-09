@@ -13,6 +13,7 @@
                     esquerda, seta para baixo fechando, distância no lugar da cidade
                     (o JS preenche) e X / coração com source=map (o JS fecha a folha).
       liked       — já curtiu (coração marcado e desabilitado)
+      like_record — no mapa: a curtida (Like) para o coração saber se ainda dá para desfazer
       favorite_id — id do favorito (estrela marcada); omitido = consulta aqui
 
     No próprio perfil somem as ações, a estrela e Denunciar/Bloquear. %>
@@ -133,14 +134,12 @@
         <%= in_map ? "Mensagem" : "Mandar mensagem" %>
       <% end %>
 
-      <% if liked %>
+      <% if liked && !in_map %>
         <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"><%= heart_svg %></button>
       <% elsif in_map %>
-        <%= button_to likes_path(user_id: user.id, source: "map"), method: :post,
-              class: "up-action up-like", aria: { label: "Curtir #{first_name}" }, title: "Curtir",
-              form: { class: "up-action-form", data: { map_profile_dismiss: true } } do %>
-          <%= heart_svg %>
-        <% end %>
+        <%# Curtir / desfazer por alguns segundos (like_toggle_controller.js); a folha fica aberta %>
+        <%= render "shared/like_toggle", classes: "up-action up-like", user_id: user.id,
+                   like: local_assigns[:like_record] %>
       <% elsif in_sheet %>
         <%# Mesmo efeito do coração do card: fecha o sheet e joga o card para a direita %>
         <button type="button" class="up-action up-like" aria-label="Curtir <%= first_name %>" title="Curtir"

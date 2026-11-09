@@ -117,3 +117,6 @@ application.register("signup-form", SignupFormController)
 
 import ResendTimerController from "./resend_timer_controller"
 application.register("resend-timer", ResendTimerController)
+
+import LikeToggleController from "./like_toggle_controller"
+application.register("like-toggle", LikeToggleController)

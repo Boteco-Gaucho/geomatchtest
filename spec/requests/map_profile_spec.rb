@@ -34,10 +34,13 @@ RSpec.describe "Perfil no mapa", type: :request do
       expect(page.at_css("[data-map-profile-distance]").key?("hidden")).to be(true) # o JS preenche
 
       pass = page.at_css(".up-pass").ancestors("form").first
-      like = page.at_css(".up-like").ancestors("form").first
       expect(pass["action"]).to eq("/lead/reject?source=map&user_id=#{other.id}")
-      expect(like["action"]).to eq("/likes?source=map&user_id=#{other.id}")
-      expect([ pass, like ].map { |f| f["data-map-profile-dismiss"] }).to all(eq("true"))
+      expect(pass["data-map-profile-dismiss"]).to eq("true")
+      # Curtir: coração que curte e desfaz por alguns segundos (like_toggle_controller.js)
+      like = page.at_css("button.up-like.like-toggle")
+      expect(like["data-controller"]).to eq("like-toggle")
+      expect(like["data-like-toggle-user-id-value"]).to eq(other.id.to_s)
+      expect(like["data-like-toggle-liked-value"]).to eq("false")
       expect(page.at_css(".up-message").text.squish).to eq("Mensagem")
 
       expect(page.css(".up-label").map(&:text)).to eq([ "Sobre mim", "Informações" ])
@@ -48,12 +51,14 @@ RSpec.describe "Perfil no mapa", type: :request do
     end
 
     it "já curtido e favoritado: coração marcado e estrela cheia" do
-      Like.create!(liker_id: user.id, liked_id: other.id)
+      Like.create!(liker_id: user.id, liked_id: other.id, created_at: 1.minute.ago)
       user.favorites.create!(favorited_user: other)
       get "/users/#{other.id}", params: { context: "map" }
       page = Nokogiri::HTML(response.body)
 
-      expect(page.at_css("button.up-like.is-liked[disabled]")).to be_present
+      like = page.at_css("button.up-like.like-toggle")
+      expect(like["data-like-toggle-liked-value"]).to eq("true")
+      expect(like["data-like-toggle-undo-seconds-value"]).to eq("0") # curtida antiga: já vale
       expect(page.at_css(".up-fav .card-action-star--active")).to be_present
     end
 

@@ -309,7 +309,7 @@
 
 /* Aviso dos botões do mapa (#map-toast — showMapToast em map_3d.js) */
 .map-toast {
-  position: absolute; z-index: 700;
+  position: absolute; z-index: 1100; // acima da prévia do pin (.pin-card, 1000)
   left: 18px; right: 18px; top: calc(77px + env(safe-area-inset-top, 0px));
   display: flex; align-items: center; gap: 13px;
   min-height: 64px; padding: 12px 12px 12px 12px;
