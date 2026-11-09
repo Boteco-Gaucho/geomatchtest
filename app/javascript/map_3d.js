@@ -20,6 +20,8 @@ setTimeout(() => {
 // --- Configurações e Estado Global ---
 const INITIAL_RANGE_METERS = 150;
 const FETCH_COOLDOWN_MS = 10000;
+// Alturas da gaveta "Por perto agora" (vh): recolhida (CSS) e aberta
+const NEARBY_SHEET_MAX_VH = 88;
 // Deslocamento a partir do qual a câmera volta a centralizar na pessoa e a busca é refeita
 const RECENTER_AFTER_METERS = 150;
 
@@ -167,19 +169,173 @@ function pingFab(button, ms = 900) {
 }
 
 function showLoadingAnimation() {
-  const usersList = document.getElementById("users-list");
-  const usersCountElement = document.getElementById("nearby-count");
-  if (usersList) {
-    usersList.innerHTML = `
-      <li class="loading-skeleton"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div></div></li>
-      <li class="loading-skeleton"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div></div></li>
-    `;
-  }
-  if (usersCountElement) usersCountElement.textContent = "...";
+  const count = document.getElementById("nearby-count");
+  if (count && !Object.keys(mapboxUserMarkers).length) count.textContent = "Procurando...";
 }
 
 function hideLoadingAnimation() {
   // Implementação pode ser vazia ou remover skeletons
+}
+
+// ===================== GAVETA "POR PERTO AGORA" =====================
+// Recolhida: faixa de avatares (#nearby-strip). Aberta: chips + lista (#users-list).
+// Ninguém no raio: #nearby-empty (cartão; aberta, também o radar e "Enquanto isso").
+let nearbySheetUsers = [];
+let nearbyChip = "all";
+let nearbyRangeKm = Infinity;
+
+// "menos de 50 m", "~100 m", "~1,2 km" — a posição no mapa é aproximada
+function nearbyDistanceLabel(km) {
+  const meters = Number(km) * 1000;
+  if (!Number.isFinite(meters)) return "";
+  if (meters < 50) return "menos de 50 m";
+  if (meters < 1000) return `~${Math.round(meters / 50) * 50} m`;
+  return `~${(meters / 1000).toFixed(1).replace(".", ",")} km`;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
+}
+
+function myHobbies() {
+  try { return JSON.parse(document.getElementById("current-user-data")?.dataset.hobbies || "[]"); }
+  catch (_) { return []; }
+}
+
+function sharesInterest(user) {
+  const mine = myHobbies();
+  if (!mine.length) return false;
+  return (user.hobbies_list || []).some((h) => mine.includes(String(h).trim().toLowerCase()));
+}
+
+function renderNearbySheet(users) {
+  nearbySheetUsers = users;
+  const strip = document.getElementById("nearby-strip");
+  const list = document.getElementById("users-list");
+  if (!strip || !list) return;
+
+  const verifiedSvg = '<svg class="nb-verified" viewBox="0 0 24 24" aria-label="Perfil verificado"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.4l3 2.9 6-6.1"/></svg>';
+  const pinSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  const chatSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  const token = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
+  const avatar = (user, size) => `
+    <span class="nb-avatar nb-avatar--${size}">
+      <img src="${escapeHtml(user.avatar_url || '/default-avatar.png')}" alt="" loading="lazy">
+      ${user.online ? '<i class="nb-online" aria-label="Online agora"></i>' : ''}
+    </span>`;
+
+  strip.innerHTML = users.map((user) => {
+    const first = String(user.username || user.display_name || "Usuário").split(" ")[0];
+    return `
+      <li data-user-id="${user.id}" data-dist-km="${user.distance_km || 0}">
+        <button type="button" class="nb-strip-item" data-nearby-focus="${user.id}">
+          ${avatar(user, "md")}
+          <span class="nb-strip-name">${escapeHtml(first)}${user.verified ? verifiedSvg : ""}</span>
+          <span class="nb-strip-dist">${nearbyDistanceLabel(user.distance_km)}</span>
+        </button>
+      </li>`;
+  }).join("");
+
+  list.innerHTML = users.map((user) => {
+    const name = escapeHtml(user.username || user.display_name || "Usuário");
+    const age = userAge(user);
+    const status = user.online ? '<b class="nb-status-on">Online agora</b>' : '<span>Ativo há pouco</span>';
+    return `
+      <li class="nb-row user-list-item" data-user-id="${user.id}" data-dist-km="${user.distance_km || 0}">
+        <button type="button" class="nb-row-main" data-nearby-focus="${user.id}">
+          ${avatar(user, "lg")}
+          <span class="nb-row-text">
+            <span class="nb-row-name"><strong>${name}</strong>${age ? ` <span>${age}</span>` : ""}${user.verified ? verifiedSvg : ""}</span>
+            <span class="nb-row-meta">${pinSvg}${nearbyDistanceLabel(user.distance_km)} · ${status}</span>
+          </span>
+        </button>
+        <form class="nb-chat-form" action="/start_chat/${encodeURIComponent(user.id)}" method="post">
+          <input type="hidden" name="authenticity_token" value="${escapeHtml(token)}">
+          <button type="submit" class="nb-chat" aria-label="Mandar mensagem para ${name}" title="Mandar mensagem">${chatSvg}</button>
+        </form>
+      </li>`;
+  }).join("");
+
+  // Toque na pessoa: recolhe a gaveta, voa até o pin e abre a prévia
+  document.querySelectorAll("[data-nearby-focus]").forEach((btn) => {
+    btn.onclick = () => focusNearbyUser(btn.dataset.nearbyFocus);
+  });
+
+  applyNearbyVisibility();
+}
+
+function focusNearbyUser(userId) {
+  const user = mapboxUserData[userId];
+  const marker = mapboxUserMarkers[userId];
+  if (!user || !marker) return;
+  setNearbySheetExpanded(false);
+
+  const markerEl = marker.getElement();
+  if (activeMarkerEl && activeMarkerEl !== markerEl) activeMarkerEl.style.opacity = '1';
+  activeMarkerEl = markerEl;
+  isCinematicMode = true;
+  document.body.classList.add('cinematic-mode');
+  stopRotation();
+  map.flyTo({ center: marker.getLngLat(), zoom: 18, pitch: 60, duration: 2000, essential: true });
+  openCinematicPopup(user);
+  map.once('moveend', () => {
+    setTimeout(() => { if (isCinematicMode) startTimedRotation(null); }, 50);
+  });
+}
+
+// Raio do controle (filterMarkersByRange) + chip escolhido → quem aparece; selo e vazio
+function applyNearbyVisibility() {
+  const byId = Object.fromEntries(nearbySheetUsers.map((u) => [String(u.id), u]));
+  let inRange = 0;
+  let shown = 0;
+
+  document.querySelectorAll("#nearby-strip [data-user-id], #users-list [data-user-id]").forEach((el) => {
+    const user = byId[el.dataset.userId];
+    const within = user && parseFloat(el.dataset.distKm) <= nearbyRangeKm;
+    const chipOk = user && (nearbyChip === "all" ||
+                            (nearbyChip === "verified" && user.verified) ||
+                            (nearbyChip === "interests" && sharesInterest(user)));
+    el.hidden = !(within && chipOk);
+    if (el.closest("#users-list")) {
+      if (within) inRange++;
+      if (within && chipOk) shown++;
+    }
+  });
+
+  const count = document.getElementById("nearby-count");
+  if (count) count.textContent = inRange ? `${inRange} ${inRange === 1 ? "pessoa" : "pessoas"}` : "Procurando...";
+
+  const empty = inRange === 0;
+  const toggle = (id, hidden) => { const el = document.getElementById(id); if (el) el.hidden = hidden; };
+  toggle("nearby-empty", !empty);
+  toggle("nearby-chips", empty);
+  toggle("nearby-foot", empty);
+  toggle("nearby-none", empty || shown > 0);
+  document.querySelector(".nb-sheet")?.classList.toggle("is-empty", empty);
+}
+
+function setNearbySheetExpanded(expanded) {
+  const sheet = document.querySelector(".nb-sheet");
+  if (!sheet) return;
+  sheet.classList.toggle("is-expanded", expanded);
+  sheet.style.height = expanded ? `${NEARBY_SHEET_MAX_VH}vh` : "";
+}
+
+function initNearbyChips() {
+  document.querySelectorAll("[data-nearby-chip]").forEach((chip) => {
+    chip.onclick = () => {
+      nearbyChip = chip.dataset.nearbyChip;
+      document.querySelectorAll("[data-nearby-chip]").forEach((c) => {
+        const on = c === chip;
+        c.classList.toggle("is-active", on);
+        c.setAttribute("aria-pressed", String(on));
+      });
+      applyNearbyVisibility();
+    };
+  });
 }
 
 // Folha do perfil completo (#user-popup — conteúdo de GET /users/:id?context=map)
@@ -471,12 +627,9 @@ function filterMarkersByRange() {
     if (visible) visibleCount++;
   });
 
-  const countEl = document.getElementById("nearby-count");
-  if (countEl) countEl.textContent = visibleCount;
-
-  document.querySelectorAll('#users-list .user-list-item[data-dist-km]').forEach(li => {
-    li.style.display = parseFloat(li.dataset.distKm) <= effectiveLimitKm ? '' : 'none';
-  });
+  // Gaveta: mesmos limites (selo "N pessoas", faixa, lista e o vazio)
+  nearbyRangeKm = effectiveLimitKm;
+  applyNearbyVisibility();
 }
 
 async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
@@ -485,11 +638,6 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
   nearbyFetchController = new AbortController();
   isFetchingNearby = true;
   showLoadingAnimation();
-  const usersList = document.getElementById("users-list");
-  const usersCountElement = document.getElementById("nearby-count");
-  const assetsData = document.getElementById('assets-data');
-  const frameUrl = assetsData ? assetsData.dataset.frameUrl : '';
-  const verifiedUrl = assetsData ? assetsData.dataset.verifiedUrl : '';
 
   try {
     let url = `/users/nearby?latitude=${latitude}&longitude=${longitude}&range=${rangeMeters}`;
@@ -504,10 +652,7 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
       // Resposta vazia — não limpa marcadores existentes.
       // O GPS recém-desbloqueado pode ter jitter e colocar o utilizador ligeiramente
       // fora do raio por um ciclo. Os marcadores persistem até a próxima resposta com dados.
-      if (!Object.keys(mapboxUserMarkers).length) {
-        if (usersList) usersList.innerHTML = '<li class="text-center loading-text">Ninguém por perto...</li>';
-        if (usersCountElement) usersCountElement.textContent = "0";
-      }
+      if (!Object.keys(mapboxUserMarkers).length) renderNearbySheet([]);
       hideLoadingAnimation();
       return;
     }
@@ -516,18 +661,8 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
     Object.values(mapboxUserMarkers).forEach(m => m.remove());
     mapboxUserMarkers = {};
     mapboxMarkerDistances = {};
-    if (usersList) usersList.innerHTML = "";
 
     users.forEach(user => {
-      const distDisplay = (user.distance_km || user.distance || 0);
-
-      const avatarHtml = `
-        <div class="avatar-frame-wrapper">
-          <img src="${user.avatar_url || '/default-avatar.png'}" class="avatar-user-img">
-          <img src="${frameUrl}" class="avatar-frame-overlay">
-        </div>
-      `;
-
       let uLat = parseFloat(user.latitude);
       let uLng = parseFloat(user.longitude);
 
@@ -591,60 +726,17 @@ async function loadNearbyUsers(latitude, longitude, rangeMeters, genderFilter) {
         });
       }
 
-      if (usersList) {
-        const isOnline = user.online;
-        const li = document.createElement("li");
-        li.className = "user-list-item";
-        li.dataset.distKm = user.distance_km || 0;
-        li.innerHTML = `
-          ${avatarHtml}
-          <div class="user-list-info">
-              <div class="user-list-name-row" style="display: flex; align-items: center; gap: 5px;">
-                  <span class="user-list-name">${user.username || user.display_name || 'Usuário'}</span>
-                  ${user.verified ? `<img src="${verifiedUrl}" style="width: 14px; height: 14px;" title="Perfil Verificado">` : ''}
-                  <span class="header-status" style="font-size: 0.7rem;">
-                      <span class="${isOnline ? 'dot-online' : 'dot-offline'}">●</span>
-                      ${isOnline ? 'Online' : 'Offline'}
-                  </span>
-              </div>
-              <div class="user-list-distance">${distDisplay} km</div>
-          </div>
-        `;
-        li.addEventListener("click", () => {
-          if (!isNaN(uLat) && !isNaN(uLng)) {
-            // Colapsa a gaveta para liberar a visão do mapa
-            const sheet = document.querySelector('.users-bottom-sheet');
-            if (sheet) sheet.style.height = '25vh';
-
-            // Corrige referência: getElement() já retorna a .premium-marker div
-            const markerEl = mapboxUserMarkers[user.id]?.getElement();
-            if (activeMarkerEl && activeMarkerEl !== markerEl) activeMarkerEl.style.opacity = '1';
-            if (markerEl) activeMarkerEl = markerEl;
-
-            isCinematicMode = true;
-            document.body.classList.add('cinematic-mode');
-            stopRotation();
-            map.flyTo({ center: [uLng, uLat], zoom: 18, pitch: 60, duration: 2000, essential: true });
-            openCinematicPopup(user);
-            map.once('moveend', () => {
-              setTimeout(() => {
-                if (!isCinematicMode) return;
-                startTimedRotation(null);
-              }, 50);
-            });
-          }
-        });
-        usersList.appendChild(li);
-      }
     });
 
+    renderNearbySheet(users);
     filterMarkersByRange();
     hideLoadingAnimation();
   } catch (error) {
     if (error.name === 'AbortError') return; // fetch cancelado por novo filtro — silencioso
     console.error("Erro ao carregar usuários próximos:", error);
     hideLoadingAnimation();
-    if (usersList) usersList.innerHTML = '<li class="text-center loading-text">Erro ao carregar usuários.</li>';
+    const count = document.getElementById("nearby-count");
+    if (count && !Object.keys(mapboxUserMarkers).length) count.textContent = "Sem conexão";
   } finally {
     isFetchingNearby = false;
     nearbyFetchController = null;
@@ -1256,8 +1348,7 @@ document.addEventListener("turbo:load", () => {
     mapboxUserMarkers = {};
     mapboxMarkerDistances = {};
     mapboxUserData = {};
-    const _usersList = document.getElementById("users-list");
-    if (_usersList) _usersList.innerHTML = '';
+    renderNearbySheet([]);
 
     if (fixedUserLat && fixedUserLng) {
       loadNearbyUsers(fixedUserLat, fixedUserLng, currentRangeMeters, currentGenderFilter);
@@ -1268,22 +1359,27 @@ document.addEventListener("turbo:load", () => {
   // BOTTOM SHEET
   const bottomSheet = document.querySelector(".users-bottom-sheet");
   const handle = document.querySelector(".bottom-sheet-handle");
-  if (bottomSheet && handle) {
+  // Só uma das duas cópias deste arquivo liga a alça (senão um toque abre e já fecha)
+  if (bottomSheet && handle && !handle.dataset.nbWired) {
+    handle.dataset.nbWired = "1";
     let startY = 0; let startHeight = 0; let isDraggingSheet = false;
     let startVh = 0;
-    const SNAP_MIN = 25; const SNAP_MAX = 85; const SNAP_THRESHOLD = 50;
+    const SNAP_MIN = 25; const SNAP_MAX = NEARBY_SHEET_MAX_VH; const SNAP_THRESHOLD = 50;
+    let dragMoved = false;
     const onDragStart = (e) => {
       isDraggingSheet = true;
       bottomSheet.classList.add("dragging");
       startY = e.touches ? e.touches[0].clientY : e.clientY;
       startHeight = bottomSheet.getBoundingClientRect().height;
       startVh = (startHeight / window.innerHeight) * 100;
+      dragMoved = false;
     };
     const onDragMove = (e) => {
       if (!isDraggingSheet) return;
       e.preventDefault();
       const currentY = e.touches ? e.touches[0].clientY : e.clientY;
       const deltaY = startY - currentY;
+      if (Math.abs(deltaY) > 6) dragMoved = true;
       let newHeight = startHeight + deltaY;
       const minH = window.innerHeight * (SNAP_MIN / 100);
       const maxH = window.innerHeight * (SNAP_MAX / 100);
@@ -1298,11 +1394,9 @@ document.addEventListener("turbo:load", () => {
       const currentHeight = bottomSheet.getBoundingClientRect().height;
       const viewportHeight = window.innerHeight;
       const currentVh = (currentHeight / viewportHeight) * 100;
-      if (currentVh > 40) {
-        bottomSheet.style.height = `${SNAP_MAX}vh`;
-      } else {
-        bottomSheet.style.height = `${SNAP_MIN}vh`;
-      }
+      // Toque na alça (sem arrastar) abre/fecha
+      if (!dragMoved) return setNearbySheetExpanded(!bottomSheet.classList.contains("is-expanded"));
+      setNearbySheetExpanded(currentVh > 40);
     };
     handle.addEventListener("mousedown", onDragStart);
     handle.addEventListener("touchstart", onDragStart, { passive: false });
@@ -1310,7 +1404,11 @@ document.addEventListener("turbo:load", () => {
     window.addEventListener("touchmove", onDragMove, { passive: false });
     window.addEventListener("mouseup", onDragEnd);
     window.addEventListener("touchend", onDragEnd);
+    handle.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setNearbySheetExpanded(!bottomSheet.classList.contains("is-expanded")); }
+    });
   }
+  initNearbyChips();
 
   // BOTÃO CENTRALIZAR MAPA — reset para visão 2D de navegação
   if (fabCenterMap) {
@@ -1496,8 +1594,6 @@ document.addEventListener("turbo:load", () => {
     .skeleton-avatar { width: 40px; height: 40px; background: #444; border-radius: 50%; }
     .skeleton-text { flex: 1; display: flex; flex-direction: column; gap: 5px; justify-content: center; }
     .skeleton-line { height: 10px; background: #444; border-radius: 4px; width: 80%; }
-    .users-bottom-sheet { transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1); will-change: height; }
-    .users-bottom-sheet.dragging { transition: none; }
     .premium-marker { width: 46px; height: 46px; border-radius: 50%; border: 3px solid #22c55e; box-shadow: 0 0 0 0 rgba(34,197,94,0.5), 0 4px 15px rgba(0,0,0,0.15); overflow: hidden; cursor: pointer; pointer-events: auto; position: relative; z-index: 10; transition: opacity 0.25s ease; will-change: transform; animation: markerPulse 2s ease-out infinite; }
     .premium-marker:hover { transform: scale(1.1); animation-play-state: paused; }
     .premium-marker-img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }

@@ -10,7 +10,8 @@
      data-verified-url="<%= image_path('icone-verificar.png') %>"
      style="display: none;"></div>
 
-<div id="current-user-data" data-invisible="<%= current_user.invisible %>" data-sharing-location="<%= current_user.sharing_location? %>"></div>
+<div id="current-user-data" data-invisible="<%= current_user.invisible %>" data-sharing-location="<%= current_user.sharing_location? %>"
+     data-hobbies="<%= current_user.hobbies_list.map { |h| h.strip.downcase }.to_json %>"></div>
 
 <div class="discover-fullscreen-container">
 
@@ -70,22 +71,81 @@
     <% end %>
   </div>
 
-  <div class="users-bottom-sheet">
-    <div class="bottom-sheet-handle"><div class="handle-bar"></div></div>
-    
-    <div class="bottom-sheet-content">
-      <div class="bottom-sheet-header">
-        <div class="header-users-title">
-           <%= image_tag "icone-usuarios-proximos.png", class: "icon-users-header" %>
-           <%= image_tag "texto-usuarios-proximos.png", class: "text-users-header" %>
-        </div>
-        <span class="nearby-count" id="nearby-count">0</span>
-      </div>
-      
-      <ul id="users-list" class="users-list-fullscreen">
-        <li class="text-center loading-text">Buscando...</li>
-      </ul>
+  <%# --- POR PERTO AGORA: gaveta de baixo (map_3d.js monta a faixa, a lista e o vazio).
+      Recolhida: faixa de avatares (ou o cartão "Ninguém no seu raio agora"). Aberta (arrastar
+      ou tocar na alça): chips Todos / Verificados / Interesses em comum e a lista com mensagem;
+      vazia, o radar e "Enquanto isso". Estilos .nb-* em discover.scss. %>
+  <div class="users-bottom-sheet nb-sheet">
+    <div class="bottom-sheet-handle" role="button" tabindex="0" aria-label="Abrir ou fechar a lista de quem está por perto">
+      <div class="handle-bar"></div>
     </div>
+
+    <div class="nb-head">
+      <h2 class="nb-title"><i aria-hidden="true"></i>Por perto agora</h2>
+      <span class="nb-count" id="nearby-count" aria-live="polite">Procurando...</span>
+    </div>
+
+    <div class="nb-chips" id="nearby-chips" role="group" aria-label="Filtrar quem está por perto" hidden>
+      <button type="button" class="nb-chip is-active" data-nearby-chip="all" aria-pressed="true">Todos</button>
+      <button type="button" class="nb-chip" data-nearby-chip="verified" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.4l3 2.9 6-6.1"/></svg>Verificados
+      </button>
+      <button type="button" class="nb-chip" data-nearby-chip="interests" aria-pressed="false">Interesses em comum</button>
+    </div>
+
+    <div class="nb-body">
+      <ul class="nb-strip" id="nearby-strip" aria-label="Quem está por perto"></ul>
+      <ul class="nb-list users-list-fullscreen" id="users-list"></ul>
+      <p class="nb-none" id="nearby-none" hidden>Ninguém com esse filtro agora.</p>
+
+      <div class="nb-empty" id="nearby-empty" hidden>
+        <div class="nb-empty-card">
+          <span class="nb-radar nb-radar--sm" aria-hidden="true"><span></span><b><%= render "users/nearby_pin" %></b></span>
+          <span class="nb-empty-card-text">
+            <strong>Ninguém no seu raio agora</strong>
+            <span>Fique de olho: quem chegar a até 300 m aparece aqui na hora.</span>
+          </span>
+        </div>
+
+        <div class="nb-empty-more">
+          <span class="nb-radar nb-radar--lg" aria-hidden="true"><span></span><b><%= render "users/nearby_pin" %></b></span>
+          <h3 class="nb-empty-title">Ninguém no seu raio agora</h3>
+          <p class="nb-empty-text">O GeoMatch é ao vivo: quando alguém chegar a até 300 m de você, aparece aqui na hora.</p>
+
+          <p class="nb-kicker">Enquanto isso</p>
+          <%= link_to discover_3d_gallery_path, class: "nb-option" do %>
+            <span class="nb-option-icon nb-option-icon--dark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a14 14 0 0 0 0 19 14 14 0 0 0 0-19M2.5 12h19"/></svg>
+            </span>
+            <span class="nb-option-text">
+              <strong>Explorar outras cidades <em>Gold</em></strong>
+              <small>Converse com gente de qualquer lugar do Brasil</small>
+            </span>
+            <svg class="nb-option-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          <% end %>
+          <%= link_to lead_path, class: "nb-option" do %>
+            <span class="nb-option-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </span>
+            <span class="nb-option-text">
+              <strong>Ver perfis no Início</strong>
+              <small>Curta e converse com quem está mais longe</small>
+            </span>
+            <svg class="nb-option-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          <% end %>
+
+          <p class="nb-foot nb-foot--live">
+            <span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg></span>
+            Sem pressa: o mapa se atualiza ao vivo.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p class="nb-foot nb-foot--list" id="nearby-foot" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z"/></svg>
+      Distâncias aproximadas para proteger todo mundo
+    </p>
   </div>
 
   <%# --- PERFIL COMPLETO: folha que sobe por cima do mapa ("Ver perfil" da prévia do pin).
