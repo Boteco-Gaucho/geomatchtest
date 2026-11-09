@@ -30,8 +30,23 @@ module MercadoPago
 
     def create_checkout_preference
       result = sdk.preference.create(build_preference)
+      ensure_success!(result)
       response = normalize_response(result)
       update_payment(response)
+    end
+
+    # O SDK não levanta erro quando o Mercado Pago recusa: devolve { status:, response: }.
+    # Sem isto o motivo se perdia e só sobrava "não retornou init_point".
+    def ensure_success!(result)
+      return unless result.is_a?(Hash)
+
+      status = (result["status"] || result[:status]).to_i
+      return if status.zero? || status.between?(200, 299)
+
+      body = normalize_response(result)
+      detail = body.is_a?(Hash) ? (body["message"] || body["error"] || body.to_s) : body.to_s
+      causes = body.is_a?(Hash) ? Array(body["cause"]).map { |c| c.is_a?(Hash) ? c["description"] || c["code"] : c }.compact : []
+      raise ProviderError, ["Mercado Pago recusou a preferência (HTTP #{status}): #{detail}", causes.join("; ").presence].compact.join(" — ")
     end
 
     def build_preference

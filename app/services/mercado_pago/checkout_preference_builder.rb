@@ -20,7 +20,7 @@ module MercadoPago
           {
             id: plan.id.to_s,
             title: plan.name,
-            description: plan.description,
+            description: plan.description.presence || "Assinatura GeoMatch #{plan.name}",
             quantity: 1,
             currency_id: plan.price_currency,
             unit_price: plan.price.to_f
@@ -51,13 +51,23 @@ module MercadoPago
       }
     end
 
+    # Endereço deste deploy (retorno do checkout e webhook). Sem APP_BASE_URL cai no host
+    # fixo de production.rb — num deploy diferente (ex.: o de testes) o webhook iria para
+    # OUTRO app e o plano não seria ativado após o pagamento: fica o aviso no log.
     def base_url
-      ENV['APP_BASE_URL'].presence ||
-        Rails.application.routes.default_url_options[:host].presence
+      @base_url ||= begin
+        url = ENV['APP_BASE_URL'].presence || Rails.application.routes.default_url_options[:host].presence
+        raise MercadoPago::CheckoutProService::ConfigurationError, "APP_BASE_URL não configurado" if url.blank?
+
+        if ENV['APP_BASE_URL'].blank?
+          Rails.logger.warn "[CheckoutPro] APP_BASE_URL não configurado — usando #{url}. Confirme que é ESTE deploy."
+        end
+        url.to_s.delete_suffix("/")
+      end
     end
 
     def webhook_url
-      "#{base_url.to_s.delete_suffix("/")}/webhooks/mercado_pago"
+      "#{base_url}/webhooks/mercado_pago"
     end
 
     def expiration_date_from

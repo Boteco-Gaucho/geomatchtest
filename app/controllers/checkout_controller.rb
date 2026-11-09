@@ -17,12 +17,17 @@ class CheckoutController < ApplicationController
       end
     end
 
-  rescue ActiveRecord::RecordNotFound, ActionController::ParameterMissing,
-    MercadoPago::CheckoutProService::ConfigurationError, MercadoPago::CheckoutProService::ProviderError => e
-    respond_to do |format|
-      format.html { redirect_to root_path, alert: "Erro ao iniciar pagamento: #{e.message}" }
-      format.json { render json: { error: e.message }, status: :unprocessable_entity }
-    end
+  # Antes ia para root_path, que redireciona quem está logado para o mapa: o aviso se
+  # perdia no segundo redirecionamento e a pessoa caía no mapa sem saber o que houve.
+  # Agora volta para /plans com o aviso, e o motivo real (configuração ausente, recusa
+  # do Mercado Pago) fica no log.
+  rescue ActiveRecord::RecordNotFound, ActionController::ParameterMissing
+    checkout_failed!("Plano não encontrado. Escolha um plano para continuar.")
+  rescue MercadoPago::CheckoutProService::ConfigurationError, MercadoPago::CheckoutProService::ProviderError,
+         ActiveRecord::RecordInvalid => e
+    Rails.logger.error "[Checkout] Falha ao abrir o pagamento do plano #{params[:plan_id].inspect} " \
+                       "para User##{current_user.id}: #{e.class}: #{e.message}"
+    checkout_failed!("Não deu para abrir o pagamento agora. Tente de novo em instantes.")
   end
 
   def create_one_off_message
@@ -42,6 +47,13 @@ class CheckoutController < ApplicationController
   end
 
   private
+
+  def checkout_failed!(message)
+    respond_to do |format|
+      format.html { redirect_to plans_path, alert: message }
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+    end
+  end
 
   def set_plan
     @plan = Plan.find(params.require(:plan_id))
