@@ -5,7 +5,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <% end %>
 
-<div class="geomatch-screen-wrapper" data-controller="lead-swipe filters">
+<% filter_defaults = LeadFilters.defaults(current_user) %>
+<div class="geomatch-screen-wrapper" data-controller="lead-swipe filters"
+     data-filters-default-genders-value="<%= filter_defaults.genders.to_json %>"
+     data-filters-default-distance-value="<%= filter_defaults.distance %>"
+     data-filters-default-min-age-value="<%= filter_defaults.min_age %>"
+     data-filters-default-max-age-value="<%= filter_defaults.max_age %>">
   
   <%# --- 1. HEADER (Fixo) --- %>
   <div class="geomatch-header">
@@ -25,66 +30,123 @@
     <%= render "users/swipe_area", next_user: @next_user, distance: @distance %>
   </div>
 
-  <%# --- 5. MODAL DE FILTROS --- %>
-  <div class="filter-modal hidden" data-filters-target="modal">
+  <%# --- 5. FILTROS (folha de baixo) — LeadFilters na sessão; filters_controller.js atualiza
+      valores, "N ativos" e os contadores enquanto a pessoa mexe. Estilos .lf-* em lead.scss. %>
+  <% lf = @lead_filters %>
+  <div class="filter-modal lf-modal hidden" data-filters-target="modal">
     <div class="filter-backdrop" data-action="click->filters#close"></div>
 
-    <div class="filter-content">
-      <%= form_tag lead_path, method: :get, data: { filters_target: "form" } do %>
+    <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="lf-title">
+      <%= form_tag lead_path, method: :get, class: "lf-form", data: { filters_target: "form", action: "input->filters#refresh change->filters#refresh" } do %>
+        <span class="lf-handle" aria-hidden="true"></span>
 
-        <div class="filter-header">
-          <h2 class="filter-title">Filtros</h2>
-          <button type="button" class="filter-close-btn" data-action="click->filters#close">
-            <i class="fas fa-times"></i>
+        <div class="lf-head">
+          <h2 class="lf-title" id="lf-title">Filtros</h2>
+          <span class="lf-active" data-filters-target="activeBadge" <%= "hidden" if lf.active_count.zero? %>>
+            <%= lf.active_count %> <%= lf.active_count == 1 ? "ativo" : "ativos" %>
+          </span>
+          <button type="button" class="lf-close" aria-label="Fechar filtros" data-action="filters#close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
         </div>
 
-        <%# --- Card: Distância --- %>
-        <div class="filter-card">
-          <div class="filter-card-top">
-            <span class="filter-card-label">Distância máxima</span>
-            <span class="filter-card-value">
-              <span data-filters-target="distanceValue"><%= @filter_distance %></span> km de você
-            </span>
-          </div>
-          <input type="range" name="distance" min="5" max="500" step="5"
-                 value="<%= @filter_distance %>"
-                 class="gm-range"
-                 data-filters-target="distanceInput"
-                 data-action="input->filters#updateDistanceVisual">
-          <div class="filter-card-toggle-row">
-            <p>Ver pessoas um pouco mais distantes se acabar</p>
-            <label class="gm-switch">
-              <input type="checkbox" checked>
-              <span class="gm-switch-track"></span>
-            </label>
-          </div>
+        <div class="lf-scroll">
+          <%# Quero conhecer %>
+          <section class="lf-card">
+            <h3 class="lf-card-title">Quero conhecer</h3>
+            <div class="lf-chips">
+              <% LeadFilters::GENDERS.each do |key, gender| %>
+                <label class="lf-chip">
+                  <input type="checkbox" name="f[genders][]" value="<%= key %>" <%= "checked" if lf.genders.include?(key) %>
+                         data-filters-target="gender">
+                  <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><%= gender[:label] %></span>
+                </label>
+              <% end %>
+            </div>
+            <%# Sem nenhum marcado = todos (a chave vai vazia para não cair no padrão do perfil) %>
+            <input type="hidden" name="f[genders][]" value="">
+          </section>
+
+          <%# Distância máxima %>
+          <section class="lf-card">
+            <div class="lf-card-head">
+              <h3 class="lf-card-title">Distância máxima</h3>
+              <span class="lf-value">até <span data-filters-target="distanceValue"><%= lf.distance %></span> km</span>
+            </div>
+            <div class="lf-range" data-filters-target="distanceRange">
+              <input type="range" name="f[distance]" min="<%= LeadFilters::DISTANCE_RANGE.min %>" max="<%= LeadFilters::DISTANCE_RANGE.max %>"
+                     step="1" value="<%= lf.distance %>" aria-label="Distância máxima em km" data-filters-target="distance">
+            </div>
+            <div class="lf-range-ends"><span><%= LeadFilters::DISTANCE_RANGE.min %> km</span><span><%= LeadFilters::DISTANCE_RANGE.max %> km</span></div>
+            <div class="lf-row lf-row--divided">
+              <span class="lf-row-text"><strong>Ampliar se acabarem os perfis</strong><small>Mostra pessoas um pouco mais longe.</small></span>
+              <input type="hidden" name="f[expand]" value="0">
+              <label class="lf-switch"><input type="checkbox" name="f[expand]" value="1" <%= "checked" if lf.expand %> aria-label="Ampliar se acabarem os perfis"><span></span></label>
+            </div>
+          </section>
+
+          <%# Faixa etária (duas pontas no mesmo trilho) %>
+          <section class="lf-card">
+            <div class="lf-card-head">
+              <h3 class="lf-card-title">Faixa etária</h3>
+              <span class="lf-value"><span data-filters-target="ageValue"><%= lf.min_age %> – <%= lf.max_age %></span> anos</span>
+            </div>
+            <div class="lf-range lf-range--dual" data-filters-target="ageRange">
+              <input type="range" name="f[min_age]" min="<%= LeadFilters::AGE_RANGE.min %>" max="<%= LeadFilters::AGE_RANGE.max %>"
+                     value="<%= lf.min_age %>" aria-label="Idade mínima" data-filters-target="minAge">
+              <input type="range" name="f[max_age]" min="<%= LeadFilters::AGE_RANGE.min %>" max="<%= LeadFilters::AGE_RANGE.max %>"
+                     value="<%= lf.max_age %>" aria-label="Idade máxima" data-filters-target="maxAge">
+            </div>
+            <div class="lf-range-ends"><span><%= LeadFilters::AGE_RANGE.min %></span><span><%= LeadFilters::AGE_RANGE.max %></span></div>
+          </section>
+
+          <%# Interesses em comum %>
+          <section class="lf-card">
+            <div class="lf-card-head">
+              <h3 class="lf-card-title">Interesses em comum</h3>
+              <span class="lf-value" data-filters-target="interestsCount" <%= "hidden" if lf.interests.empty? %>>
+                <%= lf.interests.size %> <%= lf.interests.size == 1 ? "selecionado" : "selecionados" %>
+              </span>
+            </div>
+            <div class="lf-chips">
+              <% LeadFilters::INTERESTS.each do |key, interest| %>
+                <label class="lf-chip lf-chip--plain">
+                  <input type="checkbox" name="f[interests][]" value="<%= key %>" <%= "checked" if lf.interests.include?(key) %>
+                         data-filters-target="interest">
+                  <span><%= interest[:label] %></span>
+                </label>
+              <% end %>
+            </div>
+            <p class="lf-note">Mostra quem tem pelo menos um desses no perfil.</p>
+          </section>
+
+          <%# Mais filtros %>
+          <section class="lf-card">
+            <h3 class="lf-card-title">Mais filtros</h3>
+            <% [ [ "online", "Online agora", "Só quem está usando o app", lf.online ],
+                 [ "verified", "Só perfis verificados", "Com o selo azul", lf.verified ],
+                 [ "with_bio", "Com bio preenchida", "Perfis que contam algo sobre si", lf.with_bio ] ].each_with_index do |(key, title, sub, on), i| %>
+              <div class="lf-row<%= " lf-row--divided" if i.positive? %>">
+                <span class="lf-icon lf-icon--<%= key %>" aria-hidden="true">
+                  <% case key
+                     when "online" %><i></i>
+                  <% when "verified" %><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.4l3 2.9 6-6.1"/></svg>
+                  <% else %><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+                  <% end %>
+                </span>
+                <span class="lf-row-text"><strong><%= title %></strong><small><%= sub %></small></span>
+                <input type="hidden" name="f[<%= key %>]" value="0">
+                <label class="lf-switch"><input type="checkbox" name="f[<%= key %>]" value="1" <%= "checked" if on %>
+                       aria-label="<%= title %>" data-filters-target="toggle"><span></span></label>
+              </div>
+            <% end %>
+          </section>
         </div>
 
-        <%# --- Card: Faixa Etária --- %>
-        <div class="filter-card">
-          <div class="filter-card-top">
-            <span class="filter-card-label">Faixa etária</span>
-            <span class="filter-card-value">
-              <span data-filters-target="ageDisplay"><%= @filter_min_age %> - <%= @filter_max_age %></span> anos
-            </span>
-          </div>
-          <span class="filter-range-sub">Mínima</span>
-          <input type="range" name="min_age" min="18" max="100"
-                 value="<%= @filter_min_age %>"
-                 class="gm-range"
-                 data-filters-target="minAgeInput"
-                 data-action="input->filters#updateAgeVisual">
-          <span class="filter-range-sub" style="margin-top: 14px;">Máxima</span>
-          <input type="range" name="max_age" min="18" max="100"
-                 value="<%= @filter_max_age %>"
-                 class="gm-range"
-                 data-filters-target="maxAgeInput"
-                 data-action="input->filters#updateAgeVisual">
+        <div class="lf-actions">
+          <%= link_to "Limpar", lead_path(limpar_filtros: 1), class: "lf-clear" %>
+          <button type="submit" class="lf-apply">Aplicar filtros</button>
         </div>
-
-        <button type="submit" class="btn-apply-gold">Aplicar Filtros</button>
-
       <% end %>
     </div>
   </div>

@@ -502,8 +502,11 @@ class User < ApplicationRecord
     age_hidden? ? nil : age
   end
 
+  # "Online agora": usou o app há pouco (o filtro "Online agora" da tela de início usa o mesmo)
+  ONLINE_WINDOW = 2.minutes
+
   def online?
-    last_seen_at.present? && last_seen_at > 2.minutes.ago
+    last_seen_at.present? && last_seen_at > ONLINE_WINDOW.ago
   end
 
   def premium?

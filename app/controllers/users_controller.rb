@@ -245,6 +245,16 @@ class UsersController < ApplicationController
   #  ACTION LEAD (SWIPE / TINDER)
   # ==========================================
   def lead
+    # Filtros: "Aplicar filtros" (f[...]) e "Limpar" (limpar_filtros) gravam na sessão e
+    # voltam para /lead limpo — assim valem também depois de curtir ou rejeitar
+    if params[:limpar_filtros].present?
+      session.delete(LeadFilters::SESSION_KEY)
+      return redirect_to(lead_path)
+    elsif params[:f].present?
+      session[LeadFilters::SESSION_KEY] = LeadFilters.from_params(params[:f], current_user).to_session
+      return redirect_to(lead_path)
+    end
+
     # 0. GARANTE LOCALIZAÇÃO (fallback DEV)
     if current_user.latitude.nil? || current_user.longitude.nil?
       current_user.update(latitude: -14.7876, longitude: -39.2781)
@@ -261,16 +271,8 @@ class UsersController < ApplicationController
       end
     end
 
-    # 2. FILTROS
-    filters = {
-      distance: params[:distance].presence || 500,
-      min_age:  params[:min_age].presence || 18,
-      max_age:  params[:max_age].presence || 60
-    }
-
-    @filter_distance = filters[:distance]
-    @filter_min_age  = filters[:min_age]
-    @filter_max_age  = filters[:max_age]
+    # 2. FILTROS (folha "Filtros" — LeadFilters)
+    @lead_filters = lead_filters
 
     # 3. BUSCA
     # Ignora: Já curtidos + Bloqueados + Quem me bloqueou
@@ -278,7 +280,7 @@ class UsersController < ApplicationController
     ignored_ids = current_user.likes.pluck(:liked_id) + current_user.excluded_user_ids
     
     @next_user, @distance = AdvancedDiscoveryService.new(current_user)
-                                      .find_next_eligible_user(ignored_ids, filters)
+                                      .find_next_eligible_user(ignored_ids, @lead_filters.to_discovery)
   end
 
   # ==========================================
@@ -422,10 +424,7 @@ class UsersController < ApplicationController
       format.turbo_stream do
         ignored_ids  = current_user.likes.pluck(:liked_id) + current_user.excluded_user_ids
         @next_user, @distance = AdvancedDiscoveryService.new(current_user)
-                                  .find_next_eligible_user(
-                                    ignored_ids,
-                                    { distance: 500, min_age: 18, max_age: 60 }
-                                  )
+                                  .find_next_eligible_user(ignored_ids, lead_filters.to_discovery)
 
         streams = []
         if lost_match
@@ -684,6 +683,11 @@ class UsersController < ApplicationController
     }
 
     recipient_ids.each { |id| ActionCable.server.broadcast(MapChannel.user_stream(id), payload) }
+  end
+
+  # Filtros da tela de início guardados na sessão (padrões na primeira vez)
+  def lead_filters
+    LeadFilters.from_session(session, current_user)
   end
 
   # Tira o marcador do mapa de todo mundo (modo oculto ligado / localização desligada)
