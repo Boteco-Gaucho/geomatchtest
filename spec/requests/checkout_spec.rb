@@ -61,6 +61,10 @@ RSpec.describe "Checkout", type: :request do
 
     def assinar!
       get "/plans"
+      # O navegador aplica form-action ao redirecionamento pós-envio: sem o Mercado Pago aqui,
+      # o 302 de /checkout para o init_point é bloqueado e o pagamento não abre.
+      form_action = response.headers["Content-Security-Policy"].to_s[/form-action ([^;]*)/, 1].to_s.split
+      expect(form_action).to include("'self'", "https://*.mercadopago.com.br")
       form = Nokogiri::HTML(response.body).at_css("form.pl-cta-form")
       expect(form["data-turbo"]).to eq("false")
       post form["action"]

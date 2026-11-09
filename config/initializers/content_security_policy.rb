@@ -35,8 +35,14 @@ Rails.application.configure do
     # Frames: desabilitar (a menos que tenha embed de vídeo)
     policy.frame_src :none
 
-    # Form submissions: apenas self
-    policy.form_action :self
+    # Form submissions: self + Mercado Pago. O navegador aplica form-action também aos
+    # REDIRECIONAMENTOS depois do envio: POST /checkout responde 302 para o init_point do
+    # Mercado Pago (que pode redirecionar de novo para login do Mercado Livre / mpago.la).
+    # Sem estes hosts o Chrome bloqueia e o botão "Assinar" de /plans não abre o pagamento.
+    policy.form_action :self,
+                       "https://*.mercadopago.com.br", "https://*.mercadopago.com",
+                       "https://*.mercadolivre.com.br", "https://*.mercadolibre.com",
+                       "https://mpago.la", "https://*.mpago.la"
 
     # Base URI: apenas self
     policy.base_uri :self
