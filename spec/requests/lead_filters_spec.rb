@@ -140,4 +140,45 @@ RSpec.describe "Filtros do /lead", type: :request do
       expect(page.at_css('input[name="f[verified]"][type=checkbox]').key?("checked")).to be(false)
     end
   end
+
+  describe "acabaram os perfis" do
+    before { sign_in me, scope: :user }
+
+    it "sem ajustes: mensagem, sem chips, Ajustar filtros e o mapa; sem número no botão" do
+      get "/lead"
+      page = Nokogiri::HTML(response.body)
+      empty = page.at_css(".le-empty")
+
+      expect(empty.at_css(".le-title").text).to eq("Novas pessoas estão a caminho")
+      expect(empty.at_css(".le-text").text).to include("amplie seus filtros ou espie quem está no mapa agora")
+      expect(empty.at_css(".le-chips")).to be_nil
+      expect(empty.at_css("button.le-adjust")["data-action"]).to eq("filters#open")
+      expect(empty.at_css("a.le-map")["href"]).to eq("/discover_3d")
+      expect(empty.at_css("a.le-map").text.squish).to eq("Ver quem está no mapa agora")
+      expect(page.at_css(".lead-filter-btn .lead-filter-count")).to be_nil
+    end
+
+    it "os filtros ajustados aparecem em chips e o número do botão é a quantidade deles" do
+      get "/lead", params: { f: { genders: [ "", "mulheres", "homens" ], min_age: "25", max_age: "40", distance: "80",
+                                  interests: %w[praia viagem], verified: "1" } }
+      follow_redirect!
+      page = Nokogiri::HTML(response.body)
+
+      chips = page.css(".le-chips li").map(&:text)
+      expect(chips).to eq([ "Mulheres e Homens", "25 – 40 anos", "até 80 km", "2 interesses", "Verificados" ])
+      expect(page.at_css(".lead-filter-count").text).to eq("5")
+      expect(page.at_css(".lf-active").text.squish).to eq("5 ativos")
+    end
+
+    it "rejeitar o último perfil mostra o mesmo fim, com os chips da sessão" do
+      get "/lead", params: { f: { genders: [ "" ], verified: "1" } }
+      last = person(verified: true)
+      post "/lead/reject", params: { user_id: last.id }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response.body).to include("Novas pessoas estão a caminho")
+      expect(response.body).to include("<li>Todos os gêneros</li>")
+      expect(response.body).to include("<li>Verificados</li>")
+    end
+  end
 end
+

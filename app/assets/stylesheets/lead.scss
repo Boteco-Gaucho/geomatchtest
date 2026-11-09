@@ -62,6 +62,7 @@ html, body {
 
   // Filtros: botão redondo do mockup (ícone de controles deslizantes)
   .header-right .lead-filter-btn {
+    position: relative;
     justify-content: center;
     width: 43px;
     height: 43px;
@@ -492,12 +493,184 @@ html, body {
   transform: scale(1.22) !important;
 }
 
-// Estado Vazio
-.empty-state {
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  height: 100%; color: var(--gold-primary); text-align: center;
-  .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-  .btn-gold-outline { margin-top: 20px; padding: 10px 24px; border: 1px solid var(--gold-primary); color: var(--gold-primary); text-decoration: none; border-radius: 25px; font-weight: 600; }
+// Acabaram os perfis (users/_swipe_area — .le-*). Mockup de 739px → ×0,528.
+.le-empty {
+  --le-text: #1c1c1e;
+  --le-muted: #5c5955;
+  --le-ring: #e8dcc6;
+  --le-dot: #d9bf8a;
+  --le-core-bg: #fff;
+  --le-halo: #efe3cd;
+  --le-chip-bg: #fff;
+  --le-chip-border: #ece4d8;
+  --le-dark: #1e1e20;
+  --le-dark-text: #fff;
+  --le-map-bg: #fff;
+  --le-gold-1: #a98146;
+  --le-gold-2: #8a6532;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 8px 28px 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
+
+  svg { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+// Radar: dois anéis, pontinhos dourados e o pin no meio
+.le-radar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 200px;
+  height: 200px;
+}
+
+.le-ring {
+  position: absolute;
+  border: 1px solid var(--le-ring);
+  border-radius: 50%;
+
+  &--outer { inset: 0; }
+  &--inner { inset: 30px; animation: le-breathe 3.2s ease-in-out infinite; }
+}
+
+.le-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--le-dot);
+
+  &--1 { top: 50px; left: 22px; width: 8px; height: 8px; }
+  &--2 { top: 26px; left: 139px; width: 4px; height: 4px; }
+  &--3 { top: 118px; left: 160px; width: 5px; height: 5px; }
+}
+
+.le-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  border-radius: 50%;
+  background: var(--le-core-bg);
+  box-shadow: 0 0 0 9px var(--le-halo), 0 14px 30px rgba(138, 101, 50, 0.18);
+  color: #a6876a;
+
+  svg { width: 32px; height: 32px; stroke-width: 1.7; }
+}
+
+@keyframes le-breathe {
+  50% { transform: scale(1.04); opacity: 0.7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .le-ring--inner { animation: none; }
+}
+
+.le-title {
+  max-width: 300px;
+  margin: 26px 0 0;
+  background: linear-gradient(180deg, var(--le-gold-1), var(--le-gold-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 31.5px;
+  letter-spacing: -0.6px;
+}
+
+.le-text {
+  max-width: 330px;
+  margin: 12px 0 0;
+  color: var(--le-muted);
+  font-size: 15.5px;
+  line-height: 22.7px;
+}
+
+.le-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 13px;
+    border: 1px solid var(--le-chip-border);
+    border-radius: 999px;
+    background: var(--le-chip-bg);
+    color: var(--le-text);
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+}
+
+.le-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: 100%;
+  max-width: 334px;
+  margin-top: 26px;
+}
+
+.le-adjust,
+.le-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.98); }
+  &:hover { filter: none; box-shadow: none; }
+}
+
+.le-adjust {
+  height: 54px;
+  border: 0;
+  background: var(--le-dark);
+  color: var(--le-dark-text);
+  font-size: 16.5px;
+
+  svg { width: 18px; height: 18px; stroke-width: 1.9; color: #d6b26a; }
+}
+
+.le-map {
+  height: 51px;
+  border: 1.5px solid var(--le-chip-border);
+  background: var(--le-map-bg);
+  color: var(--le-text);
+  font-size: 16px;
+
+  &:hover { color: var(--le-text); }
+
+  i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22a559;
+    box-shadow: 0 0 0 3px rgba(34, 165, 89, 0.22);
+  }
 }
 
 // =========================================
@@ -893,5 +1066,43 @@ html.dark:not(.light-mode) .lf-modal {
   --lf-round: #2c2c2e;
   --lf-icon-bg: #2c2c2e;
   --lf-actions: #19191b;
+}
+
+// Número de filtros ajustados no botão de filtros (LeadFilters#active_count)
+.lead-filter-count {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 2px solid var(--lead-round-bg, #fff);
+  border-radius: 999px;
+  background: #c9a052;
+  color: #1e1e20;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+// Acabaram os perfis no escuro
+.dark-mode .le-empty,
+html.dark:not(.light-mode) .le-empty {
+  --le-text: #f4f0ea;
+  --le-muted: #b3aea8;
+  --le-ring: #3a342a;
+  --le-dot: #8f7a52;
+  --le-core-bg: #232325;
+  --le-halo: #2c2820;
+  --le-chip-bg: #232325;
+  --le-chip-border: #3a3a3d;
+  --le-dark: #f4f0ea;
+  --le-dark-text: #121212;
+  --le-map-bg: #1c1c1e;
+  --le-gold-1: #e6c27e;
+  --le-gold-2: #c9a052;
 }
 

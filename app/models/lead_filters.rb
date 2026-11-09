@@ -76,16 +76,31 @@ class LeadFilters
     }
   end
 
-  # Selo "N ativos": o que está diferente do padrão
-  def active_count
+  # Filtros ajustados (diferentes do padrão), um chip para cada: "Mulheres", "18 – 60 anos",
+  # "até 80 km", "Praia" / "2 interesses", "Online agora", "Verificados", "Com bio".
+  # Aparecem no fim dos perfis (users/_swipe_area) e contam no número do botão de filtros
+  # e no selo "N ativos" da folha (filters_controller.js segue os mesmos critérios).
+  def active_chips
     base = self.class.defaults(@user)
-    [
-      genders.sort != base.genders.sort,
-      distance != base.distance,
-      [ min_age, max_age ] != [ base.min_age, base.max_age ],
-      interests.any?,
-      online, verified, with_bio
-    ].count(true)
+    chips = []
+    if genders.sort != base.genders.sort
+      chips << (genders.empty? ? "Todos os gêneros" : genders.map { |key| GENDERS[key][:label] }.join(" e "))
+    end
+    chips << "#{min_age} – #{max_age} anos" if [ min_age, max_age ] != [ base.min_age, base.max_age ]
+    chips << "até #{distance} km" if distance != base.distance
+    if interests.size == 1
+      chips << INTERESTS[interests.first][:label]
+    elsif interests.size > 1
+      chips << "#{interests.size} interesses"
+    end
+    chips << "Online agora" if online
+    chips << "Verificados" if verified
+    chips << "Com bio" if with_bio
+    chips
+  end
+
+  def active_count
+    active_chips.size
   end
 
   private

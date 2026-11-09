@@ -19,8 +19,12 @@
     </div>
     <%# Só filtros, como no mockup — o tema claro/escuro fica em Meu Perfil → Aparência %>
     <div class="header-right">
-      <button type="button" class="header-btn lead-filter-btn" aria-label="Filtros" data-action="click->filters#open">
+      <% active_filters = @lead_filters.active_count %>
+      <button type="button" class="header-btn lead-filter-btn"
+              aria-label="<%= active_filters.positive? ? "Filtros (#{active_filters} ajustados)" : "Filtros" %>" data-action="click->filters#open">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="15" cy="8" r="2.4"/><circle cx="9" cy="16" r="2.4"/></svg>
+        <%# Quantos filtros a pessoa ajustou (LeadFilters#active_count — os chips do fim dos perfis) %>
+        <% if active_filters.positive? %><span class="lead-filter-count" aria-hidden="true"><%= active_filters %></span><% end %>
       </button>
     </div>
   </div>

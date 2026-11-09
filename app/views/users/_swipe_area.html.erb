@@ -90,12 +90,37 @@
   </div>
 
 <% else %>
-  <%# --- EMPTY STATE --- %>
-  <div class="empty-state">
-    <div class="empty-icon">🔍</div>
-    <h3>Sem mais usuários por perto</h3>
-    <button class="btn-gold-outline" data-action="click->filters#open">
-      Ajustar Filtros
-    </button>
+  <%# --- ACABARAM OS PERFIS (mockup): radar, os filtros ajustados em chips, "Ajustar filtros"
+      (abre a folha de novo — filters#open) e "Ver quem está no mapa agora". Estilos .le-* em
+      lead.scss. Também chega por Turbo Stream (rejeitar), por isso os filtros vêm da sessão. %>
+  <% chips = LeadFilters.from_session(session, current_user).active_chips %>
+  <div class="le-empty">
+    <div class="le-radar" aria-hidden="true">
+      <span class="le-ring le-ring--outer"></span>
+      <span class="le-ring le-ring--inner"></span>
+      <span class="le-dot le-dot--1"></span><span class="le-dot le-dot--2"></span><span class="le-dot le-dot--3"></span>
+      <span class="le-core">
+        <svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><path d="M14.6 8.4A3 3 0 1 0 15 11h-2.6"/><path d="M10.6 15.6l1.4 1.3 1.4-1.3"/></svg>
+      </span>
+    </div>
+
+    <h2 class="le-title">Novas pessoas estão a caminho</h2>
+    <p class="le-text">Gente nova entra no GeoMatch o tempo todo. Enquanto isso, amplie seus filtros ou espie quem está no mapa agora.</p>
+
+    <% if chips.any? %>
+      <ul class="le-chips" aria-label="Filtros ajustados">
+        <% chips.each do |chip| %><li><%= chip %></li><% end %>
+      </ul>
+    <% end %>
+
+    <div class="le-actions">
+      <button type="button" class="le-adjust" data-action="filters#open">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/><circle cx="15" cy="8" r="2.4"/><circle cx="9" cy="16" r="2.4"/></svg>
+        Ajustar filtros
+      </button>
+      <%= link_to discover_3d_path, class: "le-map" do %>
+        <i aria-hidden="true"></i>Ver quem está no mapa agora
+      <% end %>
+    </div>
   </div>
 <% end %>
