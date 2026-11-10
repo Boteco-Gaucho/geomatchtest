@@ -314,3 +314,50 @@
     transition: none;
   }
 }
+
+/* -- Modal de ajuste do Editar perfil (users/_photo_crop_modal) -- */
+.gm-crop--modal {
+  z-index: 100004;
+  background: #0b0a09; // sólido: a página por baixo não aparece no quadro ao afastar a foto
+  &[hidden] { display: none; }
+}
+
+body.gm-crop-open { overflow: hidden; }
+
+// Enviando a foto ajustada: a página fica levemente apagada até recarregar
+body.gm-crop-saving .pe-page { opacity: 0.6; pointer-events: none; transition: opacity 0.2s; }
+
+.gm-crop__footer--zoom { gap: 10px; }
+
+.gm-crop__zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.gm-crop__range {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  accent-color: var(--gm-gold);
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-x;
+
+  &::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.25); }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px; margin-top: -9px;
+    border: 0; border-radius: 50%; background: var(--gm-gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  &::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.25); }
+  &::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--gm-gold); }
+}
+

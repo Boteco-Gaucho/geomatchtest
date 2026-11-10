@@ -13,7 +13,9 @@ Rails.application.configure do
     policy.font_src :self, :https, :data, "fonts.gstatic.com", "cdnjs.cloudflare.com"
 
     # Images: self + HTTPS + data URIs + Cloudinary
-    policy.img_src :self, :https, :data, "res.cloudinary.com", "cdnjs.cloudflare.com"
+    # blob: a foto escolhida no Editar perfil aparece no ajuste (recorte) antes de enviar
+    # (photo_crop_controller.js — URL.createObjectURL do arquivo local)
+    policy.img_src :self, :https, :data, :blob, "res.cloudinary.com", "cdnjs.cloudflare.com"
 
     # Scripts: self + HTTPS + importmap + inline scripts com nonce + CDN permitidos
     # unsafe-eval: necessário para turf.js (geolocalização)

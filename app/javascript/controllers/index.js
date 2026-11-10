@@ -141,3 +141,6 @@ application.register("select-chip", SelectChipController)
 
 import PromptSlotsController from "./prompt_slots_controller"
 application.register("prompt-slots", PromptSlotsController)
+
+import PhotoCropController from "./photo_crop_controller"
+application.register("photo-crop", PhotoCropController)

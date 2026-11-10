@@ -16,7 +16,10 @@
   suggested    = interest_suggestions(@user).first(UsersHelper::INTEREST_SUGGESTIONS_SHOWN)
 %>
 
-<div class="pe-page">
+<%# photo-crop: escolher uma foto abre o ajuste (users/_photo_crop_modal) antes de enviar %>
+<div class="pe-page" data-controller="photo-crop"
+     data-photo-crop-avatar-url-value="<%= apply_crop_profile_path %>"
+     data-photo-crop-free-slots-value="<%= User::ALBUM_PHOTOS_LIMIT - album.size %>">
 
   <%# Upload da foto principal — fora do form principal para evitar nesting inválido.
       turbo: false garante envio multipart nativo sem interferência do Turbo. %>
@@ -24,7 +27,7 @@
                 id: "avatar-upload-form", data: { turbo: false } do |f| %>
     <%= f.file_field :avatar_original, id: "avatar_upload_field",
                      accept: "image/*", class: "pe-file-input",
-                     onchange: "document.getElementById('avatar-upload-form').submit();" %>
+                     data: { photo_crop_target: "avatarInput", action: "change->photo-crop#pickAvatar" } %>
   <% end %>
 
   <%= form_with model: @user, url: profile_path, method: :patch, multipart: true, id: "edit-profile-form",
@@ -94,7 +97,7 @@
         <% end %>
       </div>
       <%= f.file_field :album_photos, multiple: true, accept: "image/*", class: "pe-file-input",
-                       onchange: "this.form.submit()" %>
+                       data: { photo_crop_target: "albumInput", action: "change->photo-crop#pickAlbum" } %>
 
       <p class="pe-photos-hint">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
@@ -305,4 +308,5 @@
     </div>
 
   <% end %>
+  <%= render "users/photo_crop_modal" %>
 </div>
