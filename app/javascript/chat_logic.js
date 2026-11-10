@@ -7,6 +7,13 @@ document.addEventListener('turbo:load', () => {
 
   if (!chatWindow || !messageInput || !newMessageForm) return;
 
+  // Este arquivo é carregado duas vezes na página (application.js e o include do chat):
+  // só a primeira cópia liga esta conversa. Antes as duas ligavam — duas assinaturas do
+  // canal, dois observadores de leitura. WeakSet: cada visita traz um #chat-window novo.
+  window.__gmChatWired ||= new WeakSet();
+  if (window.__gmChatWired.has(chatWindow)) return;
+  window.__gmChatWired.add(chatWindow);
+
   const matchId = chatWindow.dataset.matchId;
   const currentUserId = parseInt(chatWindow.dataset.currentUserId, 10);
   const slideContainer = chatWindow.querySelector('.messages-slide-container');
@@ -42,7 +49,7 @@ document.addEventListener('turbo:load', () => {
       connected() {
         console.log("Conectado ao match", matchId);
         scrollToBottom();
-        chatWindow.querySelectorAll('.message-row.received').forEach(row => readObserver.observe(row));
+        chatWindow.querySelectorAll('.message-row.received:not([data-status="read"])').forEach(row => readObserver.observe(row));
       },
 
       received(data) {
@@ -109,8 +116,33 @@ document.addEventListener('turbo:load', () => {
     }
   );
 
+  // Saiu da conversa: fecha a assinatura (antes ficavam abertas uma por visita)
+  document.addEventListener('turbo:visit', () => {
+    readObserver.disconnect();
+    matchChannel.unsubscribe();
+  }, { once: true });
+
+  // =======================================================
+  //   ABRIU A CONVERSA — TUDO O QUE CHEGOU FICA LIDO
+  //   O servidor já marca ao montar a página (MatchesController#show). Se ainda houver
+  //   recebida sem "lida" (página do pré-carregamento do Turbo), confirma por HTTP — não
+  //   depende do WebSocket nem de cada balão aparecer na tela.
+  // =======================================================
+  if (chatWindow.querySelector('.message-row.received:not([data-status="read"])') && chatWindow.dataset.readUrl) {
+    fetch(chatWindow.dataset.readUrl, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken(), 'Accept': 'application/json' },
+      keepalive: true
+    })
+    .then((response) => {
+      if (response.ok) chatWindow.querySelectorAll('.message-row.received').forEach(row => { row.dataset.status = 'read'; });
+    })
+    .catch(() => {});
+  }
+
   // =======================================================
   //   INTERSECTION OBSERVER — MARCAR MENSAGENS COMO LIDAS
+  //   (as que chegam com a conversa aberta)
   // =======================================================
   const readObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -952,15 +984,19 @@ document.addEventListener('turbo:load', () => {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
 
+  // Uma mensagem (message_id) ou várias de uma vez (message_ids — a outra pessoa abriu a conversa)
   function handleStatusUpdate(data) {
-    const el = document.querySelector(`.message-status[data-status-id="${data.message_id}"]`);
-    if (el) el.className = `message-status status-${data.status}`;
+    const ids = data.message_ids || [data.message_id];
+    ids.forEach((id) => {
+      const el = chatWindow.querySelector(`.message-status[data-status-id="${id}"]`);
+      if (el) el.className = `message-status status-${data.status}`;
 
-    const row = document.getElementById(`msg-${data.message_id}`);
-    if (row) {
-      row.dataset.status = data.status;
-      if (data.read_at) row.dataset.readAt = data.read_at;
-    }
+      const row = document.getElementById(`msg-${id}`);
+      if (row) {
+        row.dataset.status = data.status;
+        if (data.read_at) row.dataset.readAt = data.read_at;
+      }
+    });
   }
 
   function scrollToBottom() {

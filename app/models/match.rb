@@ -34,6 +34,26 @@ class Match < ApplicationRecord
     true
   end
 
+  # Abrir a conversa = ler tudo o que chegou (como no WhatsApp). Antes só contava como lida
+  # a mensagem que aparecia na tela com o WebSocket já conectado: as de cima nunca eram
+  # marcadas e, sem conexão, nenhuma — o número da lista /matches não zerava.
+  # Uma única UPDATE e um único aviso para quem enviou (tiques azuis). Devolve quantas.
+  def mark_read_by!(reader)
+    return 0 unless participant?(reader)
+
+    ids = messages.where.not(sender_id: reader.id).where.not(status: :read).pluck(:id)
+    return 0 if ids.empty?
+
+    now = Time.current
+    Message.where(id: ids).update_all(status: Message.statuses[:read], read_at: now, updated_at: now)
+    begin
+      MatchChannel.broadcast_to(self, { action: "status_update", message_ids: ids, status: "read", read_at: now.iso8601 })
+    rescue => e
+      Rails.logger.error "[Match#mark_read_by!] Falha no broadcast match=#{id} error=#{e.class}: #{e.message}"
+    end
+    ids.size
+  end
+
   def other_user(current_user)
     current_user == user ? matched_user : user
   end

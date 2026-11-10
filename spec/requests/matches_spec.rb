@@ -111,4 +111,70 @@ RSpec.describe "Mensagens (/matches)", type: :request do
       expect(response.body).not_to include("some daqui")
     end
   end
+
+  # Bug: o número de não lidas da lista não zerava ao abrir a conversa (só contava como
+  # lida a mensagem que aparecia na tela com o WebSocket já conectado)
+  describe "não lidas zeram ao abrir a conversa" do
+    let(:felipe) { person("Felipe") }
+    let(:match)  { Match.create!(user: me, matched_user: felipe) }
+
+    def unread_badge
+      get "/matches"
+      Nokogiri::HTML(response.body).at_css("#match-row-#{match.id} .conv-unread")&.text
+    end
+
+    it "abrir marca TODAS as recebidas como lidas (também as que ficam acima da tela) e avisa quem enviou" do
+      received = 18.times.map { |i| match.messages.create!(sender: felipe, content: "msg #{i}") }
+      mine = match.messages.create!(sender: me, content: "minha")
+      expect(unread_badge).to eq("18")
+
+      get "/matches/#{match.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(Message.where(id: received.map(&:id)).pluck(:status).uniq).to eq([ "read" ])
+      expect(Message.where(id: received.map(&:id)).pluck(:read_at)).to all(be_within(5.seconds).of(Time.current))
+      expect(mine.reload.status).to eq("sent") # as minhas não mudam
+      expect(MatchChannel).to have_received(:broadcast_to)
+        .with(match, hash_including(action: "status_update", status: "read", message_ids: match_array(received.map(&:id))))
+      page = Nokogiri::HTML(response.body)
+      expect(page.css(".message-row.received").map { |r| r["data-status"] }.uniq).to eq([ "read" ])
+      expect(page.at_css("#chat-window")["data-read-url"]).to eq("/matches/#{match.id}/read")
+
+      expect(unread_badge).to be_nil # de volta à lista: sem o número
+    end
+
+    it "lista e conversa não ficam no cache do Turbo (voltar busca o número atualizado)" do
+      match.messages.create!(sender: felipe, content: "oi")
+      get "/matches"
+      expect(Nokogiri::HTML(response.body).at_css('meta[name="turbo-cache-control"]')["content"]).to eq("no-cache")
+      get "/matches/#{match.id}"
+      expect(Nokogiri::HTML(response.body).at_css('meta[name="turbo-cache-control"]')["content"]).to eq("no-cache")
+    end
+
+    it "pré-carregamento do Turbo (passar o mouse no link) não marca; o POST read do chat marca" do
+      msg = match.messages.create!(sender: felipe, content: "oi")
+
+      get "/matches/#{match.id}", headers: { "X-Sec-Purpose" => "prefetch" }
+      expect(msg.reload.status).to eq("sent")
+      expect(unread_badge).to eq("1")
+
+      post "/matches/#{match.id}/read", headers: { "Accept" => "application/json" }
+      expect(response.parsed_body).to eq("read" => 1)
+      expect(msg.reload.status).to eq("read")
+      expect(unread_badge).to be_nil
+
+      post "/matches/#{match.id}/read", headers: { "Accept" => "application/json" }
+      expect(response.parsed_body).to eq("read" => 0) # de novo: nada a fazer, sem novo aviso
+      expect(MatchChannel).to have_received(:broadcast_to).with(match, hash_including(action: "status_update")).once
+    end
+
+    it "não marca conversa de outras pessoas" do
+      stranger = Match.create!(user: person("Ana"), matched_user: felipe)
+      msg = stranger.messages.create!(sender: felipe, content: "oi")
+
+      post "/matches/#{stranger.id}/read", headers: { "Accept" => "application/json" }
+
+      expect(msg.reload.status).to eq("sent")
+    end
+  end
 end

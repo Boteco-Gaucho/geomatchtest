@@ -294,6 +294,18 @@ document.addEventListener('turbo:load', () => {
     bindActions(container);
   });
 
+  // Tocou na conversa: o número de não lidas some na hora (a conversa marca como lidas
+  // no servidor ao abrir). Delegado na lista: as duas cópias deste arquivo não duplicam.
+  if (!list.dataset.readBound) {
+    list.dataset.readBound = 'true';
+    list.addEventListener('click', (e) => {
+      const row = e.target.closest('.conversation-row');
+      if (!row) return;
+      row.querySelector('.conv-unread')?.remove();
+      row.classList.remove('is-unread');
+    });
+  }
+
   document.addEventListener('touchstart', (e) => {
     closeAllSwipes(e.target.closest('.swipe-container'));
   }, { passive: true });

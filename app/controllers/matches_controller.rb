@@ -1,7 +1,7 @@
 class MatchesController < ApplicationController
   before_action :authenticate_user!
   # Define @match apenas para actions específicas e garante segurança
-  before_action :set_match, only: [ :show, :clear_conversation, :mute ]
+  before_action :set_match, only: [ :show, :clear_conversation, :mute, :read ]
 
   def index
     # 1. IDs dos matches com mensagem, ordenados pela mais recente.
@@ -64,6 +64,20 @@ class MatchesController < ApplicationController
     if @other_user.nil?
       redirect_to matches_path, alert: "Usuário não encontrado."
       return
+    end
+
+    # Abriu a conversa: tudo o que chegou fica lido. O pré-carregamento do Turbo (passar o
+    # mouse/encostar no link) não conta — nesse caso o chat_logic.js confirma com POST read.
+    @match.mark_read_by!(current_user) unless turbo_prefetch?
+  end
+
+  # POST /matches/:id/read — o chat confirma a leitura ao abrir (e quando a página volta
+  # do cache/pré-carregamento sem passar pelo show)
+  def read
+    count = @match.mark_read_by!(current_user)
+    respond_to do |format|
+      format.json { render json: { read: count } }
+      format.html { redirect_to match_path(@match) }
     end
   end
 
@@ -136,6 +150,11 @@ class MatchesController < ApplicationController
   end
 
   private
+
+  def turbo_prefetch?
+    request.headers["X-Sec-Purpose"].to_s.include?("prefetch") ||
+      request.headers["Sec-Purpose"].to_s.include?("prefetch")
+  end
 
   # Método de segurança: Garante que o Match pertence ao usuário logado
   def set_match

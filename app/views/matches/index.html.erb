@@ -2,6 +2,9 @@
     e a barra de navegação de baixo não muda. Estilos em matches.scss; busca, filtro
     "Sua vez" e o arrastar das linhas em chat_list_logic.js. %>
 <% content_for :head do %>
+  <%# Não lidas mudam a todo momento: voltar do chat (inclusive pelo "voltar" do navegador
+      ou o gesto do iPhone) busca a lista de novo em vez de mostrar a cópia guardada %>
+  <meta name="turbo-cache-control" content="no-cache">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <% end %>

@@ -1,6 +1,7 @@
 <%# Conversa — layout do mockup (fonte Inter). Estilos em chat.scss; envio, toque longo
     (menu da mensagem), editar, apagar e "digitando" em chat_logic.js. %>
 <% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <% end %>
@@ -49,6 +50,7 @@
   <%# --- 2. MENSAGENS --- %>
   <div id="chat-window" class="chat-window-dark"
        data-match-id="<%= @match.id %>"
+       data-read-url="<%= read_match_path(@match) %>"
        data-current-user-id="<%= current_user.id %>"
        data-other-user-name="<%= @other_user.display_name %>"
        data-edit-window="<%= Message::EDIT_WINDOW.to_i %>"
