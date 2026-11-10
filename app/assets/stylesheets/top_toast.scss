@@ -254,3 +254,25 @@ html.dark:not(.light-mode) .tt-icon--success { box-shadow: 0 0 0 3px rgba(34, 16
   background: var(--tt-dark);
   color: var(--tt-gold);
 }
+
+/* "Você já curtiu …": cartão branco bem arredondado com sombra suave; título 15px escuro,
+   texto 13px cinza e o X à direita (shared/_already_liked_toast) */
+.tt-toast--liked {
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border-color: #f0ebe3;
+  border-radius: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  .tt-icon { width: 40px; height: 40px; background: #1a1a1a; }
+  .tt-icon > svg { width: 18px; height: 18px; }
+  .tt-title { color: #1a1a1a; font-size: 15px; }
+  .tt-text { color: #757575; font-size: 13px; line-height: 17px; }
+}
+
+.dark-mode .tt-toast--liked,
+html.dark:not(.light-mode) .tt-toast--liked {
+  .tt-title { color: var(--tt-title); }
+  .tt-text { color: var(--tt-text); }
+}
+

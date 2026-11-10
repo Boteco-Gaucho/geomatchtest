@@ -7,5 +7,6 @@ import "./stories";
 import "trix";
 import "@rails/actiontext";
 import "./push_notifications"; // Importa o arquivo de notificações push
+import "./channels/notification_channel"; // Curtidas em tempo real (número do rodapé e aba Curtidas)
 import "./live_location"; // Importa o módulo de rastreamento contínuo
 import "./map_3d"; // Importa o módulo do mapa 3D (Mapbox GL JS)

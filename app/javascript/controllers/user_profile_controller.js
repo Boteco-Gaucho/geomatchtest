@@ -55,24 +55,17 @@ export default class extends Controller {
     }, { once: true })
   }
 
-  // Coração escuro (já curtiu): só avisa — nenhuma curtida nova é enviada
+  // Coração escuro (já curtiu): só avisa — nenhuma curtida nova é enviada. O banner
+  // "Você já curtiu …" vem pronto no <template> do coração (users/_profile_like_button).
   alreadyLiked(event) {
     if (event) event.preventDefault()
-    const message = event?.currentTarget?.dataset?.notice || "Você já curtiu este usuário."
-    const container = document.getElementById("toast-container")
-    if (!container) return
-    container.querySelector("[data-already-liked]")?.remove()
+    const slot = event?.currentTarget?.closest?.(".up-slot") || this.element
+    const template = slot.querySelector("template[data-already-liked-template]") ||
+                     this.element.querySelector("template[data-already-liked-template]")
+    if (!template) return
 
-    const toast = document.createElement("div")
-    toast.className = "toast toast--notice"
-    toast.dataset.controller = "toast"
-    toast.dataset.alreadyLiked = ""
-    toast.setAttribute("role", "alert")
-    toast.setAttribute("aria-live", "polite")
-    toast.innerHTML = '<span class="toast__message"></span>' +
-                      '<button class="toast__close" data-action="toast#close" aria-label="Fechar">✕</button>'
-    toast.querySelector(".toast__message").textContent = message
-    container.prepend(toast)
+    document.querySelectorAll(".tt-toast--liked").forEach((el) => el.remove()) // um por vez
+    document.body.appendChild(template.content.cloneNode(true))
   }
 
   leave() {

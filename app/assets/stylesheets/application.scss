@@ -1139,6 +1139,9 @@ html, body {
   }
 
   // Badges (Contadores) - Mantendo sua configuração do círculo dourado
+  // Sem curtidas novas o número some (o canal em tempo real só troca o hidden)
+  .badge-counter[hidden] { display: none; }
+
   .badge-counter {
     position: absolute;
     top: -6px;

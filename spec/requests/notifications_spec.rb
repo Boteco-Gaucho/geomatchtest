@@ -74,16 +74,34 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       expect(body).to include('name="source" value="likes"')
     end
 
-    it "quem você já curtiu de volta (virou match) sai de \"Te curtiram\" — está em Mensagens" do
+    it "quem já virou match continua em \"Te curtiram\" e o coração leva para a conversa" do
       dani = person("Dani Alves")
       liked_by(dani)
       Like.create!(liker: me, liked: dani)
-      Match.create!(user: me, matched_user: dani, status: "matched")
+      match = Match.create!(user: me, matched_user: dani, status: "matched")
 
       body = open_page
 
-      expect(body).not_to include("data-notification-id=")
+      expect(body.scan("data-notification-id=").size).to eq(1)
+      expect(body).to include(%(href="/matches/#{match.id}"))
+      expect(body).to match(/class="like-card-heart is-liked"/)
       expect(body).not_to include('action="/likes"')
+    end
+
+    # Bug: A curtiu B antes; B curtiu A de volta (match). A abria "Te curtiram" e via
+    # "Ninguém te curtiu ainda" — quem você já tinha curtido era tirado da lista.
+    it "eu curti primeiro e a pessoa curtiu de volta (match): ela aparece na minha lista" do
+      bia = person("Bia Lima")
+      Like.create!(liker: me, liked: bia)
+      Like.create!(liker: bia, liked: me)
+      match = Match.create!(user: me, matched_user: bia, status: "matched")
+      Notification.create!(recipient: me, actor: bia, action: "vocês deram match!", notifiable: match)
+
+      body = open_page
+
+      expect(body).not_to include("Ninguém te curtiu ainda")
+      expect(body).to include("Bia")
+      expect(body).to include('<span class="likes-tab-count">1</span>')
     end
   end
 
@@ -202,7 +220,8 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       expect(response.body).to include(%(data-match-modal-dismiss-path-value="/users/#{ana.id}"))
 
       get "/notifications"
-      expect(response.body).not_to include(%(id="like-card-#{ana.id}")) # virou conexão
+      expect(response.body).to include(%(id="like-card-#{ana.id}")) # virou match: continua, levando à conversa
+      expect(response.body).to include(%(href="/matches/#{match.id}"))
 
       get "/users/#{ana.id}"
       profile = Nokogiri::HTML(response.body)
@@ -285,7 +304,8 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       heart = page.at_css("#profile-like-#{luan.id} button.up-like.is-liked")
       expect(heart["type"]).to eq("button")
       expect(heart["data-action"]).to eq("user-profile#alreadyLiked")
-      expect(heart["data-notice"]).to eq("Você já curtiu este usuário.")
+      banner = page.at_css("#profile-like-#{luan.id} template[data-already-liked-template]").inner_html
+      expect(banner).to include("Você já curtiu Luan", "Que tal dar o próximo passo e mandar uma mensagem?")
       expect(heart["disabled"]).to be_nil # antes: desabilitado, o toque não fazia nada
       expect(page.at_css("#profile-like-#{luan.id} form")).to be_nil
       expect(page.at_css("#profile-message-#{luan.id} a.up-message")["href"]).to eq("/matches/#{match.id}")
@@ -295,7 +315,8 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       match = Match.create!(user: me, matched_user: sam)
 
       page = profile(sam)
-      expect(page.at_css("#profile-like-#{sam.id} button.is-liked")["data-notice"]).to eq("Vocês já estão conversando.")
+      expect(page.at_css("#profile-like-#{sam.id} button.is-liked")).to be_present
+      expect(page.at_css("#profile-like-#{sam.id} template").inner_html).to include("Vocês já estão conversando")
       expect(page.at_css("#profile-message-#{sam.id} a.up-message")["href"]).to eq("/matches/#{match.id}")
     end
 
@@ -317,7 +338,8 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       post "/likes", params: { user_id: sam.id, source: "profile" },
                      headers: { "ACCEPT" => "text/vnd.turbo-stream.html, text/html" }
 
-      expect(response.body).to include("Você já curtiu este usuário.")
+      expect(response.body).to include("Você já curtiu Sam", "Que tal dar o próximo passo e mandar uma mensagem?")
+      expect(response.body).to include("tt-toast--liked")
       expect(response.body).to include(%(target="profile-like-#{sam.id}"))
       expect(Like.where(liker: me, liked: sam).count).to eq(1)
     end
@@ -332,6 +354,50 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       replaced = Nokogiri::HTML(response.body).at_css(%(turbo-stream[target="profile-like-#{sam.id}"]))
       expect(replaced.inner_html).to include("form")
       expect(replaced.inner_html).not_to include("is-liked")
+    end
+  end
+
+  # O número do rodapé (Curtidas) e o de Mensagens = pessoas novas na lista "Te curtiram"
+  describe "contador de curtidas novas" do
+    def badge
+      get "/matches"
+      Nokogiri::HTML(response.body).at_css("#likes-badge")
+    end
+
+    before { sign_in me, scope: :user }
+
+    it "conta uma vez por pessoa, sem Mimo, bloqueados e descartados; abrir a aba zera só as curtidas" do
+      ana = person("Ana Souza")
+      liked_by(ana)
+      match = Match.create!(user: me, matched_user: ana, status: "matched")
+      Notification.create!(recipient: me, actor: ana, action: "vocês deram match!", notifiable: match) # Ana 2x
+      bia = person("Bia Lima")
+      liked_by(bia)
+      Block.create!(blocker: me, blocked: bia)                                                       # bloqueada
+      carla = person("Carla Dias")
+      liked_by(carla)
+      Like.create!(liker: me, liked: carla, is_like: false)                                          # descartada
+      dani = person("Dani Alves")
+      mimo = Notification.create!(recipient: me, actor: dani, action: "te enviou um Mimo", notifiable: dani) # Mimo
+
+      expect(me.unseen_likes_count).to eq(1)
+      expect(badge.text).to eq("1")
+      expect(badge["hidden"]).to be_nil
+
+      get "/notifications"
+      expect(response.body.scan("data-notification-id=").size).to eq(1) # a lista mostra a mesma 1 pessoa
+
+      expect(badge.key?("hidden")).to be(true)
+      expect(mimo.reload.read_at).to be_nil # o Mimo continua não lido
+    end
+
+    it "o aviso em tempo real manda o número certo (sem renderizar o card no job)" do
+      notification = liked_by(person("Ana Souza"))
+      allow(NotificationChannel).to receive(:broadcast_to)
+
+      NotificationBroadcastJob.perform_now(notification)
+
+      expect(NotificationChannel).to have_received(:broadcast_to).with(me, { kind: "like", count: 1 })
     end
   end
 end

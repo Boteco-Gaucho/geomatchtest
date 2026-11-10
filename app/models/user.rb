@@ -577,6 +577,24 @@ class User < ApplicationRecord
     features[:see_who_liked_me] == true
   end
 
+  # ---------- Curtidas recebidas (aba "Te curtiram") ----------
+  # Quem te curtiu ou deu match com você — mesmo que vocês já tenham dado match. Só saem
+  # quem você descartou (X — Like is_like: false), quem está bloqueado nos dois sentidos e
+  # contas banidas. Mimo não é curtida. A lista, o número do rodapé, o de Mensagens e o
+  # aviso em tempo real usam esta mesma regra — por isso sempre batem.
+  def received_like_notifications
+    discarded = Like.where(liker_id: id, is_like: false).select(:liked_id)
+    notifications.where(notifiable_type: %w[Like Match])
+                 .where.not(actor_id: excluded_user_ids)
+                 .where.not(actor_id: discarded)
+                 .joins(:actor).merge(User.where(banned_at: nil))
+  end
+
+  # Pessoas novas (ainda não vistas) em "Te curtiram" — uma por pessoa, como na lista
+  def unseen_likes_count
+    received_like_notifications.where(read_at: nil).distinct.count(:actor_id)
+  end
+
   # Responder as perguntas do perfil de outras pessoas (a resposta vira mensagem): só Gold.
   # Quem não é Gold vê o aviso "Responda perguntas com o Gold" (users/_prompt_gold_modal).
   def can_reply_prompts?

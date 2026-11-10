@@ -21,11 +21,10 @@
         <div class="icon-container">
           <%= image_tag "coracao-vazada.svg", class: "nav-icon", alt: "Curtidas" %>
 
-          <%# Badge de Contador (Ex: 20) %>
-          <% unread_count = current_user.notifications.unread.count %>
-          <% if unread_count > 0 %>
-            <span class="badge-counter"><%= unread_count > 99 ? '99+' : unread_count %></span>
-          <% end %>
+          <%# Pessoas novas em "Te curtiram" (a mesma regra da lista — User#unseen_likes_count).
+              Sempre no HTML: o NotificationChannel atualiza em tempo real (likes-badge) %>
+          <% unread_count = current_user.unseen_likes_count %>
+          <span class="badge-counter" id="likes-badge" <%= "hidden" unless unread_count > 0 %>><%= unread_count > 99 ? '99+' : unread_count %></span>
         </div>
         <span class="nav-text">Curtidas</span>
       <% end %>

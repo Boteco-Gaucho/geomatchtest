@@ -39,17 +39,20 @@ class LikesController < ApplicationController
       # Se veio do MAPA, apenas fecha o popup (ok)
       return head :ok if params[:source] == "map"
 
-      # Perfil: coração escuro + o aviso, sem sair da tela e sem duplicar a curtida
+      # Perfil: coração escuro + o banner "Você já curtiu …", sem sair da tela e sem duplicar
       if profile_stream?
         return render turbo_stream: [ profile_heart_stream(liked_user, liked: true),
-                                      toast_stream("Você já curtiu este usuário.") ]
+                                      turbo_stream.append("body", partial: "shared/already_liked_toast",
+                                                                  locals: { first_name: first_name_of(liked_user) }) ]
       end
 
       # Já curtiu e já é match: leva para a conversa em vez de só avisar
       if (match = match_with(liked_user))
         return redirect_to match_path(match), status: :see_other, notice: "Vocês já deram match. Que tal mandar uma mensagem?"
       end
-      return redirect_to return_path, status: :see_other, alert: "Você já curtiu este usuário."
+      # Banner "Você já curtiu …" na tela de volta (layout: flash[:already_liked])
+      flash[:already_liked] = first_name_of(liked_user)
+      return redirect_to return_path, status: :see_other
     end
 
     @like = Like.new(liker_id: current_user.id, liked_id: liked_user.id)
@@ -206,6 +209,10 @@ class LikesController < ApplicationController
 
   def like_json(like)
     { status: "liked", like_id: like.id, user_id: like.liked_id, undo_seconds: like.undo_seconds_left }
+  end
+
+  def first_name_of(user)
+    user.display_name.to_s.split.first.presence || "essa pessoa"
   end
 
   def profile_stream?

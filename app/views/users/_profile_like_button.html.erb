@@ -7,15 +7,17 @@
     Locals: user, liked, match (opcional) %>
 <% first_name = user.display_name.to_s.split.first %>
 <% match      = local_assigns[:match] %>
-<% notice     = liked ? "Você já curtiu este usuário." : "Vocês já estão conversando." %>
 <% heart_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>'.html_safe %>
 <div class="up-slot" id="profile-like-<%= user.id %>">
   <% if liked || match %>
     <button type="button" class="up-action up-like is-liked" aria-pressed="true"
             aria-label="<%= liked ? "Você já curtiu #{first_name}" : "Vocês já estão conversando" %>"
             title="<%= liked ? "Você já curtiu" : "Vocês já estão conversando" %>"
-            data-notice="<%= notice %>"
             data-action="user-profile#alreadyLiked"><%= heart_svg %></button>
+    <%# Banner "Você já curtiu …" (shared/_already_liked_toast) — o toque mostra sem ir ao servidor %>
+    <template data-already-liked-template>
+      <%= render "shared/already_liked_toast", first_name: first_name, talking: !liked %>
+    </template>
   <% else %>
     <%= button_to likes_path(user_id: user.id, source: "profile"), method: :post,
           class: "up-action up-like", title: "Curtir",

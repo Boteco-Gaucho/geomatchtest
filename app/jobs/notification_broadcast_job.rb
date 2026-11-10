@@ -6,18 +6,17 @@ class NotificationBroadcastJob < ApplicationJob
   # de o job rodar — não há o que enviar
   discard_on ActiveJob::DeserializationError
 
+  # Avisa o navegador de quem recebeu: o número de "Te curtiram" (a mesma regra da lista)
+  # e o tipo. Antes renderizava o card da aba aqui — o card usa current_user, que não
+  # existe num job, e o envio falhava; o app web nem escutava o canal.
   def perform(notification)
-    # Renderiza a notificação como HTML parcial
-    html = ApplicationController.render(
-      partial: 'notifications/notification',
-      locals: { notification: notification }
-    )
-    
-    # Transmite o HTML para o canal do usuário que recebeu a notificação
+    recipient = notification.recipient
+    return unless recipient
+
     NotificationChannel.broadcast_to(
-      notification.recipient,
-      html: html,
-      count: notification.recipient.notifications.unread.count
+      recipient,
+      kind:  notification.notifiable_type.to_s.underscore, # like / match / mimo_transaction
+      count: recipient.unseen_likes_count
     )
   end
 end

@@ -5,17 +5,11 @@ class NotificationsController < ApplicationController
   def index
     photo_includes = { avatar_attachment: :blob, album_photos_attachments: :blob }
 
-    # 1. Quem te curtiu — só curtidas e matches (Mimo não é curtida) e sem quem
-    #    está bloqueado nos dois sentidos: bloquear apaga likes e matches, mas não
-    #    as notificações, então elas precisam ser filtradas aqui. Contas banidas
-    #    também ficam de fora. Uma entrada por pessoa (a mais recente).
-    #    Só quem ainda espera resposta: quem você descartou (X — Like is_like: false) ou
-    #    já curtiu de volta (virou match: está em Mensagens > Novas conexões) sai da lista.
-    @notifications = current_user.notifications
-      .where(notifiable_type: %w[Like Match])
-      .where.not(actor_id: current_user.excluded_user_ids)
-      .where.not(actor_id: Like.where(liker_id: current_user.id).select(:liked_id))
-      .joins(:actor).merge(User.where(banned_at: nil))
+    # 1. Quem te curtiu (User#received_like_notifications): curtidas e matches — também
+    #    quem já virou match (o coração do card leva para a conversa). Só saem quem você
+    #    descartou (X), bloqueios e contas banidas. Uma entrada por pessoa (a mais recente).
+    #    Antes, quem você já tinha curtido sumia daqui: com o match, a aba ficava vazia.
+    @notifications = current_user.received_like_notifications
       .includes(actor: photo_includes)
       .order(created_at: :desc)
       .to_a
@@ -40,7 +34,8 @@ class NotificationsController < ApplicationController
     # que o checkout cobra.
     @upsell_plan = Plan.active.find_by(code: "gold") unless current_user.can_see_who_liked_me?
 
-    # Marca todas como lidas ao visitar a página
-    current_user.notifications.unread.update_all(read_at: Time.current)
+    # Viu a aba: as curtidas ficam lidas (o número do rodapé zera). Só as desta lista —
+    # o aviso de Mimo continua como estava.
+    current_user.received_like_notifications.where(read_at: nil).update_all(read_at: Time.current)
   end
 end

@@ -91,6 +91,7 @@
     <%= render 'shared/unfreeze_toast' if flash[:account_unfrozen] %>
     <%= render 'shared/profile_saved_toast' if flash[:profile_saved] %>
     <%= render 'shared/unmatch_toast' if flash[:match_undone] %>
+    <%= render 'shared/already_liked_toast', first_name: flash[:already_liked] if flash[:already_liked] %>
     <% if user_signed_in? %>
       <!-- Estrutura principal com Sidebar e Conteúdo para usuários autenticados -->
       <div class="authenticated-layout">
