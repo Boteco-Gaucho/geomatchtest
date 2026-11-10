@@ -30,6 +30,13 @@ export default class extends Controller {
     this._removeListeners()
   }
 
+  // "Desfazer match": fecha o menu e abre a confirmação (unmatch_confirm_controller)
+  openUnmatch(event) {
+    event.stopPropagation()
+    this.close()
+    document.dispatchEvent(new CustomEvent("unmatch:open"))
+  }
+
   _handleOutsideClick(event) {
     if (!this.element.contains(event.target)) this.close()
   }

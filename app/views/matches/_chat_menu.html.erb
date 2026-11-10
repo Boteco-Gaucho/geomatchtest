@@ -1,5 +1,6 @@
 <%# Menu dos três pontinhos da conversa (layout do mockup). Silenciar e Limpar são
-    enviados por fetch no chat_logic.js; sem JS, os formulários funcionam sozinhos. %>
+    enviados por fetch no chat_logic.js; sem JS, os formulários funcionam sozinhos.
+    Desfazer match abre a confirmação matches/_unmatch_confirm. %>
 <% first_name = other_user.display_name.split.first %>
 <% muted = match.muted_for?(current_user) %>
 <div class="gm-chat-menu" data-chat-menu-target="menu" role="menu" hidden>
@@ -26,6 +27,13 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       Limpar conversa
     <% end %>
+
+    <%# Abre a confirmação "Desfazer match com …?" (matches/_unmatch_confirm) %>
+    <button type="button" class="gm-menu-row" role="menuitem" id="unmatch-chat-btn"
+            data-action="chat-menu#openUnmatch">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="m12 13-1-1 2-2-3-3 2-2"/></svg>
+      Desfazer match
+    </button>
 
     <%= link_to report_incident_path(user_id: other_user.id), class: "gm-menu-row is-danger", role: "menuitem" do %>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4.5 2 4.5H5"/></svg>

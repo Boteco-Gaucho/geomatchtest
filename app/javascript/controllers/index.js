@@ -120,3 +120,6 @@ application.register("resend-timer", ResendTimerController)
 
 import LikeToggleController from "./like_toggle_controller"
 application.register("like-toggle", LikeToggleController)
+
+import UnmatchConfirmController from "./unmatch_confirm_controller"
+application.register("unmatch-confirm", UnmatchConfirmController)

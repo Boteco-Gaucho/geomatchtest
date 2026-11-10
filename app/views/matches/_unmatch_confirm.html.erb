@@ -1,0 +1,23 @@
+<%# "Desfazer match com Felipe?" — abre pelo menu dos três pontinhos (_chat_menu, evento
+    unmatch:open). "Sim" apaga a conversa e volta para Mensagens com o aviso "Match desfeito"
+    (MatchesController#unmatch, shared/_unmatch_toast). "Não, manter" só fecha.
+    Estilos .um-* em chat_menu.scss; unmatch_confirm_controller.js. Locals: match, other_user %>
+<% first_name = other_user.display_name.to_s.split.first %>
+<div class="um-overlay" hidden
+     data-controller="unmatch-confirm"
+     data-action="unmatch:open@document->unmatch-confirm#open keydown.esc@window->unmatch-confirm#close turbo:before-cache@document->unmatch-confirm#close click->unmatch-confirm#closeOnBackdrop">
+  <div class="um-card" role="alertdialog" aria-modal="true" aria-labelledby="um-title" aria-describedby="um-text">
+    <span class="um-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="m12 13-1-1 2-2-3-3 2-2"/></svg>
+    </span>
+
+    <h2 class="um-title" id="um-title">Desfazer match com <%= first_name %>?</h2>
+    <p class="um-text" id="um-text">A conversa será apagada e vocês não poderão mais trocar mensagens. Essa ação não pode ser desfeita.</p>
+
+    <%= button_to "Sim, desfazer match", unmatch_match_path(match), method: :delete,
+                  class: "um-btn um-btn--danger", form_class: "um-form",
+                  data: { unmatch_confirm_target: "confirm" },
+                  form: { data: { action: "submit->unmatch-confirm#submitting" } } %>
+    <button type="button" class="um-btn um-btn--ghost" data-action="unmatch-confirm#close">Não, manter</button>
+  </div>
+</div>

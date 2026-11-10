@@ -1,7 +1,7 @@
 class MatchesController < ApplicationController
   before_action :authenticate_user!
   # Define @match apenas para actions específicas e garante segurança
-  before_action :set_match, only: [ :show, :clear_conversation, :mute, :read ]
+  before_action :set_match, only: [ :show, :clear_conversation, :mute, :read, :unmatch ]
 
   def index
     # 1. IDs dos matches com mensagem, ordenados pela mais recente.
@@ -131,6 +131,18 @@ class MatchesController < ApplicationController
         format.json { render json: { error: "Recurso indisponível no momento." }, status: :service_unavailable }
       end
     end
+  end
+
+  # DELETE /matches/:id/unmatch — "Sim, desfazer match": volta para Mensagens com o aviso
+  # "Match desfeito" (shared/_unmatch_toast)
+  def unmatch
+    first_name = @match.other_user(current_user)&.display_name.to_s.split.first.presence || "Essa pessoa"
+    @match.unmatch_by!(current_user)
+    flash[:match_undone] = first_name
+    redirect_to matches_path, status: :see_other
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error "[Matches#unmatch] match=#{@match&.id} user=#{current_user.id}: #{e.class}: #{e.message}"
+    redirect_to match_path(@match), alert: "Não foi possível desfazer o match agora. Tente de novo."
   end
 
   # "Silenciar notificações" / "Ativar notificações" da conversa

@@ -99,7 +99,7 @@ RSpec.describe "Mensagens (/matches)", type: :request do
       page = Nokogiri::HTML(response.body)
 
       expect(page.css(".gm-chat-menu .gm-menu-row").map { |row| row.text.squish })
-        .to eq([ "Ver perfil", "Silenciar notificações", "Limpar conversa", "Denunciar Felipe", "Bloquear Felipe" ])
+        .to eq([ "Ver perfil", "Silenciar notificações", "Limpar conversa", "Desfazer match", "Denunciar Felipe", "Bloquear Felipe" ])
     end
 
     it "não mostra mensagens que a pessoa apagou para si" do
@@ -175,6 +175,65 @@ RSpec.describe "Mensagens (/matches)", type: :request do
       post "/matches/#{stranger.id}/read", headers: { "Accept" => "application/json" }
 
       expect(msg.reload.status).to eq("sent")
+    end
+  end
+
+  describe "Desfazer match (menu da conversa)" do
+    let(:felipe) { person("Felipe Nunes") }
+    let(:match)  { Match.create!(user: me, matched_user: felipe, status: "matched") }
+
+    before do
+      Like.create!(liker: me, liked: felipe)
+      Like.create!(liker: felipe, liked: me)
+    end
+
+    it "a conversa traz a confirmação com o nome, Sim (DELETE) e Não, manter" do
+      get "/matches/#{match.id}"
+      page = Nokogiri::HTML(response.body)
+
+      dialog = page.at_css(".um-overlay[hidden]")
+      expect(dialog.at_css(".um-title").text).to eq("Desfazer match com Felipe?")
+      expect(dialog.at_css(".um-text").text).to include("A conversa será apagada")
+      form = dialog.at_css("form.um-form")
+      expect(form["action"]).to eq("/matches/#{match.id}/unmatch")
+      expect(form.at_css('input[name="_method"]')["value"]).to eq("delete")
+      expect(dialog.at_css(".um-btn--danger").text.squish).to eq("Sim, desfazer match")
+      expect(dialog.at_css("button.um-btn--ghost").text.squish).to eq("Não, manter")
+      expect(page.at_css("#unmatch-chat-btn")["data-action"]).to eq("chat-menu#openUnmatch")
+    end
+
+    it "Sim: apaga a conversa dos dois, não refaz o match e volta para Mensagens com o aviso" do
+      first = match.messages.create!(sender: felipe, content: "Oi")
+      reply = match.messages.create!(sender: me, content: "Oie", reply_to: first)
+      first.reactions.create!(user: me, emoji: "❤️")
+      notification = Notification.create!(recipient: me, actor: felipe, action: "vocês deram match!", notifiable: match)
+
+      delete "/matches/#{match.id}/unmatch"
+
+      expect(response).to redirect_to("/matches")
+      expect(response).to have_http_status(:see_other)
+      expect(Match.exists?(match.id)).to be(false)
+      expect(Message.where(id: [ first.id, reply.id ])).to be_empty
+      expect(Notification.exists?(notification.id)).to be(false)
+      expect(Like.find_by(liker: me, liked: felipe).is_like).to be(false) # sem novo match sozinho
+      expect(MatchChannel).to have_received(:broadcast_to).with(match, hash_including(unmatched: true, user_id: me.id))
+
+      follow_redirect!
+      page = Nokogiri::HTML(response.body)
+      expect(page.at_css(".tt-toast .tt-title").text).to eq("Match desfeito")
+      expect(page.at_css(".tt-toast .tt-text").text).to eq("Felipe não está mais nas suas conversas.")
+      expect(page.at_css(".tt-icon--unmatch")).to be_present
+      expect(page.at_css("#match-row-#{match.id}")).to be_nil
+      expect(page.css(".recent-matches-section .match-name").map(&:text)).not_to include("Felipe")
+    end
+
+    it "não desfaz conversa de outras pessoas" do
+      stranger = Match.create!(user: person("Ana"), matched_user: felipe)
+
+      delete "/matches/#{stranger.id}/unmatch"
+
+      expect(Match.exists?(stranger.id)).to be(true)
+      expect(response).to redirect_to("/matches")
     end
   end
 end

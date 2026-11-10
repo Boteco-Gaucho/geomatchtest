@@ -145,6 +145,12 @@
   .tt-body { gap: 4px; }
 }
 
+/* Match desfeito: coração partido dourado no círculo escuro */
+.tt-icon--unmatch {
+  background: var(--tt-dark);
+  color: var(--tt-gold);
+}
+
 /* Idade escondida: calendário com "?" no círculo escuro */
 .tt-icon--age-hidden {
   background: var(--tt-dark);

@@ -54,6 +54,36 @@ class Match < ApplicationRecord
     ids.size
   end
 
+  # "Desfazer match" (menu da conversa): apaga a conversa dos dois e as notificações do
+  # match. A curtida de quem desfez vira "agora não" (Like is_like: false): o match não se
+  # refaz sozinho, a pessoa não volta na descoberta e some de "Te curtiram".
+  # Quem tinha a conversa aberta é avisado (MatchChannel { unmatched: true }).
+  def unmatch_by!(user)
+    return false unless participant?(user)
+
+    other = other_user(user)
+    begin
+      MatchChannel.broadcast_to(self, { unmatched: true, user_id: user.id })
+    rescue => e
+      Rails.logger.error "[Match#unmatch_by!] Falha no broadcast match=#{id} error=#{e.class}: #{e.message}"
+    end
+
+    transaction do
+      if other
+        like = Like.find_by(liker_id: user.id, liked_id: other.id)
+        like ? like.update!(is_like: false) : Like.create!(liker_id: user.id, liked_id: other.id, is_like: false)
+      end
+      Notification.where(notifiable: self).delete_all
+      # Em lote: sem um broadcast de "mensagem apagada" por mensagem
+      message_ids = messages.ids
+      Reaction.where(message_id: message_ids).delete_all
+      Message.where(id: message_ids).update_all(reply_to_id: nil)
+      Message.where(id: message_ids).delete_all
+      destroy!
+    end
+    true
+  end
+
   def other_user(current_user)
     current_user == user ? matched_user : user
   end

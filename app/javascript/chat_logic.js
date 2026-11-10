@@ -95,6 +95,17 @@ document.addEventListener('turbo:load', () => {
         // -------------------------
         //   MENSAGEM APAGADA (para todos)
         // -------------------------
+        // -------------------------
+        //   MATCH DESFEITO (pela outra pessoa): a conversa não existe mais
+        // -------------------------
+        if (data.unmatched) {
+          if (data.user_id !== currentUserId) {
+            showToast('Esta conversa não está mais disponível.', true);
+            setTimeout(() => { window.Turbo ? Turbo.visit('/matches', { action: 'replace' }) : window.location.replace('/matches'); }, 1500);
+          }
+          return;
+        }
+
         if (data.deleted_message_id) {
           removeMessageRow(data.deleted_message_id);
           markQuotesAsDeleted(data.deleted_message_id);

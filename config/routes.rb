@@ -95,6 +95,7 @@ Rails.application.routes.draw do
       delete :clear_conversation # só para quem pediu
       patch  :mute               # liga/desliga as notificações da conversa
       post   :read               # abriu a conversa: o que chegou fica lido (chat_logic.js)
+      delete :unmatch            # "Desfazer match" (menu da conversa)
     end
   end
 

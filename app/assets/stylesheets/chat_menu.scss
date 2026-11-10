@@ -141,3 +141,135 @@ html.dark:not(.light-mode) {
 
 // Linha fina entre as opções do mesmo grupo
 .gm-menu-group > * + * { border-top: 1px solid var(--gm-menu-line); }
+
+// ── "Desfazer match com …?" (matches/_unmatch_confirm) ───────────
+// Mockup 739px → ×0,528. Cartão branco no meio, coração partido em círculo rosa,
+// "Sim, desfazer match" vermelho e "Não, manter" com contorno.
+.um-overlay {
+  --um-bg:      #fff;
+  --um-title:   #161616;
+  --um-text:    #6b665f;
+  --um-ring:    #fdf0ef;
+  --um-ring-2:  #fbe3e2;
+  --um-red:     #c0272d;
+  --um-line:    #ece4d8;
+  --um-ghost:   #1c1c1e;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(70, 64, 58, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  &[hidden] { display: none; }
+  &.is-open { opacity: 1; }
+}
+
+body.um-lock { overflow: hidden; }
+
+.um-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 342px;
+  padding: 18px 22px 20px;
+  border-radius: 28px;
+  background: var(--um-bg);
+  box-shadow: 0 24px 60px rgba(30, 24, 18, 0.25);
+  text-align: center;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+
+  .um-overlay.is-open & { transform: none; }
+}
+
+.um-icon {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--um-ring);
+  box-shadow: inset 0 0 0 8px var(--um-ring), inset 0 0 0 40px var(--um-ring-2);
+
+  svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: var(--um-red);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.um-title {
+  margin: 14px 0 0;
+  color: var(--um-title);
+  font-size: 20.5px;
+  font-weight: 800;
+  line-height: 26px;
+  letter-spacing: -0.4px;
+}
+
+.um-text {
+  margin: 8px 0 0;
+  color: var(--um-text);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.um-form { width: 100%; margin: 24px 0 0; }
+
+.um-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.98); }
+  &:disabled { opacity: 0.7; cursor: default; }
+}
+
+.um-btn--danger {
+  border: 0;
+  background: var(--um-red);
+  color: #fff;
+}
+
+.um-btn--ghost {
+  margin-top: 10px;
+  border: 1.5px solid var(--um-line);
+  background: transparent;
+  color: var(--um-ghost);
+}
+
+.dark-mode .um-overlay,
+html.dark:not(.light-mode) .um-overlay {
+  --um-bg:     #1c1c1e;
+  --um-title:  #f4f0ea;
+  --um-text:   #b3aea8;
+  --um-ring:   rgba(248, 113, 113, 0.10);
+  --um-ring-2: rgba(248, 113, 113, 0.16);
+  --um-red:    #e5484d;
+  --um-line:   #3a3a3d;
+  --um-ghost:  #f4f0ea;
+
+  background: rgba(0, 0, 0, 0.55);
+}
+
