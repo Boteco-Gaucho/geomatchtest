@@ -162,7 +162,8 @@
       Estilos .pin-card-* em map_profile.scss. %>
   <div id="mini-card-overlay" class="pin-card" hidden>
     <div class="pin-card-photo">
-      <img class="pin-card-img" id="pin-card-img" src="" alt="">
+      <%# Uma <img> por foto, em camadas (map_3d.js mountPinCardPhotos) %>
+      <div class="pin-card-layers" id="pin-card-layers"></div>
       <svg class="pin-card-placeholder" viewBox="0 0 114 118" aria-hidden="true"><circle cx="57" cy="28.5" r="25.5"/><path d="M3 115A54 51 0 0 1 111 115"/></svg>
       <span class="pin-card-tap pin-card-tap--prev" id="pin-card-prev" aria-hidden="true"></span>
       <span class="pin-card-tap pin-card-tap--next" id="pin-card-next" aria-hidden="true"></span>

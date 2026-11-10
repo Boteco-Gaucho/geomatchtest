@@ -500,46 +500,76 @@ function openCinematicPopup(user) {
   // Cliques no cartão não chegam ao mapa (que fecharia a prévia)
   card.onclick = (e) => e.stopPropagation();
 
-  renderPinCardPhoto(true);
-  preloadPinCardPhotos();
+  mountPinCardPhotos();
+  renderPinCardPhoto();
   card.hidden = false;
   card.classList.remove('is-open');
   positionPinCard();
   requestAnimationFrame(() => card.classList.add('is-open'));
 }
 
-// Ao abrir (instant) a foto entra direto. Ao passar as fotos, a atual continua na tela
-// até a próxima estar carregada e decodificada — trocar o src na hora deixava o quadrado
-// vazio por um instante (o "flash" escuro do fundo).
-let pinCardPhotoToken = 0;
-
-function renderPinCardPhoto(instant = false) {
-  const img = document.getElementById('pin-card-img');
-  const bars = document.getElementById('pin-card-bars');
+// Fotos da prévia em CAMADAS: uma <img> por foto, todas montadas uma sobre a outra e já
+// baixando quando a prévia abre. Ao passar, a foto atual continua visível até a próxima estar
+// baixada e decodificada; aí a próxima entra POR CIMA com um fade curto e só depois a anterior
+// é escondida. Nunca há um quadro sem foto — trocar o src de uma <img> só (como antes) deixava
+// o quadrado vazio por um instante no Safari, o "flash" escuro do fundo.
+// O estado fica no próprio elemento (#pin-card-layers): este arquivo roda duas vezes na página.
+function mountPinCardPhotos() {
+  const layers = document.getElementById('pin-card-layers');
   const card = document.getElementById('mini-card-overlay');
-  const url = pinCardPhotos[pinCardIndex];
+  if (!layers || !card) return;
+
+  layers.replaceChildren(...pinCardPhotos.map((url, i) => {
+    const img = document.createElement('img');
+    img.className = 'pin-card-img';
+    img.alt = '';
+    img.draggable = false;
+    img.decoding = 'async';
+    img.fetchPriority = i === 0 ? 'high' : 'low';
+    img.src = url; // pré-carrega todas as fotos da pessoa
+    return img;
+  }));
+  layers._shown = -1;
+  layers._z = 0;
+  layers._token = 0;
+  card.classList.toggle('has-photo', pinCardPhotos.length > 0);
+}
+
+function renderPinCardPhoto() {
+  const layers = document.getElementById('pin-card-layers');
+  const bars = document.getElementById('pin-card-bars');
+  if (!layers || !bars) return;
 
   // As barrinhas respondem na hora do toque
   bars.innerHTML = pinCardPhotos.length > 1
     ? pinCardPhotos.map((_, i) => `<span class="${i === pinCardIndex ? 'is-active' : ''}"></span>`).join('')
     : '';
 
-  const token = ++pinCardPhotoToken;
-  card.classList.toggle('has-photo', !!url);
-  if (!url) { img.removeAttribute('src'); return; }
-  if (img.getAttribute('src') === url) return;
-  if (instant) { img.src = url; return; }
+  const imgs = layers.children;
+  const index = pinCardIndex;
+  const target = imgs[index];
+  if (!target || layers._shown === index) return;
 
-  const next = new Image();
-  const show = () => { if (token === pinCardPhotoToken) img.src = url; }; // tocou de novo: vale a última
-  next.src = url;
-  if (next.decode) next.decode().then(show, show);
-  else { next.onload = show; next.onerror = show; }
-}
+  const token = ++layers._token; // tocou de novo antes de carregar: vale o último toque
+  const reveal = () => {
+    if (token !== layers._token) return;
+    layers._shown = index;
+    target.style.zIndex = ++layers._z;  // por cima da foto que está na tela
+    target.classList.add('is-active');  // fade-in sobre ela (ela segue opaca por baixo)
+    clearTimeout(layers._cleanup);
+    layers._cleanup = setTimeout(() => {
+      if (layers._shown !== index) return;
+      Array.from(imgs).forEach((img) => { if (img !== target) img.classList.remove('is-active'); });
+    }, 260);
+  };
 
-// Começa a baixar todas as fotos da pessoa assim que a prévia abre
-function preloadPinCardPhotos() {
-  pinCardPhotos.forEach((url) => { const preload = new Image(); preload.src = url; });
+  // decode() espera baixar e decodificar; foto quebrada: fica a atual
+  const ready = target.decode ? target.decode() : new Promise((resolve, reject) => {
+    if (target.complete && target.naturalWidth) return resolve();
+    target.addEventListener('load', resolve, { once: true });
+    target.addEventListener('error', reject, { once: true });
+  });
+  ready.then(reveal, () => { if (target.complete && target.naturalWidth) reveal(); });
 }
 
 function stepPinCardPhoto(step) {

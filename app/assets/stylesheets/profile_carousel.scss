@@ -88,4 +88,9 @@
 .pc-tap-r {
   flex: 1;
   pointer-events: auto;
+  // Sem isto o celular pinta um realce escuro na metade tocada da foto
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
 }

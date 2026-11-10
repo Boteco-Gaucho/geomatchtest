@@ -32,7 +32,7 @@
     <% else %>
       <% pc_photos.each do |photo| %>
         <div class="pc-slide">
-          <%= image_tag photo, class: "pc-img no-drag", alt: "" %>
+          <%= image_tag photo, class: "pc-img no-drag", alt: "", decoding: "async" %>
           <% if pc_gradient %><div class="pc-gradient"></div><% end %>
         </div>
       <% end %>
