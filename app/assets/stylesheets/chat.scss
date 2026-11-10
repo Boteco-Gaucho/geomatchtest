@@ -10,13 +10,21 @@
 
 /* Container Geral - COBRE A TELA TODA E FIXA O RODAPÉ */
 .chat-screen-wrapper {
-  --chat-bg: #f8f2e8;
-  --chat-surface: #fff;
+  --chat-bg: #f6eee2;
+  --chat-bar: #f8f2e9;          // topo e rodapé
+  --chat-surface: #fff;         // balão recebido, pílulas de data, campo
   --chat-line: #ece5da;
   --chat-text: #1c1c1c;
   --chat-muted: #6b6560;
+  --chat-pill-line: #e9e0d2;
+  --chat-field: #fff;
+  --chat-field-line: #e8e0d4;
+  --chat-plus-bg: #fff;
+  --chat-plus-line: #e2ddd5;
 
-  background-color: var(--chat-bg);
+  // Fundo com os desenhos do GeoMatch (fundo-conversa.svg — ladrilho de 320px). Fica parado
+  // enquanto as mensagens rolam por cima (a janela de mensagens é transparente).
+  background: var(--chat-bg) url("fundo-conversa.svg") 0 0 / 320px 320px repeat;
   position: fixed;
   top: 0;
   left: 0;
@@ -44,7 +52,7 @@
   gap: 4px;
   padding: 4.5px 12px 11px 10px;
   padding-top: calc(4.5px + env(safe-area-inset-top));
-  background-color: var(--chat-surface);
+  background-color: var(--chat-bar);
   border-bottom: 1px solid var(--chat-line);
   position: sticky;  /* trava no topo do scroll container (o flex pai) */
   top: 0;
@@ -104,7 +112,7 @@
   bottom: 0;
   width: 13px;
   height: 13px;
-  border: 2.5px solid var(--chat-surface);
+  border: 2.5px solid var(--chat-bar);
   border-radius: 50%;
   background: #1fa65a;
 }
@@ -216,11 +224,18 @@
 }
 
 .date-separator {
-  margin: 12px 0 9px;
+  align-self: center;
+  margin: 12px 0 10px;
+  padding: 5px 12px;
+  border: 1px solid var(--chat-pill-line);
+  border-radius: 999px;
+  background: var(--chat-surface);
   text-align: center;
   font-size: 12px;
   font-weight: 700;
-  color: var(--chat-muted);
+  line-height: 16px;
+  color: var(--chat-text);
+  opacity: 0.92;
 }
 
 /* "Vocês se conectaram a menos de 300 m" */
@@ -289,11 +304,13 @@
 
 .message-row.received .message-bubble {
   border: 1px solid var(--chat-line);
+  border-radius: 20px 20px 20px 6px;
   background: var(--chat-surface);
   color: var(--chat-text);
 }
 
 .message-row.sent .message-bubble {
+  border-radius: 20px 20px 6px 20px;
   background: #1c1c1e;
   color: #fff;
 }
@@ -566,7 +583,7 @@
   /* Sem teclado: o respiro de safe-area mantém o campo acima do home indicator
      e, no app iOS, da tab bar nativa (lá o inset vale ~83px). */
   padding-bottom: max(9px, env(safe-area-inset-bottom));
-  background-color: var(--chat-surface);
+  background-color: var(--chat-bar);
   border-top: 1px solid var(--chat-line);
 }
 
@@ -590,9 +607,9 @@
   width: 43px;
   height: 43px;
   padding: 0;
-  border: 1px solid #e2ddd5;
+  border: 1px solid var(--chat-plus-line);
   border-radius: 50%;
-  background: var(--chat-surface);
+  background: var(--chat-plus-bg);
   color: var(--chat-text);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -653,9 +670,9 @@
   width: auto;
   height: 43px;
   padding: 0 18px;
-  border: 1px solid #e8e0d4;
+  border: 1px solid var(--chat-field-line);
   border-radius: 22px;
-  background-color: #faf6ef;
+  background-color: var(--chat-field);
   color: var(--chat-text);
   font: inherit;
   font-size: 16px;
@@ -675,8 +692,8 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #c9a052;
-  color: #1c1c1e;
+  background: #1c1c1e;
+  color: #fff;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -1005,11 +1022,25 @@
 .dark-mode,
 html.dark:not(.light-mode) {
   .chat-screen-wrapper {
-    --chat-bg: var(--color-background);
-    --chat-surface: #1c1c1e;
-    --chat-line: #2e2e30;
-    --chat-text: var(--color-text);
-    --chat-muted: var(--color-text-secondary);
+    --chat-bg: #141414;
+    --chat-bar: #171717;
+    --chat-surface: #1f1f21;
+    --chat-line: #2a2a2c;
+    --chat-text: var(--color-text, #f2efe9);
+    --chat-muted: var(--color-text-secondary, #a8a29a);
+    --chat-pill-line: #3a3a3c;
+    --chat-field: #141414;
+    --chat-field-line: #3a3a3c;
+    --chat-plus-bg: transparent;
+    --chat-plus-line: #3a3a3c;
+
+    background-image: url("fundo-conversa-escuro.svg");
+  }
+
+  // Enviada e enviar em bege (mockup do modo escuro)
+  .btn-send {
+    background: linear-gradient(180deg, #e6d0b6 0%, #b8987b 100%);
+    color: #1c1c1e;
   }
 
   .chat-safety-tip { background: #26231f; }
@@ -1020,10 +1051,10 @@ html.dark:not(.light-mode) {
   .chat-quick-reply,
   .chat-plus-btn { border-color: #3a3a3c; }
 
-  .message-row.sent .message-bubble { background: #c9a052; color: #1c1c1e; }
+  .message-row.sent .message-bubble { background: linear-gradient(180deg, #e6d0b6 0%, #b8987b 100%); color: #1c1c1e; }
   .message-row.sent .msg-quote-name { color: #3d2e17; }
 
-  .chat-input-dark .dark-input { border-color: #3a3a3c; background-color: #121212; }
+  .chat-input-dark .dark-input { border-color: var(--chat-field-line); background-color: var(--chat-field); }
   .reply-preview-content { background-color: #26231f; }
 
   .message-row.received .msg-quote-name,
