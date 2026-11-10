@@ -64,11 +64,13 @@ RSpec.describe "Perguntas do perfil", type: :request do
       expect(card.at_css(".up-prompt-question").text).to eq("Um encontro perfeito em Salvador é…")
       expect(card.at_css(".up-prompt-answer").text).to eq("Pôr do sol no Farol da Barra e depois um acarajé.")
       button = card.at_css("button.up-prompt-btn")
-      expect(button["data-action"]).to eq("prompt-gold#open")
-      expect(button["data-prompt-gold-question-param"]).to eq("Um encontro perfeito em Salvador é…")
+      expect(button.key?("data-prompt-gold-open")).to be(true) # abre o aviso do Gold (sem ele, os planos)
+      expect(button["data-question"]).to eq("Um encontro perfeito em Salvador é…")
       expect(card.at_css("form")).to be_nil
 
       modal = page.at_css(".pg-overlay[hidden]")
+      expect(modal["data-controller"]).to eq("prompt-gold")
+      expect(modal.at_css(".pg-eyebrow").text).to eq("Funcionalidade exclusiva Gold")
       expect(modal.at_css(".pg-title").text.squish).to eq("Responda perguntas com o Gold")
       expect(modal.at_css(".pg-text").text).to include("na resposta do Luan")
       expect(modal.css(".pg-perks li").map { |li| li.text.squish })

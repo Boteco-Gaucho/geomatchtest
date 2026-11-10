@@ -44,9 +44,10 @@
       </div>
     <% end %>
   <% else %>
-    <button type="button" class="up-prompt-btn" data-action="prompt-gold#open"
-            data-prompt-gold-question-param="<%= prompt.question %>"
-            data-prompt-gold-answer-param="<%= prompt.answer %>">
+    <%# Não é Gold: abre o aviso do Gold (prompt_gold_controller.js; sem ele, vai aos planos) %>
+    <button type="button" class="up-prompt-btn" data-prompt-gold-open
+            data-question="<%= prompt.question %>" data-answer="<%= prompt.answer %>"
+            aria-haspopup="dialog">
       <%= chat_icon %>
       Responder
     </button>

@@ -960,3 +960,27 @@ html.dark:not(.light-mode) .up-row-text small { color: #a8a29a; }
   background: var(--up-card);
   font-size: 14.5px;
 }
+
+// Selo acima do título do aviso do Gold
+.pg-eyebrow {
+  margin: 16px 0 0 !important;
+  padding: 4px 11px;
+  border: 1px solid rgba(201, 160, 82, 0.45);
+  border-radius: 999px;
+  color: #e2c48a;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.pg-eyebrow + .pg-title { margin-top: 12px; }
+
+// "Responder": resposta visível ao toque (não parece travado)
+.up-prompt-btn {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+
+  &:active { transform: scale(0.96); background-color: var(--up-fact-bg); }
+  &:focus-visible { outline: 2px solid #c9a052; outline-offset: 2px; }
+}
+

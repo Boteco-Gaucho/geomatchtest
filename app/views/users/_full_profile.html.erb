@@ -182,8 +182,8 @@
     </div>
   <% end %>
 
-  <%# ---------- Cartões (prompt-gold: o aviso do Gold das perguntas fica aqui dentro) ---------- %>
-  <div class="up-body <%= 'is-own' if own_profile %>" data-controller="prompt-gold">
+  <%# ---------- Cartões (o aviso do Gold das perguntas vai para o <body> ao abrir a página) ---------- %>
+  <div class="up-body <%= 'is-own' if own_profile %>">
     <% if user.bio.present? %>
       <section class="up-card">
         <h2 class="up-label">Sobre mim</h2>
