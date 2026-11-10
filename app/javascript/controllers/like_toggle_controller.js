@@ -1,17 +1,19 @@
 import { Controller } from "@hotwired/stimulus"
 import { openUpgradeModal } from "../upgrade_modal"
 import { showMapToast } from "../map_toast"
+import { showAlreadyLiked } from "../already_liked"
 
 // Coração do mapa (prévia do pin e perfil completo — shared/_like_toggle.html.erb).
 //   vazio      → toque curte (POST /likes, JSON)
 //   desfazível → cheio, com o anel do tempo; toque descurte (DELETE /likes/:id)
-//   valendo    → cheio e travado: passou a janela (Like::UNDO_WINDOW) ou já era curtido
+//   valendo    → cheio e travado: passou a janela (Like::UNDO_WINDOW) ou já era curtido;
+//                o toque mostra o banner "Você já curtiu {nome}" (sem nova curtida)
 // O ícone muda na hora do toque; se o servidor recusar, volta ao estado anterior.
 // Deu match: vai direto para a conversa (match não se desfaz).
 // A prévia do pin troca de pessoa mandando "like-toggle:load" (map_3d.js); cada mudança
 // avisa com "like-toggle:changed" para o mapa lembrar o estado daquela pessoa.
 export default class extends Controller {
-  static values = { userId: Number, likeId: Number, liked: Boolean, undoSeconds: Number }
+  static values = { userId: Number, likeId: Number, liked: Boolean, undoSeconds: Number, name: String }
 
   connect() {
     this.apply(this.likedValue, this.likeIdValue, this.undoSecondsValue)
@@ -23,8 +25,9 @@ export default class extends Controller {
 
   // map_3d.js: a prévia abriu para outra pessoa
   load(event) {
-    const { userId, liked, likeId, undoSeconds } = event.detail
+    const { userId, liked, likeId, undoSeconds, name } = event.detail
     this.userIdValue = userId
+    this.nameValue = name || ""
     this.busy = false
     this.apply(!!liked, likeId || 0, undoSeconds || 0)
   }
@@ -32,7 +35,8 @@ export default class extends Controller {
   async toggle(event) {
     event.preventDefault()
     event.stopPropagation()
-    if (this.busy || this.state === "locked") return
+    if (this.busy) return
+    if (this.state === "locked") return showAlreadyLiked(this.nameValue)
     if (this.state === "undoable") return this.unlike()
     return this.like()
   }
@@ -124,7 +128,7 @@ export default class extends Controller {
     el.classList.toggle("is-liked", filled)
     el.classList.toggle("is-undoable", state === "undoable")
     el.classList.toggle("is-locked", state === "locked")
-    el.disabled = state === "locked"
+    el.disabled = false // travado continua tocável: mostra "Você já curtiu …"
     el.setAttribute("aria-pressed", String(filled))
     const label = { idle: "Curtir", pending: "Curtindo…", undoable: "Desfazer curtida", locked: "Você já curtiu" }[state]
     el.setAttribute("aria-label", label)

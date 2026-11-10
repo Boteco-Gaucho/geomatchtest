@@ -5,8 +5,8 @@
     Locals: first_name; talking (opcional — já conversam sem curtida sua) %>
 <% talking = local_assigns.fetch(:talking, false) %>
 <%= render layout: "shared/top_toast", locals: {
-      title: talking ? "Vocês já estão conversando" : "Você já curtiu #{first_name}",
+      title: talking ? "Vocês já estão conversando" : safe_join([ "Você já curtiu ", content_tag(:span, first_name, data: { already_liked_name: true }) ]),
       text: talking ? "Toque em Mandar mensagem para continuar o papo." : "Que tal dar o próximo passo e mandar uma mensagem?",
-      icon_class: "tt-icon--gold-dark", closable: true, duration: 5000, extra_class: "tt-toast--liked" } do %>
+      icon_class: "tt-icon--gold-dark", closable: true, duration: 4500, extra_class: "tt-toast--liked" } do %>
   <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor" stroke="none"/></svg>
 <% end %>

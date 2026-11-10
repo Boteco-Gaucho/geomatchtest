@@ -165,10 +165,11 @@
       <% end %>
 
       <% if liked && in_sheet %>
-        <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"><%= heart_svg %></button>
+        <button type="button" class="up-action up-like is-liked" aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"
+                data-already-liked-show="<%= first_name %>"><%= heart_svg %></button>
       <% elsif in_map %>
         <%# Curtir / desfazer por alguns segundos (like_toggle_controller.js); a folha fica aberta %>
-        <%= render "shared/like_toggle", classes: "up-action up-like", user_id: user.id,
+        <%= render "shared/like_toggle", classes: "up-action up-like", user_id: user.id, name: first_name,
                    like: local_assigns[:like_record] %>
       <% elsif in_sheet %>
         <%# Mesmo efeito do coração do card: fecha o sheet e joga o card para a direita %>

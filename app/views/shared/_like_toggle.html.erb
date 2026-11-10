@@ -5,6 +5,7 @@
 <button type="button" class="<%= classes %> like-toggle"
         data-controller="like-toggle"
         data-like-toggle-user-id-value="<%= local_assigns[:user_id].to_i %>"
+        data-like-toggle-name-value="<%= local_assigns[:name] %>"
         data-like-toggle-liked-value="<%= like.present? %>"
         data-like-toggle-like-id-value="<%= like&.id.to_i %>"
         data-like-toggle-undo-seconds-value="<%= like ? like.undo_seconds_left : 0 %>"

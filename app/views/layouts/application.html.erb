@@ -92,6 +92,10 @@
     <%= render 'shared/profile_saved_toast' if flash[:profile_saved] %>
     <%= render 'shared/unmatch_toast' if flash[:match_undone] %>
     <%= render 'shared/already_liked_toast', first_name: flash[:already_liked] if flash[:already_liked] %>
+    <%# Banner "Você já curtiu …" mostrado pelo navegador (app/javascript/already_liked.js) %>
+    <% if user_signed_in? %>
+      <template id="already-liked-template"><%= render 'shared/already_liked_toast', first_name: "" %></template>
+    <% end %>
     <% if user_signed_in? %>
       <!-- Estrutura principal com Sidebar e Conteúdo para usuários autenticados -->
       <div class="authenticated-layout">

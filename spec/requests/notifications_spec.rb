@@ -304,7 +304,7 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       heart = page.at_css("#profile-like-#{luan.id} button.up-like.is-liked")
       expect(heart["type"]).to eq("button")
       expect(heart["data-action"]).to eq("user-profile#alreadyLiked")
-      banner = page.at_css("#profile-like-#{luan.id} template[data-already-liked-template]").inner_html
+      banner = Nokogiri::HTML(page.at_css("#profile-like-#{luan.id} template[data-already-liked-template]").inner_html).text.squish
       expect(banner).to include("Você já curtiu Luan", "Que tal dar o próximo passo e mandar uma mensagem?")
       expect(heart["disabled"]).to be_nil # antes: desabilitado, o toque não fazia nada
       expect(page.at_css("#profile-like-#{luan.id} form")).to be_nil

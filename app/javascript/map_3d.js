@@ -589,7 +589,8 @@ function loadPinCardLike(user) {
     ? Math.max(0, Math.ceil((user.like_undo_until - Date.now()) / 1000))
     : (user.like_undo_seconds || 0);
   button.dispatchEvent(new CustomEvent('like-toggle:load', {
-    detail: { userId: user.id, liked: !!user.liked, likeId: user.like_id || 0, undoSeconds }
+    detail: { userId: user.id, liked: !!user.liked, likeId: user.like_id || 0, undoSeconds,
+              name: user.username || user.display_name || "" }
   }));
 }
 
