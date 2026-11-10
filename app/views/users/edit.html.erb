@@ -83,7 +83,7 @@
             <%= image_tag photo, alt: "Foto #{index + 2}", class: "pe-photo-img", draggable: false %>
             <span class="pe-photo-number" data-photo-sort-target="number"><%= index + 2 %></span>
             <%= link_to delete_album_photo_path(photo), class: "pe-photo-remove", aria: { label: "Remover foto" },
-                        data: { turbo_method: :delete, turbo_confirm: "Remover esta foto?" } do %>
+                        data: { turbo_method: :delete } do %><%# sem confirmação: o aviso "Foto removida" tem Desfazer %>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
             <% end %>
             <%= hidden_field_tag "user[album_order][]", photo.id, id: nil %>

@@ -1,6 +1,6 @@
-# Troca da foto principal (UsersController#apply_crop): a foto anterior fica guardada por
-# AVATAR_UNDO_WINDOW para o "Desfazer" do aviso "Foto atualizada". Passado esse tempo, se
-# ninguém voltou a usá-la, o arquivo é apagado.
+# Troca da foto principal (UsersController#apply_crop) e foto removida do álbum
+# (AlbumPhotosController#destroy): o arquivo fica guardado por um tempo para o "Desfazer" do
+# aviso. Passado esse tempo, se ninguém voltou a usá-lo, é apagado.
 class AvatarUndoCleanupJob < ApplicationJob
   queue_as :default
 

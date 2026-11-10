@@ -156,6 +156,7 @@ Rails.application.routes.draw do
 
   # Fotos do álbum
   delete 'album_photos/:id', to: 'album_photos#destroy', as: :delete_album_photo
+  post   'album_photos/undo', to: 'album_photos#undo',  as: :undo_album_photo  # "Desfazer" do aviso "Foto removida"
 
   # =================================================================
   # 6. PAGAMENTOS (CHECKOUT)
