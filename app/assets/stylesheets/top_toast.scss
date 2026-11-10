@@ -234,3 +234,23 @@ html.dark:not(.light-mode) .tt-toast {
 .dark-mode .tt-icon--success,
 html.dark:not(.light-mode) .tt-icon--success { box-shadow: 0 0 0 3px rgba(34, 165, 89, 0.25); }
 
+/* "Resposta enviada · GOLD": selo escuro com letras douradas ao lado do título */
+.tt-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--tt-dark);
+  color: var(--tt-gold);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  vertical-align: 2px;
+}
+
+.tt-icon--gold-dark {
+  background: var(--tt-dark);
+  color: var(--tt-gold);
+}

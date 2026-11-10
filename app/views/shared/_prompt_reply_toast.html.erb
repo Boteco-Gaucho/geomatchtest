@@ -1,0 +1,8 @@
+<%# "Resposta enviada · GOLD" — depois que um Gold responde uma pergunta do perfil
+    (PromptRepliesController, Turbo Stream). Componente: shared/_top_toast. Locals: first_name %>
+<%= render layout: "shared/top_toast", locals: {
+      title: safe_join([ "Resposta enviada", content_tag(:span, "GOLD", class: "tt-badge") ], " "),
+      text: "#{first_name} recebe sua resposta como mensagem.",
+      icon_class: "tt-icon--gold-dark" } do %>
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8.5 10.5l2.2 2.2 4.8-4.8"/></svg>
+<% end %>

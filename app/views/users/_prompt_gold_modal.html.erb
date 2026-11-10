@@ -1,0 +1,45 @@
+<%# "Responda perguntas com o Gold" — quem não é Gold toca em Responder numa pergunta do
+    perfil. O prompt_gold_controller.js coloca a pergunta tocada no cartão do meio.
+    "Assinar Gold" vai direto ao checkout do Mercado Pago (mesmo fluxo de /plans), com o
+    preço real do plano no banco. Estilos .pg-* em user_profile.scss. Locals: owner %>
+<% gold       = Plan.active.find_by(code: "gold") %>
+<% first_name = owner.display_name.to_s.split.first %>
+<% check      = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 12.5l3.7 3.6L17.5 8.6"/></svg>'.html_safe %>
+
+<div class="pg-overlay" hidden data-prompt-gold-target="overlay"
+     data-action="click->prompt-gold#closeOnBackdrop keydown.esc@window->prompt-gold#close turbo:before-cache@document->prompt-gold#close">
+  <div class="pg-card" role="dialog" aria-modal="true" aria-labelledby="pg-title-<%= owner.id %>">
+    <button type="button" class="pg-close" aria-label="Fechar" data-action="prompt-gold#close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <span class="pg-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 8.5h8M8 12h5"/></svg>
+    </span>
+
+    <h2 class="pg-title" id="pg-title-<%= owner.id %>">Responda perguntas <br> com o <span>Gold</span></h2>
+    <p class="pg-text">Comente direto na resposta <%= owner_article(owner) %> <%= first_name %> e comece a conversa de um jeito que chama atenção.</p>
+
+    <div class="pg-quote">
+      <p class="pg-quote-question" data-prompt-gold-target="question"></p>
+      <p class="pg-quote-answer" data-prompt-gold-target="answer"></p>
+    </div>
+
+    <ul class="pg-perks">
+      <% [ "Responder perguntas dos perfis", "Ver quem curtiu você", "Mensagens ilimitadas", "Modo oculto no mapa" ].each do |perk| %>
+        <li><span class="pg-check"><%= check %></span><%= perk %></li>
+      <% end %>
+    </ul>
+
+    <% if gold %>
+      <%# Mesmo fluxo da página de planos: POST /checkout sem Turbo -> Mercado Pago %>
+      <%= button_to "Assinar #{gold.name}", checkout_path(plan_id: gold.id), method: :post,
+                    form: { data: { turbo: false } }, form_class: "pg-cta-form", class: "pg-cta" %>
+      <p class="pg-price"><%= plan_price_per_period(gold) %> · cancele quando quiser</p>
+    <% else %>
+      <%= link_to "Assinar Gold", plans_path, class: "pg-cta" %>
+    <% end %>
+
+    <button type="button" class="pg-later" data-action="prompt-gold#close">Agora não</button>
+  </div>
+</div>

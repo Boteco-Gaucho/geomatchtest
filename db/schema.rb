@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -186,6 +186,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
     t.datetime "edited_at"
     t.bigint "hidden_for_user_ids", default: [], null: false, array: true
     t.bigint "match_id", null: false
+    t.text "prompt_answer"
+    t.string "prompt_key"
+    t.string "prompt_question"
     t.datetime "read_at"
     t.bigint "reply_to_id"
     t.bigint "sender_id", null: false
@@ -194,6 +197,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
     t.index ["id"], name: "index_messages_on_id", unique: true
     t.index ["match_id"], name: "index_messages_on_match_id"
     t.index ["reply_to_id"], name: "index_messages_on_reply_to_id"
+    t.index ["sender_id", "prompt_key"], name: "index_messages_on_sender_id_and_prompt_key", where: "(prompt_key IS NOT NULL)"
     t.index ["sender_id"], name: "index_messages_on_sender_id"
   end
 
@@ -301,6 +305,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
     t.index ["code"], name: "index_plans_on_code", unique: true
     t.index ["features"], name: "index_plans_on_features", using: :gin
     t.index ["is_recommended"], name: "index_plans_on_is_recommended"
+  end
+
+  create_table "profile_prompts", force: :cascade do |t|
+    t.string "answer", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.string "question_key", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "question_key"], name: "index_profile_prompts_on_user_id_and_question_key", unique: true
+    t.index ["user_id"], name: "index_profile_prompts_on_user_id"
   end
 
   create_table "profiles", force: :cascade do |t|
@@ -678,6 +693,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_120000) do
   add_foreign_key "notifications", "users", column: "recipient_id"
   add_foreign_key "payments", "plans"
   add_foreign_key "payments", "users"
+  add_foreign_key "profile_prompts", "users"
   add_foreign_key "profiles", "users"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "reactions", "messages"

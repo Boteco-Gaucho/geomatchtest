@@ -72,6 +72,18 @@ class Message < ApplicationRecord
       .update_all([ "hidden_for_user_ids = array_append(hidden_for_user_ids, ?)", user.id ])
   end
 
+  # Resposta a uma pergunta do perfil (PromptRepliesController): o balão mostra a pergunta e
+  # a resposta citadas. Cópia do texto: editar a pergunta depois não muda a conversa.
+  def prompt_reply?
+    has_attribute?(:prompt_key) && prompt_key.present?
+  end
+
+  def prompt_preview
+    return nil unless prompt_reply?
+
+    { key: prompt_key, question: prompt_question, answer: prompt_answer }
+  end
+
   # Resumo da mensagem citada, no formato que o chat_logic.js desenha.
   def reply_to_preview
     return nil unless reply_to
@@ -107,7 +119,8 @@ class Message < ApplicationRecord
         user_name:  sender.display_name || "Usuário",
         avatar_url: sender.avatar_url || "/assets/avatarfoto.jpg",
         verified:   sender.verified?,
-        reply_to:   reply_to_preview
+        reply_to:   reply_to_preview,
+        prompt:     prompt_preview
       }
     }
 

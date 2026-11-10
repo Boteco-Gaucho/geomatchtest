@@ -308,6 +308,16 @@ document.addEventListener('turbo:load', () => {
   }
 
   // Citação dentro do balão (mesmo HTML que o show.html.erb desenha)
+  // Resposta a uma pergunta do perfil (PromptRepliesController): a pergunta citada
+  function promptHtml(prompt, isSender) {
+    if (!prompt || !prompt.question) return '';
+    return `<span class="msg-prompt">` +
+             `<span class="msg-prompt-label">${isSender ? 'Você respondeu a pergunta' : 'Respondeu sua pergunta'}</span>` +
+             `<span class="msg-prompt-question">${escapeHtml(prompt.question)}</span>` +
+             `<span class="msg-prompt-answer">${escapeHtml(prompt.answer)}</span>` +
+           `</span>`;
+  }
+
   function quoteHtml(quoted) {
     if (!quoted || !quoted.id) return '';
     const name = Number(quoted.sender_id) === currentUserId ? 'Você' : (quoted.sender_name || otherUserName);
@@ -512,7 +522,7 @@ document.addEventListener('turbo:load', () => {
       ? `<span class="message-status status-${message.status || 'sent'}" data-status-id="${message.id}"></span>`
       : '';
     el.innerHTML =
-      `<div class="message-bubble">${quoteHtml(message.reply_to)}<span class="msg-text">${escapeHtml(message.content)}</span></div>` +
+      `<div class="message-bubble">${promptHtml(message.prompt, isSender)}${quoteHtml(message.reply_to)}<span class="msg-text">${escapeHtml(message.content)}</span></div>` +
       `<div class="message-meta"><span class="message-time">${formatTime(message.created_at)}</span>${statusHtml}</div>` +
       `<span class="message-timestamp">${formatTime(message.created_at)}</span>`;
 

@@ -1031,3 +1031,45 @@ html.dark:not(.light-mode) {
 
   .header-status.is-online { color: #3fb37a; }
 }
+
+/* Resposta a uma pergunta do perfil: pergunta e resposta citadas no topo do balão */
+.msg-prompt {
+  display: block;
+  min-width: 160px;
+  margin: 0 0 8px;
+  padding: 7px 10px 8px 11px;
+  border-left: 3px solid #c9a052;
+  border-radius: 8px;
+  background: rgba(201, 160, 82, 0.12);
+  text-align: left;
+}
+
+.msg-prompt-label {
+  display: block;
+  margin-bottom: 2px;
+  color: #8a6d45;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.msg-prompt-question {
+  display: block;
+  color: #8a6d45;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.msg-prompt-answer {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.message-row.sent .msg-prompt { background: rgba(255, 255, 255, 0.12); }
+.message-row.sent .msg-prompt-label,
+.message-row.sent .msg-prompt-question { color: #e2c48a; }

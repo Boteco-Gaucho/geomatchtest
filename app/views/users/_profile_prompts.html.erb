@@ -1,0 +1,31 @@
+<%# Perguntas do perfil ("Um encontro perfeito em Salvador é…") — um cartão por pergunta
+    (users/_profile_prompt). Quem é Gold responde ali mesmo; quem não é vê o aviso
+    "Responda perguntas com o Gold" (users/_prompt_gold_modal, prompt_gold_controller.js).
+    Locals: user, own_profile %>
+<% if ProfilePrompt.available? %>
+  <% prompts = user.profile_prompts.to_a %>
+  <% if prompts.any? %>
+    <%
+      # Respostas que eu já mandei para estas perguntas (estado "Respondida")
+      replies = if own_profile
+        {}
+      else
+        Message.joins(:match)
+               .where(sender_id: current_user.id, prompt_key: prompts.map(&:question_key))
+               .where("matches.user_id = :id OR matches.matched_user_id = :id", id: user.id)
+               .order(:created_at).index_by(&:prompt_key)
+      end
+      can_reply = !own_profile && current_user.can_reply_prompts?
+    %>
+    <div class="up-prompts" data-controller="prompt-gold">
+      <% prompts.each do |prompt| %>
+        <%= render "users/profile_prompt", prompt: prompt, owner: user, reply: replies[prompt.question_key],
+                                           own_profile: own_profile, can_reply: can_reply %>
+      <% end %>
+
+      <% unless own_profile || can_reply %>
+        <%= render "users/prompt_gold_modal", owner: user %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

@@ -123,3 +123,9 @@ application.register("like-toggle", LikeToggleController)
 
 import UnmatchConfirmController from "./unmatch_confirm_controller"
 application.register("unmatch-confirm", UnmatchConfirmController)
+
+import PromptReplyController from "./prompt_reply_controller"
+application.register("prompt-reply", PromptReplyController)
+
+import PromptGoldController from "./prompt_gold_controller"
+application.register("prompt-gold", PromptGoldController)

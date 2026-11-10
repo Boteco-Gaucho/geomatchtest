@@ -76,6 +76,9 @@ Rails.application.routes.draw do
   # Iniciar chat direto
   post 'start_chat/:user_id', to: 'matches#start_chat', as: :start_chat
 
+  # Responder uma pergunta do perfil (só Gold): a resposta vira mensagem na conversa
+  post 'users/:user_id/prompt_replies', to: 'prompt_replies#create', as: :user_prompt_replies
+
   # =================================================================
   # 4. MATCHES E MENSAGENS (CONSOLIDADO)
   # =================================================================

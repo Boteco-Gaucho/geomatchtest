@@ -1188,3 +1188,33 @@ html.dark:not(.light-mode) {
   color: var(--color-text-secondary);
   margin: 2px 0 0 5px;
 }
+
+/* --- 5.1 PERGUNTAS DO PERFIL --- */
+.pe-prompts .pe-tip { margin-top: 6px; }
+
+.pe-prompt {
+  margin-top: 16px;
+
+  & + & { padding-top: 16px; border-top: 1px solid #f2ece3; }
+
+  .pe-select { width: 100%; }
+}
+
+.pe-prompt-answer {
+  display: block;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 12px 15px;
+  border: 1px solid #eae5df;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c1c1c;
+  font: inherit;
+  font-size: 15px;
+  line-height: 21px;
+  resize: none;
+  outline: none;
+
+  &::placeholder { color: #a39b91; opacity: 1; }
+  &:focus { border-color: #c9a052; box-shadow: 0 0 0 3px rgba(201, 160, 82, 0.18); }
+}

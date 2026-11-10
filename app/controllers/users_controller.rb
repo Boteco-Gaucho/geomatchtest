@@ -366,6 +366,12 @@ class UsersController < ApplicationController
       flash[:alert] = "Você pode ter até 6 fotos. Remova uma para adicionar outra." if new_photos.size > free_slots
     end
 
+    # Perguntas do perfil (seção "Perguntas" do Editar perfil)
+    if params[:profile_prompts_submitted].present? && ProfilePrompt.available?
+      rows = params.fetch(:profile_prompts, {}).permit!.to_h.values
+      ProfilePrompt.sync!(@user, rows)
+    end
+
     if @user.update(user_update_params)
       # Volta para a aba em que a pessoa tocou "Salvar" (Editar ou Pré-visualizar)
       back_to = params[:return_tab] == "preview" ? preview_profile_path : edit_profile_path

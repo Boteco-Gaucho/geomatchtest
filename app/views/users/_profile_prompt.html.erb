@@ -1,0 +1,54 @@
+<%# Cartão de uma pergunta do perfil. Estados:
+      - perfil próprio: só a pergunta e a resposta
+      - já respondeu: o balão com a sua resposta e "✓ Respondida"
+      - Gold: "Responder" abre o campo ali mesmo (prompt_reply_controller.js) e o envio volta
+        por Turbo Stream (PromptRepliesController) trocando este cartão
+      - não Gold: "Responder" abre o aviso do Gold (prompt_gold_controller.js)
+    Locals: prompt, owner, reply (Message ou nil), own_profile, can_reply (opcionais: a
+    resposta do Turbo Stream só passa prompt, owner e reply) %>
+<% own_profile = local_assigns.fetch(:own_profile, owner == current_user) %>
+<% can_reply   = local_assigns.fetch(:can_reply, !own_profile && current_user.can_reply_prompts?) %>
+<% first_name  = owner.display_name.to_s.split.first %>
+<% chat_icon   = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'.html_safe %>
+
+<section class="up-prompt" id="<%= dom_id(prompt) %>"
+         <% if can_reply && !reply %>data-controller="prompt-reply"<% end %>>
+  <p class="up-prompt-question"><%= prompt.question %></p>
+  <p class="up-prompt-answer"><%= prompt.answer %></p>
+
+  <% if own_profile %>
+    <%# nada: é o seu perfil %>
+  <% elsif reply %>
+    <p class="up-prompt-reply"><%= reply.content %></p>
+    <span class="up-prompt-done">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+      Respondida
+    </span>
+  <% elsif can_reply %>
+    <button type="button" class="up-prompt-btn" data-prompt-reply-target="open" data-action="prompt-reply#open">
+      <%= chat_icon %>
+      Responder
+    </button>
+
+    <%= form_with url: user_prompt_replies_path(owner), method: :post, class: "up-prompt-form",
+                  data: { prompt_reply_target: "form", action: "turbo:submit-start->prompt-reply#sending turbo:submit-end->prompt-reply#sent" },
+                  html: { hidden: true } do |f| %>
+      <%= hidden_field_tag :prompt_key, prompt.question_key, id: nil %>
+      <%= text_area_tag :content, nil, id: nil, rows: 2, maxlength: ProfilePrompt::REPLY_MAX, required: true,
+                        class: "up-prompt-input", placeholder: "Comente a resposta de #{first_name}…",
+                        aria: { label: "Sua resposta para #{first_name}" },
+                        data: { prompt_reply_target: "input", action: "keydown.enter->prompt-reply#submitOnEnter" } %>
+      <div class="up-prompt-form-actions">
+        <button type="button" class="up-prompt-cancel" data-action="prompt-reply#cancel">Cancelar</button>
+        <button type="submit" class="up-prompt-send" data-prompt-reply-target="send">Enviar</button>
+      </div>
+    <% end %>
+  <% else %>
+    <button type="button" class="up-prompt-btn" data-action="prompt-gold#open"
+            data-prompt-gold-question-param="<%= prompt.question %>"
+            data-prompt-gold-answer-param="<%= prompt.answer %>">
+      <%= chat_icon %>
+      Responder
+    </button>
+  <% end %>
+</section>

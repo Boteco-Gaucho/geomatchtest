@@ -122,6 +122,16 @@ module UsersHelper
   }.freeze
 
   # "Homem", "Não binário"… (o banco guarda "Não Binário" com B maiúsculo)
+  # Artigo antes do nome ("na resposta do Luan"), pelo gênero que a pessoa informou no perfil;
+  # sem gênero masculino/feminino informado, "de".
+  def owner_article(user)
+    case user.gender.to_s.downcase
+    when "homem"  then "do"
+    when "mulher" then "da"
+    else "de"
+    end
+  end
+
   def profile_gender_label(user)
     value = user.gender.to_s.strip
     return if value.empty?

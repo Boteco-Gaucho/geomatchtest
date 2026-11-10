@@ -157,6 +157,9 @@
     </div>
   <% end %>
 
+  <%# Perguntas do perfil ("Um encontro perfeito em Salvador é…"); Gold responde ali mesmo %>
+  <%= render "users/profile_prompts", user: user, own_profile: own_profile %>
+
   <% if user.bio.present? || facts.any? || hobbies.any? %>
     <section class="up-card <%= 'is-own' if own_profile %>">
       <% if user.bio.present? %>

@@ -98,6 +98,14 @@
              class="message message-row <%= mine ? 'sent' : 'received' %> <%= 'is-group-end' if group_end %>">
 
           <div class="message-bubble">
+            <%# Resposta a uma pergunta do perfil: a pergunta e a resposta citadas %>
+            <% if message.prompt_reply? %>
+              <span class="msg-prompt">
+                <span class="msg-prompt-label"><%= mine ? "Você respondeu a pergunta" : "Respondeu sua pergunta" %></span>
+                <span class="msg-prompt-question"><%= message.prompt_question %></span>
+                <span class="msg-prompt-answer"><%= message.prompt_answer %></span>
+              </span>
+            <% end %>
             <%# Citação da mensagem respondida — tocar nela leva até a original %>
             <% if (quoted = message.reply_to) %>
               <button type="button" class="msg-quote" data-reply-to-id="<%= quoted.id %>">

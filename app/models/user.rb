@@ -30,6 +30,8 @@ class User < ApplicationRecord
   has_many :blog_posts, dependent: :destroy
 
   has_many :favorites, dependent: :destroy
+  # Perguntas do perfil ("Um encontro perfeito em Salvador é…") — ProfilePrompt
+  has_many :profile_prompts, dependent: :delete_all
   has_many :favorited_users, through: :favorites, source: :favorited_user
 
   # Encerrar conta (Meu Perfil): o que OUTRAS pessoas têm apontando para esta conta
@@ -552,6 +554,14 @@ class User < ApplicationRecord
     return true if premium?
     features = (plan.features || {}).with_indifferent_access
     features[:see_who_liked_me] == true
+  end
+
+  # Responder as perguntas do perfil de outras pessoas (a resposta vira mensagem): só Gold.
+  # Quem não é Gold vê o aviso "Responda perguntas com o Gold" (users/_prompt_gold_modal).
+  def can_reply_prompts?
+    return false unless plan
+    features = (plan.features || {}).with_indifferent_access
+    plan.code.to_s == "gold" || plan.name.to_s == "Gold" || features[:reply_prompts] == true
   end
 
   # 2. Pode ver quem ELE curtiu? (Aba "Você curtiu")

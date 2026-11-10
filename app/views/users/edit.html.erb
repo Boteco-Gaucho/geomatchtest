@@ -167,6 +167,33 @@
       </p>
     </section>
 
+    <%# --- 5.1 PERGUNTAS DO PERFIL: até 3 da lista pronta, com a resposta (ProfilePrompt).
+        Vazias são ignoradas; trocar a pergunta de um campo troca a pergunta no perfil. %>
+    <% if ProfilePrompt.available? %>
+      <% my_prompts = @user.profile_prompts.to_a %>
+      <section class="pe-card pe-prompts" id="pe-perguntas">
+        <div class="pe-card-head">
+          <h2 class="pe-card-title">Perguntas do perfil</h2>
+          <span class="pe-section-meta"><%= my_prompts.size %> de <%= ProfilePrompt::MAX_PER_USER %></span>
+        </div>
+        <p class="pe-tip">Escolha até <%= ProfilePrompt::MAX_PER_USER %> e responda. Quem é Gold pode comentar sua resposta e puxar conversa.</p>
+        <%= hidden_field_tag :profile_prompts_submitted, "1", id: nil %>
+        <% ProfilePrompt::MAX_PER_USER.times do |index| %>
+          <% current = my_prompts[index] %>
+          <div class="pe-prompt">
+            <%= label_tag "profile_prompts_#{index}_key", "Pergunta #{index + 1}", class: "pe-label" %>
+            <%= select_tag "profile_prompts[#{index}][key]",
+                           options_for_select(ProfilePrompt.options_for(@user), current&.question_key),
+                           include_blank: "Escolha uma pergunta", id: "profile_prompts_#{index}_key", class: "pe-select" %>
+            <%= text_area_tag "profile_prompts[#{index}][answer]", current&.answer, id: "profile_prompts_#{index}_answer",
+                              rows: 2, maxlength: ProfilePrompt::ANSWER_MAX, class: "pe-prompt-answer",
+                              placeholder: "Sua resposta (até #{ProfilePrompt::ANSWER_MAX} caracteres)",
+                              aria: { label: "Resposta da pergunta #{index + 1}" } %>
+          </div>
+        <% end %>
+      </section>
+    <% end %>
+
     <%# --- 6. SOBRE VOCÊ --- %>
     <section class="pe-card">
       <h2 class="pe-card-title">Sobre você</h2>
