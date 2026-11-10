@@ -151,6 +151,7 @@ Rails.application.routes.draw do
     post "upload_avatar", on: :collection
     get  "crop_avatar",  on: :collection
     post "apply_crop",   on: :collection
+    post "undo_avatar",  on: :collection   # "Desfazer" do aviso "Foto atualizada"
   end
 
   # Fotos do álbum

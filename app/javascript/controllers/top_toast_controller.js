@@ -17,7 +17,9 @@ export default class extends Controller {
     this._timer = setTimeout(() => this.dismiss(), this.durationValue)
   }
 
-  dismiss() {
+  dismiss(event) {
+    // Toque no botão de ação (ex.: Desfazer): deixa o formulário enviar
+    if (event?.target?.closest?.("[data-tt-keep]")) return
     clearTimeout(this._timer)
     if (this.element.classList.contains("is-out")) return
     this.element.classList.remove("is-in")

@@ -406,6 +406,9 @@ class UsersController < ApplicationController
     end
   end
 
+  # Tempo para o "Desfazer" do aviso "Foto atualizada" (a foto anterior fica guardada)
+  AVATAR_UNDO_WINDOW = 10.minutes
+
   def apply_crop
     @user = current_user
     file  = params[:avatar]
@@ -413,8 +416,38 @@ class UsersController < ApplicationController
       render json: { error: "arquivo ausente" }, status: :unprocessable_entity
       return
     end
+
+    # A anterior sai do perfil mas o arquivo fica guardado (detach não apaga) para o Desfazer.
+    # O id fica na sessão (no servidor): o Desfazer só devolve a SUA foto anterior.
+    previous = @user.avatar.attached? ? @user.avatar.blob : nil
+    @user.avatar.detach if previous
     @user.avatar.attach(file)
+
+    if previous
+      session[:avatar_undo] = { "blob_id" => previous.id, "until" => AVATAR_UNDO_WINDOW.from_now.to_i }
+      AvatarUndoCleanupJob.set(wait: AVATAR_UNDO_WINDOW).perform_later(previous.id)
+      flash[:avatar_changed] = "undo"
+    else
+      flash[:avatar_changed] = "first"
+    end
     render json: { ok: true }
+  end
+
+  # POST /profile/undo_avatar — "Desfazer" do aviso "Foto atualizada": volta a foto anterior
+  def undo_avatar
+    undo = session.delete(:avatar_undo) || {}
+    blob = ActiveStorage::Blob.find_by(id: undo["blob_id"]) if undo["until"].to_i > Time.current.to_i
+
+    if blob
+      replaced = current_user.avatar.attached? ? current_user.avatar.blob : nil
+      current_user.avatar.detach if replaced
+      current_user.avatar.attach(blob)
+      replaced&.purge_later if replaced && replaced.id != blob.id
+      flash[:avatar_changed] = "restored"
+    else
+      flash[:alert] = "Não dá mais para desfazer a troca da foto."
+    end
+    redirect_to edit_profile_path, status: :see_other
   end
 
   def reject

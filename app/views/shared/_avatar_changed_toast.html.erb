@@ -1,0 +1,18 @@
+<%# Foto principal trocada (UsersController#apply_crop → flash[:avatar_changed]):
+      "undo"     → "Foto atualizada" com o botão Desfazer (volta a anterior — undo_avatar)
+      "first"    → primeira foto principal, sem Desfazer
+      "restored" → depois do Desfazer
+    Mesmo visual do aviso "Foto removida" do mockup (shared/_top_toast). Locals: state %>
+<% copy = {
+     "undo"     => [ "Foto atualizada", "Sua nova foto principal já aparece no perfil." ],
+     "first"    => [ "Foto adicionada", "Sua foto principal já aparece no perfil." ],
+     "restored" => [ "Foto anterior de volta", "A troca foi desfeita." ]
+   }.fetch(state.to_s, [ "Foto atualizada", "Sua nova foto principal já aparece no perfil." ]) %>
+<% undo = state.to_s == "undo" %>
+<%= render layout: "shared/top_toast", locals: {
+      title: copy[0], text: copy[1], icon_class: "tt-icon--gold-dark",
+      duration: undo ? 7000 : 4500, extra_class: "tt-toast--photo",
+      action: (button_to("Desfazer", undo_avatar_profile_path, method: :post, class: "tt-action",
+                         form: { class: "tt-action-form", data: { tt_keep: true } }) if undo) } do %>
+  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+<% end %>

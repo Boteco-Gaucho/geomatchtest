@@ -2,7 +2,8 @@
     Desce, some sozinho depois de `duration` ms, e tocar fecha antes. Uso:
       render layout: "shared/top_toast", locals: { title:, text:, icon_class:, bar:, closable:, extra_class: }
     — o bloco é o ícone (svg). bar: true mostra a barra de tempo (conta descongelada);
-    closable: true mostra o X à direita (perfil atualizado); extra_class vai no aviso. %>
+    closable: true mostra o X à direita (perfil atualizado); extra_class vai no aviso;
+    action: HTML de um botão à direita (ex.: "Desfazer" da foto) — o toque nele não fecha antes. %>
 <% bar      = local_assigns.fetch(:bar, false) %>
 <% closable = local_assigns.fetch(:closable, false) %>
 <div class="tt-toast<%= " tt-toast--timed" if bar %><%= " tt-toast--closable" if closable %> <%= local_assigns[:extra_class] %>"
@@ -14,6 +15,9 @@
     <strong class="tt-title"><%= title %></strong>
     <span class="tt-text"><%= text %></span>
   </span>
+  <% if local_assigns[:action].present? %>
+    <span class="tt-action-slot"><%= local_assigns[:action] %></span>
+  <% end %>
   <% if closable %>
     <button type="button" class="tt-close" aria-label="Fechar aviso">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>

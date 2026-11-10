@@ -284,3 +284,39 @@ html.dark:not(.light-mode) .tt-toast--liked {
   .tt-title { color: var(--tt-title); }
   .tt-text { color: var(--tt-text); }
 }
+
+/* Botão de ação à direita (ex.: "Desfazer" da foto principal) — pílula pêssego do mockup */
+.tt-action-slot { flex: 0 0 auto; margin-left: auto; }
+.tt-action-form { margin: 0; }
+
+.tt-action {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #f5dfc4;
+  color: #1c1c1c;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active { transform: scale(0.96); }
+}
+
+/* "Foto atualizada": cartão do mockup "Foto removida" (ícone escuro com o desenho dourado) */
+.tt-toast--photo {
+  gap: 12px;
+  padding: 10px 10px 10px 10px;
+  border-radius: 26px;
+
+  .tt-icon { width: 42px; height: 42px; }
+  .tt-icon > svg { width: 19px; height: 19px; }
+  .tt-title { font-size: 15.5px; }
+  .tt-text { font-size: 12.5px; line-height: 16px; }
+}
+
+.dark-mode .tt-action,
+html.dark:not(.light-mode) .tt-action { background: #4a3c27; color: #f3e3c8; }
+

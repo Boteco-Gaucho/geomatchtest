@@ -91,6 +91,7 @@
     <%= render 'shared/unfreeze_toast' if flash[:account_unfrozen] %>
     <%= render 'shared/profile_saved_toast' if flash[:profile_saved] %>
     <%= render 'shared/unmatch_toast' if flash[:match_undone] %>
+    <%= render 'shared/avatar_changed_toast', state: flash[:avatar_changed] if flash[:avatar_changed] %>
     <%= render 'shared/already_liked_toast', first_name: flash[:already_liked] if flash[:already_liked] %>
     <%# Banner "Você já curtiu …" mostrado pelo navegador (app/javascript/already_liked.js) %>
     <% if user_signed_in? %>
