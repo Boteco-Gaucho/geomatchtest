@@ -324,6 +324,32 @@ function setNearbySheetExpanded(expanded) {
   sheet.style.height = expanded ? `${NEARBY_SHEET_MAX_VH}vh` : "";
 }
 
+// Altura REAL da barra de navegação de baixo → --nb-nav (a gaveta reserva esse espaço e os
+// botões do mapa ficam logo acima da gaveta). No Safari do iPhone a barra cresce por causa
+// da barra do navegador e 72px fixos deixavam a faixa de avatares escondida atrás dela.
+function syncNearbyNavInset() {
+  const container = document.querySelector(".discover-fullscreen-container");
+  if (!container || container.dataset.nbInsetWired) return;
+  container.dataset.nbInsetWired = "1";
+
+  const measure = () => {
+    const nav = document.querySelector(".sidebar");
+    if (!nav || document.body.classList.contains("turbo-native")) return;
+    const style = getComputedStyle(nav);
+    if (style.display === "none" || style.visibility === "hidden") return container.style.setProperty("--nb-nav", "0px");
+    const box = container.getBoundingClientRect();
+    const inset = Math.max(0, Math.round(box.bottom - nav.getBoundingClientRect().top));
+    if (inset < box.height / 2) container.style.setProperty("--nb-nav", `${inset}px`); // só barra de baixo
+  };
+
+  measure();
+  requestAnimationFrame(measure);
+  window.addEventListener("resize", measure);
+  window.visualViewport?.addEventListener("resize", measure);
+  const nav = document.querySelector(".sidebar");
+  if (nav && "ResizeObserver" in window) new ResizeObserver(measure).observe(nav);
+}
+
 function initNearbyChips() {
   document.querySelectorAll("[data-nearby-chip]").forEach((chip) => {
     chip.onclick = () => {
@@ -1409,6 +1435,7 @@ document.addEventListener("turbo:load", () => {
     });
   }
   initNearbyChips();
+  syncNearbyNavInset();
 
   // BOTÃO CENTRALIZAR MAPA — reset para visão 2D de navegação
   if (fabCenterMap) {

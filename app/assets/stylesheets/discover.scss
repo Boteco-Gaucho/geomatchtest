@@ -12,6 +12,14 @@
   background: var(--color-background); overflow: hidden;
   pointer-events: none; // Importante: deixa o clique passar para o mapa
 
+  // --- GAVETA "POR PERTO AGORA" x BOTÕES DO MAPA ---
+  // --nb-nav: altura da barra de navegação de baixo (o map_3d.js troca pelo valor medido —
+  //   no Safari do iPhone ela fica bem mais alta que 72px por causa da barra do navegador).
+  // --nb-peek: o quanto da gaveta recolhida aparece acima dela (alça + título + faixa).
+  // Os botões do mapa (.map-fab-container) ficam sempre logo ACIMA da gaveta recolhida.
+  --nb-nav: calc(72px + env(safe-area-inset-bottom, 0px));
+  --nb-peek: 196px;
+
   // --- VARIÁVEIS DINÂMICAS ---
   --radar-radius: 150px; // Raio inicial
   --radar-x: 50%;        // Posição X inicial (centro)
@@ -156,7 +164,9 @@
 
 // 4. FAB ACTIONS — círculos brancos encostados na gaveta (25vh)
 .map-fab-container {
-  position: absolute; right: 18px; bottom: max(25vh, 120px); z-index: 500;
+  // Logo acima da gaveta recolhida; em tela baixa, sem subir por cima do topo (logo/filtros)
+  position: absolute; right: 18px; z-index: 500;
+  bottom: min(calc(var(--nb-peek) + var(--nb-nav) + 16px), calc(100dvh - 290px));
   display: flex; flex-direction: column; gap: 10px; pointer-events: auto;
 }
 .fab-button {
@@ -188,9 +198,9 @@
 // cartão e, aberta, o radar e "Enquanto isso". Mockup 780px → ×0,5.
 .users-bottom-sheet {
   // a barra de navegação de baixo (web) fica por cima: a gaveta reserva o espaço dela
-  --nb-nav: calc(72px + env(safe-area-inset-bottom, 0px));
+  // (--nb-nav e --nb-peek em .discover-fullscreen-container)
   position: absolute; left: 0; right: 0; bottom: 0;
-  height: calc(196px + var(--nb-nav)); max-height: 88vh;
+  height: calc(var(--nb-peek) + var(--nb-nav)); max-height: 88vh;
   padding-bottom: var(--nb-nav);
   z-index: 600;
   display: flex; flex-direction: column;
@@ -463,7 +473,7 @@
 }
 
 // No app nativo não há a barra web: sem o espaço reservado
-body.turbo-native .users-bottom-sheet { --nb-nav: env(safe-area-inset-bottom, 0px); }
+body.turbo-native .discover-fullscreen-container { --nb-nav: env(safe-area-inset-bottom, 0px) !important; }
 
 .nb-sheet.is-empty .nb-strip,
 .nb-sheet.is-empty .nb-list { display: none; }
