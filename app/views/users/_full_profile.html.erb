@@ -13,6 +13,7 @@
                     esquerda, seta para baixo fechando, distância no lugar da cidade
                     (o JS preenche) e X / coração com source=map (o JS fecha a folha).
       liked       — já curtiu (coração marcado e desabilitado)
+      match       — /users/:id: já curtiu E é match — o coração leva para a conversa
       like_record — no mapa: a curtida (Like) para o coração saber se ainda dá para desfazer
       favorite_id — id do favorito (estrela marcada); omitido = consulta aqui
 
@@ -134,7 +135,10 @@
         <%= in_map ? "Mensagem" : "Mandar mensagem" %>
       <% end %>
 
-      <% if liked && !in_map %>
+      <% if liked && !in_map && !in_sheet && local_assigns[:match] %>
+        <%= link_to match_path(local_assigns[:match]), class: "up-action up-like is-liked",
+                    aria: { label: "Conversar com #{first_name}" }, title: "Vocês deram match — conversar" do %><%= heart_svg %><% end %>
+      <% elsif liked && !in_map %>
         <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"><%= heart_svg %></button>
       <% elsif in_map %>
         <%# Curtir / desfazer por alguns segundos (like_toggle_controller.js); a folha fica aberta %>

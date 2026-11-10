@@ -5,13 +5,17 @@
   right_avatar ||= nil
   message_path ||= "#"
   dismiss_path ||= lead_path
+  dismiss_label   = local_assigns[:dismiss_label].presence || "Continuar deslizando"
+  auto_forward_ms = local_assigns[:auto_forward_ms].to_i # > 0: abre a conversa sozinho
 %>
 
 <div class="gm-match"
      data-controller="match-modal"
      data-match-modal-message-path-value="<%= message_path %>"
      data-match-modal-dismiss-path-value="<%= dismiss_path %>"
-     data-match-modal-auto-open-value="true">
+     data-match-modal-auto-open-value="true"
+     data-match-modal-auto-forward-value="<%= auto_forward_ms %>"
+     <% if auto_forward_ms.positive? %>style="--gm-auto-forward: <%= auto_forward_ms %>ms"<% end %>>
 
   <div class="gm-match__scrim" data-action="click->match-modal#dismiss"></div>
 
@@ -121,8 +125,15 @@
         </a>
         <button class="gm-match__btn gm-match__btn--ghost"
                 data-action="click->match-modal#dismiss">
-          Continuar deslizando
+          <%= dismiss_label %>
         </button>
+        <% if auto_forward_ms.positive? %>
+          <%# A conversa abre sozinha quando a barrinha enche ("Agora não" cancela) %>
+          <p class="gm-match__auto" data-match-modal-target="autoHint">
+            <span class="gm-match__auto-bar" aria-hidden="true"></span>
+            Abrindo a conversa…
+          </p>
+        <% end %>
       </div>
 
     </div>

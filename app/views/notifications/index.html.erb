@@ -1,5 +1,8 @@
 <%# Esta tela segue o mockup em Inter (o resto do app usa Poppins) %>
 <% content_for :head do %>
+  <%# Voltar do perfil (depois do X ou do coração) busca a lista de novo — a cópia guardada
+      pelo Turbo ainda mostraria quem acabou de ser descartado ou virou match %>
+  <meta name="turbo-cache-control" content="no-cache">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <% end %>

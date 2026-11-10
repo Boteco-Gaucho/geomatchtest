@@ -74,16 +74,15 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       expect(body).to include('name="source" value="likes"')
     end
 
-    it "leva para a conversa quando já deu match" do
+    it "quem você já curtiu de volta (virou match) sai de \"Te curtiram\" — está em Mensagens" do
       dani = person("Dani Alves")
       liked_by(dani)
       Like.create!(liker: me, liked: dani)
-      match = Match.create!(user: me, matched_user: dani, status: "matched")
+      Match.create!(user: me, matched_user: dani, status: "matched")
 
       body = open_page
 
-      expect(body).to include(%(href="/matches/#{match.id}"))
-      expect(body).to match(/class="like-card-heart is-liked"/)
+      expect(body).not_to include("data-notification-id=")
       expect(body).not_to include('action="/likes"')
     end
   end
@@ -159,6 +158,95 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       post "/likes", params: { user_id: ana.id, source: "likes" }
 
       expect(response).to redirect_to("/notifications")
+    end
+  end
+
+  # Bug: o X do perfil aberto em Curtidas não tirava a pessoa da lista, e o coração
+  # não levava ao chat depois do match
+  describe "X e coração no perfil aberto pela tela de Curtidas" do
+    let(:ana) { person("Ana Souza") }
+
+    before do
+      liked_by(ana)
+      sign_in me, scope: :user
+      allow(PushNotificationJob).to receive(:perform_later)
+    end
+
+    it "X: registra o descarte e a pessoa some de \"Te curtiram\" (e não aparece em \"Você curtiu\")" do
+      get "/notifications"
+      expect(response.body).to include(%(id="like-card-#{ana.id}"))
+      expect(Nokogiri::HTML(response.body).at_css('meta[name="turbo-cache-control"]')["content"]).to eq("no-cache")
+
+      post "/lead/reject", params: { user_id: ana.id, source: "profile" }
+      expect(response).to have_http_status(:ok)
+      expect(Like.find_by(liker: me, liked: ana).is_like).to be(false)
+
+      get "/notifications"
+      page = Nokogiri::HTML(response.body)
+      expect(page.at_css("#like-card-#{ana.id}")).to be_nil
+      expect(page.at_css(".likes-tab-count")).to be_nil
+      expect(page.css('[data-panel="sent"] .like-card')).to be_empty
+    end
+
+    it "coração no perfil: \"É um match!\" que abre a conversa sozinho; \"Agora não\" volta ao perfil" do
+      post "/likes", params: { user_id: ana.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      match = Match.for_user(me.id).find_by("user_id = :id OR matched_user_id = :id", id: ana.id)
+      expect(match).to be_present
+      expect(response.body).to include("É UM MATCH!")
+      expect(response.body).to include(%(data-match-modal-message-path-value="/matches/#{match.id}"))
+      expect(response.body).to include(%(data-match-modal-auto-forward-value="#{LikesController::MATCH_AUTO_FORWARD_MS}"))
+      expect(response.body).to include("Abrindo a conversa")
+      expect(response.body).to include("Agora não")
+      expect(response.body).to include(%(data-match-modal-dismiss-path-value="/users/#{ana.id}"))
+
+      get "/notifications"
+      expect(response.body).not_to include(%(id="like-card-#{ana.id}")) # virou conexão
+
+      get "/users/#{ana.id}"
+      expect(Nokogiri::HTML(response.body).at_css(%(a.up-like.is-liked[href="/matches/#{match.id}"]))).to be_present
+    end
+
+    it "coração no card da grade: tira o card na hora junto com o modal" do
+      post "/likes", params: { user_id: ana.id, source: "likes" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(response.body).to include(%(<turbo-stream action="remove" target="like-card-#{ana.id}">))
+      expect(response.body).to include("É UM MATCH!")
+    end
+
+    it "coração depois de ter dado X: a curtida substitui o descarte e dá match" do
+      post "/lead/reject", params: { user_id: ana.id, source: "profile" }
+
+      post "/likes", params: { user_id: ana.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
+
+      expect(Like.find_by(liker: me, liked: ana).is_like).not_to be(false)
+      expect(response.body).to include("É UM MATCH!")
+    end
+
+    it "já conversavam (começaram pelo Mensagem do mapa): sem modal de match novo, vai para a conversa" do
+      talk = Match.create!(user: me, matched_user: ana)
+      talk.messages.create!(sender: ana, content: "oi")
+
+      post "/likes", params: { user_id: ana.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html, text/html" }
+
+      expect(response).to redirect_to("/matches/#{talk.id}")
+      expect(response).to have_http_status(:see_other)
+      expect(flash[:notice]).to eq("Curtida enviada! Vocês já estão conversando.")
+      expect(Match.for_user(me.id).count).to eq(1)
+    end
+
+    it "já tinha curtido e é match: o coração leva para a conversa em vez de só avisar" do
+      Like.create!(liker: me, liked: ana)
+      match = Match.create!(user: me, matched_user: ana, status: "matched")
+
+      post "/likes", params: { user_id: ana.id, source: "profile" }
+
+      expect(response).to redirect_to("/matches/#{match.id}")
+      expect(Like.where(liker: me, liked: ana).count).to eq(1) # sem duplicar
     end
   end
 end

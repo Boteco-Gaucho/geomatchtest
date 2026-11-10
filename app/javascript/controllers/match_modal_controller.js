@@ -1,11 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["sheet", "eyebrow", "leftAvatar", "rightAvatar", "messageBtn"]
+  static targets = ["sheet", "eyebrow", "leftAvatar", "rightAvatar", "messageBtn", "autoHint"]
   static values  = {
     messagePath: String,
     dismissPath: String,
-    autoOpen:    { type: Boolean, default: true }
+    autoOpen:    { type: Boolean, default: true },
+    // > 0: depois desse tempo (ms) abre a conversa sozinho — retribuir em Curtidas/perfil
+    autoForward: { type: Number, default: 0 }
   }
 
   connect() {
@@ -19,6 +21,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    clearTimeout(this.forwardTimer)
     document.removeEventListener("match:show", this.boundShow)
     document.removeEventListener("keydown", this.boundKey)
   }
@@ -42,10 +45,25 @@ export default class extends Controller {
     void this.element.offsetWidth
     this.element.classList.remove("is-closing")
     document.body.style.overflow = "hidden"
+
+    clearTimeout(this.forwardTimer)
+    if (this.autoForwardValue > 0) {
+      this.forwardTimer = setTimeout(() => this.goToChat(), this.autoForwardValue)
+    }
+  }
+
+  goToChat() {
+    const path = this.messagePathValue
+    if (!path || path === "#") return
+    document.body.style.overflow = ""
+    this.element.remove()
+    if (window.Turbo) Turbo.visit(path)
+    else window.location.href = path
   }
 
   dismiss(event) {
     if (event) event.preventDefault()
+    clearTimeout(this.forwardTimer)
     this.element.classList.add("is-closing")
     document.body.style.overflow = ""
     setTimeout(() => {
@@ -62,6 +80,7 @@ export default class extends Controller {
   }
 
   sendMessage(_event) {
+    clearTimeout(this.forwardTimer)
     document.body.style.overflow = ""
     this.element.remove()
   }

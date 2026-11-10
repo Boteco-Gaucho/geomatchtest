@@ -1,6 +1,10 @@
 class LikesController < ApplicationController
   before_action :authenticate_user!
 
+  # Retribuiu pela tela de Curtidas ou pelo perfil: depois do "É um match!" a conversa
+  # abre sozinha (dá tempo de ver a animação; "Conversar agora" abre na hora)
+  MATCH_AUTO_FORWARD_MS = 4500
+
   def create
     liked_user = User.find(params[:user_id])
 
@@ -19,23 +23,24 @@ class LikesController < ApplicationController
     end
     # =======================================================
 
-    # Evitar duplicações
-    if request.format.json?
-      existing = Like.find_by(liker_id: current_user.id, liked_id: liked_user.id)
-      if existing&.is_like == false
-        existing.destroy # o "agora não" antigo dá lugar à curtida
-      elsif existing
-        return render json: like_json(existing)
-      end
+    # Evitar duplicações. O "agora não" (X) antigo dá lugar à curtida em qualquer tela —
+    # antes só no mapa (JSON); no perfil e em Curtidas dizia "Você já curtiu" e nada acontecia.
+    existing = Like.find_by(liker_id: current_user.id, liked_id: liked_user.id)
+    if existing&.is_like == false
+      existing.destroy
+      existing = nil
     end
 
-    if Like.exists?(liker_id: current_user.id, liked_id: liked_user.id)
+    if existing
+      return render json: like_json(existing) if request.format.json?
       # Se veio do MAPA, apenas fecha o popup (ok)
-      if params[:source] == "map"
-        return head :ok 
-      else
-        return redirect_to return_path, alert: "Você já curtiu este usuário."
+      return head :ok if params[:source] == "map"
+
+      # Já curtiu e já é match: leva para a conversa em vez de só avisar
+      if (match = match_with(liked_user))
+        return redirect_to match_path(match), status: :see_other, notice: "Vocês já deram match. Que tal mandar uma mensagem?"
       end
+      return redirect_to return_path, status: :see_other, alert: "Você já curtiu este usuário."
     end
 
     @like = Like.new(liker_id: current_user.id, liked_id: liked_user.id)
@@ -63,6 +68,8 @@ class LikesController < ApplicationController
           matched_user_id = [current_user.id, liked_user.id].max
           match = Match.create!(user_id: user_id, matched_user_id: matched_user_id, status: "matched")
         end
+        # Já conversavam (ex.: começaram pelo "Mensagem" do mapa): não é um match "novo"
+        already_talking = existing_match.present? && match.messages.exists?
 
         # 🔔 Notificação de MATCH
         notification = Notification.create(
@@ -80,10 +87,16 @@ class LikesController < ApplicationController
           render json: { status: "match", match_path: match_path(match) }
         elsif params[:source] == "map"
           redirect_to match_path(match)
+        elsif already_talking
+          # Sem modal de "match novo": a curtida vale e a pessoa vai para a conversa que já existe
+          redirect_to match_path(match), status: :see_other, notice: "Curtida enviada! Vocês já estão conversando."
         else
+          # Curtidas e perfil: "É um match!" e, sozinho em alguns segundos, a conversa.
+          # O card de quem curtiu sai da grade na hora (virou conexão).
+          from_likes = %w[likes profile].include?(params[:source])
           respond_to do |format|
             format.turbo_stream do
-              render turbo_stream: turbo_stream.append("body",
+              streams = [ turbo_stream.append("body",
                 partial: "shared/match_modal",
                 locals: {
                   left_name:    current_user.display_name,
@@ -91,10 +104,14 @@ class LikesController < ApplicationController
                   left_avatar:  current_user.avatar.attached? ? url_for(current_user.avatar) : nil,
                   right_avatar: liked_user.avatar.attached?   ? url_for(liked_user.avatar)   : nil,
                   message_path: match_path(match),
-                  dismiss_path: return_path
-                })
+                  dismiss_path: return_path,
+                  dismiss_label: from_likes ? "Agora não" : "Continuar deslizando",
+                  auto_forward_ms: from_likes ? MATCH_AUTO_FORWARD_MS : 0
+                }) ]
+              streams << turbo_stream.remove("like-card-#{liked_user.id}") if params[:source] == "likes"
+              render turbo_stream: streams
             end
-            format.html { redirect_to return_path, notice: "Deu match! 🎉" }
+            format.html { redirect_to match_path(match), status: :see_other, notice: "Deu match! 🎉" }
           end
         end
 
@@ -169,6 +186,11 @@ class LikesController < ApplicationController
 
   def like_json(like)
     { status: "liked", like_id: like.id, user_id: like.liked_id, undo_seconds: like.undo_seconds_left }
+  end
+
+  def match_with(other)
+    Match.where("(user_id = :a AND matched_user_id = :b) OR (user_id = :b AND matched_user_id = :a)",
+                a: current_user.id, b: other.id).first
   end
 
   def match_between?(a, b)

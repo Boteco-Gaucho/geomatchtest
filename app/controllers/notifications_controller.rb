@@ -9,24 +9,28 @@ class NotificationsController < ApplicationController
     #    está bloqueado nos dois sentidos: bloquear apaga likes e matches, mas não
     #    as notificações, então elas precisam ser filtradas aqui. Contas banidas
     #    também ficam de fora. Uma entrada por pessoa (a mais recente).
+    #    Só quem ainda espera resposta: quem você descartou (X — Like is_like: false) ou
+    #    já curtiu de volta (virou match: está em Mensagens > Novas conexões) sai da lista.
     @notifications = current_user.notifications
       .where(notifiable_type: %w[Like Match])
       .where.not(actor_id: current_user.excluded_user_ids)
+      .where.not(actor_id: Like.where(liker_id: current_user.id).select(:liked_id))
       .joins(:actor).merge(User.where(banned_at: nil))
       .includes(actor: photo_includes)
       .order(created_at: :desc)
       .to_a
       .uniq(&:actor_id)
 
-    # 2. Quem VOCÊ curtiu
-    @my_likes = Like.where(liker_id: current_user.id)
+    # 2. Quem VOCÊ curtiu (o X — is_like: false — não é curtida)
+    @my_likes = Like.positive.where(liker_id: current_user.id)
       .includes(liked: photo_includes)
       .order(created_at: :desc)
 
     # Estado do coração "curtir de volta" de cada card: quem você já curtiu e,
     # se já deu match, a conversa para onde o coração leva.
     actor_ids = @notifications.map(&:actor_id)
-    @liked_back_ids = Like.where(liker_id: current_user.id, liked_id: actor_ids).pluck(:liked_id).to_set
+    # (só curtida de verdade: o X — is_like: false — não é "já curtiu")
+    @liked_back_ids = Like.positive.where(liker_id: current_user.id, liked_id: actor_ids).pluck(:liked_id).to_set
     @matches_by_user = Match.for_user(current_user.id)
                             .where("user_id IN (:ids) OR matched_user_id IN (:ids)", ids: actor_ids)
                             .index_by { |match| match.user_id == current_user.id ? match.matched_user_id : match.user_id }

@@ -360,6 +360,24 @@
 }
 .gm-match__btn--ghost:hover { background: rgba(201,160,121,0.08); }
 
+/* "Abrindo a conversa…": a barrinha enche no tempo do auto-forward (match_modal_controller) */
+.gm-match__auto {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin: 4px 0 0;
+  color: rgba(244,223,196,0.7);
+  font-family: 'Outfit', sans-serif; font-size: 13px; letter-spacing: 0.02em;
+}
+.gm-match__auto-bar {
+  position: relative; display: block; width: 120px; height: 3px; overflow: hidden;
+  border-radius: 999px; background: rgba(201,160,121,0.25);
+  &::after {
+    content: ""; position: absolute; inset: 0; transform-origin: left; transform: scaleX(0);
+    background: #C9A079;
+    animation: gmAutoForward var(--gm-auto-forward, 4500ms) linear forwards;
+  }
+}
+@keyframes gmAutoForward { to { transform: scaleX(1); } }
+
 @keyframes gmFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .gm-match.is-closing .gm-match__scrim,
