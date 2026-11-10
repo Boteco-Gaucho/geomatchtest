@@ -82,7 +82,10 @@
       <% end %>
     <% end %>
 
-    <% if in_map && !own_profile %>
+    <%# Enviar Mimo no perfil do mapa: escondido por enquanto (pedido do produto).
+        Para voltar a mostrar, troque para true. %>
+    <% show_mimo_gift = false %>
+    <% if show_mimo_gift && in_map && !own_profile %>
       <%# Enviar Mimo: entrada do catálogo já com a pessoa escolhida (não está no mockup;
           era o 🎁 do popup antigo do mapa) %>
       <%= link_to mimo_catalog_page_path(receiver_id: user.id), class: "up-round up-gift",

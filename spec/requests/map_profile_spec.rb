@@ -28,7 +28,7 @@ RSpec.describe "Perfil no mapa", type: :request do
       expect(page.at_css(".up-handle")).to be_present
       expect(page.at_css("button.up-close[data-map-profile-close]")).to be_present
       expect(page.at_css(".up-fav form")["action"]).to eq("/favorites?favorited_user_id=#{other.id}")
-      expect(page.at_css("a.up-gift")["href"]).to eq("/mimos/catalogo?receiver_id=#{other.id}")
+      expect(page.at_css("a.up-gift")).to be_nil # Mimo escondido por enquanto no perfil do mapa
       expect(page.at_css(".up-name strong").text).to eq("Luan Victor")
       expect(page.at_css(".up-age").text).to eq("32")
       # "~2 km de você · cidade": o JS preenche a distância; a cidade já vem (escondido sem cidade)
