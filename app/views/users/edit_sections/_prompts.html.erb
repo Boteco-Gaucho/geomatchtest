@@ -25,13 +25,19 @@
 
         <div class="pe-pq-form" <%= "hidden" if current %>>
           <%= label_tag "profile_prompts_#{index}_key", "Pergunta", class: "pe-label" %>
+          <%# A lista é a tela "Selecione uma pergunta" (abaixo); o select escondido vai no Salvar %>
+          <button type="button" class="pe-pq-pick" data-action="prompt-slots#openPicker" aria-haspopup="dialog">
+            <span data-role="pick-label"><%= current&.question || "Escolha uma pergunta" %></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
           <%= select_tag "profile_prompts[#{index}][key]", options_for_select(options, current&.question_key),
-                         include_blank: "Escolha uma pergunta", id: "profile_prompts_#{index}_key", class: "pe-select",
+                         include_blank: "Escolha uma pergunta", id: "profile_prompts_#{index}_key", class: "pe-pq-select",
+                         tabindex: -1, aria: { hidden: true },
                          data: { role: "key", action: "change->prompt-slots#sync" } %>
           <%= text_area_tag "profile_prompts[#{index}][answer]", current&.answer, id: "profile_prompts_#{index}_answer",
                             rows: 2, maxlength: ProfilePrompt::ANSWER_MAX, class: "pe-prompt-answer",
                             placeholder: "Sua resposta (até #{ProfilePrompt::ANSWER_MAX} caracteres)",
-                            aria: { label: "Resposta da pergunta #{index + 1}" }, data: { role: "answer-input" } %>
+                            aria: { label: "Resposta da pergunta #{index + 1}" }, data: { role: "answer-input", action: "input->prompt-slots#sync" } %>
           <div class="pe-pq-actions">
             <button type="button" class="pe-pq-remove" data-action="prompt-slots#remove">Remover</button>
             <button type="button" class="pe-pq-done" data-action="prompt-slots#done">Pronto</button>
@@ -45,5 +51,26 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
       Escolher outra pergunta
     </button>
+
+    <%# "Selecione uma pergunta" — tela cheia com a lista (prompt_slots_controller#openPicker) %>
+    <div class="pe-picker" hidden data-prompt-slots-target="picker" role="dialog" aria-modal="true" aria-labelledby="pe-picker-title"
+         data-action="keydown.esc@window->prompt-slots#closePicker">
+      <div class="pe-picker-head">
+        <button type="button" class="pe-picker-close" aria-label="Fechar" data-action="prompt-slots#closePicker">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <h2 class="pe-picker-title" id="pe-picker-title">Selecione uma pergunta</h2>
+      </div>
+      <ul class="pe-picker-list">
+        <% options.each do |text, key| %>
+          <li>
+            <button type="button" class="pe-picker-item" data-key="<%= key %>" data-action="prompt-slots#pick">
+              <span><%= text %></span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+            </button>
+          </li>
+        <% end %>
+      </ul>
+    </div>
   </section>
 <% end %>

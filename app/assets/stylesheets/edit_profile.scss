@@ -1361,3 +1361,161 @@ html.dark:not(.light-mode) {
   padding: 0 13px;
   font-size: 13px;
 }
+
+/* --- Perguntas: botão que abre a lista e a tela "Selecione uma pergunta" --- */
+.pe-pq-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pe-pq-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid #e8e0d4;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c1c1c;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-empty { color: #8a847e; font-weight: 500; }
+  &:active { transform: scale(0.99); }
+  svg { flex: 0 0 auto; width: 16px; height: 16px; fill: none; stroke: #8a847e; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+body.pe-picker-open { overflow: hidden; }
+
+.pe-picker {
+  --pk-bg: #fff;
+  --pk-text: #1c1c1c;
+  --pk-line: #ece5da;
+  --pk-check: #d4373a;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100003;
+  display: flex;
+  flex-direction: column;
+  background: var(--pk-bg);
+  color: var(--pk-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: pe-picker-in 0.22s ease;
+
+  &[hidden] { display: none; }
+}
+
+@keyframes pe-picker-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.pe-picker-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 64px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 72px 10px;
+}
+
+.pe-picker-close {
+  position: absolute;
+  left: 16px;
+  bottom: 10px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--pk-line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pk-text);
+  cursor: pointer;
+
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+}
+
+.pe-picker-title { margin: 0; font-size: 18px; font-weight: 700; }
+
+.pe-picker-list {
+  flex: 1;
+  margin: 0;
+  padding: 0 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  -webkit-overflow-scrolling: touch;
+
+  li + li { border-top: 1px solid var(--pk-line); }
+}
+
+.pe-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 0;
+  border: 0;
+  background: none;
+  color: var(--pk-text);
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 21px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { flex: 0 0 auto; width: 20px; height: 20px; fill: none; stroke: var(--pk-check); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+  &.is-selected svg { visibility: visible; }
+  &:disabled { opacity: 0.35; cursor: default; }
+  &:active:not(:disabled) { opacity: 0.6; }
+}
+
+/* Modo escuro das seções novas (perguntas, lugares, mais sobre você, estilo de vida) —
+   faltava: a caixa da pergunta e o campo de resposta ficavam claros */
+.dark-mode,
+html.dark:not(.light-mode) {
+  .pe-card-sub,
+  .pe-label-note,
+  .pe-chip-empty { color: var(--color-text-secondary); }
+
+  .pe-details .pe-select,
+  .pe-details .pe-input,
+  .pe-pq-form .pe-prompt-answer,
+  .pe-search { border-color: var(--color-border); background-color: #1a1a1a; color: var(--color-text); }
+  .pe-search input { color: var(--color-text); }
+
+  .pe-pq-view,
+  .pe-pq-form { border-color: var(--color-border); background: #1f1d1a; color: var(--color-text); }
+  .pe-pq-q { color: #d4b06a; }
+  .pe-pq-edit { color: var(--color-text-secondary); }
+  .pe-pq-pick { border-color: var(--color-border); background: #141414; color: var(--color-text); }
+  .pe-pq-pick.is-empty { color: var(--color-text-secondary); }
+  .pe-pq-add { border-color: #444; background: transparent; color: var(--color-text); }
+  .pe-pq-done { background: var(--color-text); color: #121212; }
+  .pe-pq-remove { color: #f08080; }
+  .pe-chip--toggle[aria-pressed="true"] span { border-color: var(--color-text); background: var(--color-text); color: #121212; }
+
+  .pe-picker {
+    --pk-bg: #161616;
+    --pk-text: #ece8e3;
+    --pk-line: #2c2c2e;
+    --pk-check: #ef4a4d;
+  }
+}
+
