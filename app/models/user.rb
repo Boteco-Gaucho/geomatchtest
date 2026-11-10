@@ -94,11 +94,15 @@ class User < ApplicationRecord
   HOBBIES_LIMIT      = 8
 
   # Enum de escolaridade (coluna integer no banco)
+  # (3+ vieram com "Mais sobre você" do Editar perfil — ProfileDetails::EDUCATION)
   enum :education_level, {
     high_school:          0,
     college_incomplete:   1,
-    college_complete:     2
-  }
+    college_complete:     2,
+    postgraduate:         3,
+    masters_doctorate:    4,
+    education_not_informed: 5
+  }, validate: { allow_nil: true }
 
   # Geocoder — usa o campo :address, que é sincronizado a partir dos componentes
   geocoded_by :address
@@ -398,6 +402,23 @@ class User < ApplicationRecord
     ((checks.count { |_, done| done } * 100.0) / checks.size).round
   end
 
+  # =========================================================
+  # MAIS SOBRE VOCÊ / ESTILO DE VIDA / LUGARES (Editar perfil — ProfileDetails)
+  # =========================================================
+
+  # Até as colunas existirem no banco (migration AddProfileDetailsToUsers) as seções
+  # ficam escondidas em vez de quebrar a página
+  def self.profile_details?
+    (ProfileDetails::COLUMNS - column_names).empty?
+  end
+
+  before_validation :normalize_profile_details, if: -> { User.profile_details? }
+  validate :profile_details_choices, if: -> { User.profile_details? }
+
+  def profile_detail(name)
+    has_attribute?(name) ? self[name] : nil
+  end
+
   # Em produção a coluna é criada à mão (migrations desligadas); até lá o olho de
   # "Explorar cidades" fica indisponível em vez de quebrar a galeria
   def self.city_search_hiding?
@@ -622,6 +643,33 @@ class User < ApplicationRecord
   end
 
   private
+
+  # Listas: sem vazios e repetidos, só opções conhecidas; "Prefiro não informar" vale sozinho
+  def normalize_profile_details
+    ProfileDetails::MULTI_CHOICES.each do |field, options|
+      values = Array(self[field]).map { |v| v.to_s.strip }.compact_blank.uniq
+      values = if values.include?(ProfileDetails::NOT_INFORMED)
+        [ ProfileDetails::NOT_INFORMED ]
+      else
+        values.select { |v| options.include?(v) }
+      end
+      limit = ProfileDetails::MULTI_LIMITS[field]
+      self[field] = limit ? values.first(limit) : values
+    end
+    ProfileDetails::SINGLE_CHOICES.each_key { |field| self[field] = self[field].presence }
+    self.occupation = occupation.to_s.squish.presence&.first(ProfileDetails::OCCUPATION_MAX)
+  end
+
+  def profile_details_choices
+    ProfileDetails::SINGLE_CHOICES.each do |field, options|
+      value = self[field]
+      next if value.blank? || value == ProfileDetails::NOT_INFORMED || options.include?(value)
+
+      errors.add(field, "não é uma opção válida")
+    end
+    cm = height_cm
+    errors.add(:height_cm, "não é uma altura válida") if cm.present? && !(cm.zero? || ProfileDetails::HEIGHTS.include?(cm))
+  end
 
   # Monta o campo :address a partir dos componentes para o geocoder funcionar
   def sync_address_from_components

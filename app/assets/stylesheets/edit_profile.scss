@@ -1218,3 +1218,146 @@ html.dark:not(.light-mode) {
   &::placeholder { color: #a39b91; opacity: 1; }
   &:focus { border-color: #c9a052; box-shadow: 0 0 0 3px rgba(201, 160, 82, 0.18); }
 }
+
+/* --- 9 a 13. Lugares, perguntas, o que procura, mais sobre você, estilo de vida --- */
+.pe-card-sub {
+  margin: 3px 0 0;
+  color: #6b6560;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.pe-details > .pe-chips { margin-top: 13px; }
+.pe-details .pe-field { margin-top: 18px; }
+.pe-label-note { color: #8a847e; font-weight: 500; }
+.pe-label--spaced { margin-top: 14px; }
+.pe-chips--after { margin-top: 9px; }
+
+// Limite de "Lugares que eu curto": o "N de 5" pisca quando passa
+.pe-details.is-full [data-chip-group-target="count"] { animation: pe-full 0.6s ease; color: #c0302a; }
+@keyframes pe-full { 0%, 100% { transform: none; } 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+
+// "Prefiro não informar" da altura: um botão com cara de chip
+.pe-chip--toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+
+  &[aria-pressed="true"] span { border-color: #1c1c1c; background: #1c1c1c; color: #fff; }
+}
+
+.pe-chip[hidden] { display: none; }
+
+.pe-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  margin: 0 0 11px;
+  padding: 0 14px;
+  border: 1px solid #ebe4d8;
+  border-radius: 21px;
+  background: #faf6ef;
+
+  svg { flex: 0 0 auto; width: 16px; height: 16px; fill: none; stroke: #8a847e; stroke-width: 2; stroke-linecap: round; }
+  input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; color: #1c1c1c; font: inherit; font-size: 15px; outline: none; }
+}
+
+.pe-chip-empty { margin: 8px 0 0; color: #8a847e; font-size: 12.5px; }
+
+/* Perguntas para puxar assunto: cartão bege com lápis; edição ali mesmo */
+.pe-prompts .pe-pq { margin-top: 12px; }
+.pe-pq[hidden] { display: none; }
+
+.pe-pq-view {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 13px 44px 14px 15px;
+  border: 1px solid #efe6d8;
+  border-radius: 16px;
+  background: #faf6ef;
+  color: #1c1c1c;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &[hidden] { display: none; }
+}
+
+.pe-pq-q { color: #80652f; font-size: 12.5px; font-weight: 700; line-height: 17px; }
+.pe-pq-a { font-size: 15px; font-weight: 600; line-height: 21px; overflow-wrap: anywhere; }
+
+.pe-pq-edit {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  color: #6b6560;
+
+  svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.pe-pq-form {
+  padding: 13px 14px 14px;
+  border: 1px solid #efe6d8;
+  border-radius: 16px;
+  background: #faf6ef;
+
+  &[hidden] { display: none; }
+  .pe-select { width: 100%; }
+}
+
+.pe-pq-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.pe-pq-remove,
+.pe-pq-done {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pe-pq-remove { border: 0; background: none; color: #a8322b; padding: 0 6px; }
+.pe-pq-done { border: 0; background: #1c1c1c; color: #fff; }
+
+.pe-pq-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 12px;
+  border: 1.5px dashed #ddd2c2;
+  border-radius: 16px;
+  background: #fff;
+  color: #1c1c1c;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[hidden] { display: none; }
+  svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+}
+
+// Seções novas: chips mais compactos, como no mockup (muitas opções por seção)
+.pe-details .pe-chips { gap: 7px 6px; }
+.pe-details .pe-chip span {
+  height: 34px;
+  padding: 0 13px;
+  font-size: 13px;
+}

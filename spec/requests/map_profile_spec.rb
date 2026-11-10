@@ -31,7 +31,10 @@ RSpec.describe "Perfil no mapa", type: :request do
       expect(page.at_css("a.up-gift")["href"]).to eq("/mimos/catalogo?receiver_id=#{other.id}")
       expect(page.at_css(".up-name strong").text).to eq("Luan Victor")
       expect(page.at_css(".up-age").text).to eq("32")
-      expect(page.at_css("[data-map-profile-distance]").key?("hidden")).to be(true) # o JS preenche
+      # "~2 km de você · cidade": o JS preenche a distância; a cidade já vem (escondido sem cidade)
+      place = page.at_css("[data-map-profile-distance]")
+      expect(place.at_css(".up-place-dist").text).to eq("")
+      expect(place.key?("hidden")).to eq(place.at_css(".up-place-city").nil?)
 
       pass = page.at_css(".up-pass").ancestors("form").first
       expect(pass["action"]).to eq("/lead/reject?source=map&user_id=#{other.id}")
@@ -43,9 +46,8 @@ RSpec.describe "Perfil no mapa", type: :request do
       expect(like["data-like-toggle-liked-value"]).to eq("false")
       expect(page.at_css(".up-message").text.squish).to eq("Mensagem")
 
-      expect(page.css(".up-label").map(&:text)).to eq([ "Sobre mim", "Informações" ])
-      expect(page.css(".up-facts li").map { |li| li.text.squish })
-        .to eq([ "Homem", "Quer conhecer mulheres", "Salvador, BA" ])
+      expect(page.css(".up-label").map(&:text)).to eq([ "Sobre mim", "Em resumo" ])
+      expect(page.css(".up-rows li").map { |li| li.text.squish }).to eq([ "Mora em Salvador, BA" ])
       expect(page.css(".up-safety-btn").map { |b| b.text.squish }).to eq(%w[Denunciar Bloquear])
       expect(page.at_css("#upgrade-modal-container")).to be_nil # a página do mapa já tem o dela
     end

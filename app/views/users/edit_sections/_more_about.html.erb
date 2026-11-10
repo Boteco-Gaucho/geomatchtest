@@ -1,0 +1,86 @@
+<%# "Mais sobre você" — altura, profissão (com busca e "Não achou? Escreva aqui"),
+    escolaridade, signo e idiomas. Tudo opcional. %>
+<%
+  na         = ProfileDetails::NOT_INFORMED
+  height     = user.profile_detail(:height_cm)
+  occupation = user.occupation.to_s
+  chips      = ProfileDetails::PROFESSIONS.map(&:first)
+  custom     = occupation.present? && !chips.include?(occupation) && occupation != na
+  education  = user.education_level
+  languages  = Array(user.profile_detail(:languages))
+%>
+<section class="pe-card pe-details" id="pe-mais-sobre">
+  <h2 class="pe-card-title">Mais sobre você</h2>
+  <p class="pe-card-sub">Tudo opcional. Marcar "Prefiro não informar" não deixa seu perfil incompleto.</p>
+
+  <%# Altura: a lista ou "Prefiro não informar" (0) %>
+  <div class="pe-field" data-controller="select-chip">
+    <%= label_tag "user_height_cm", "Altura", class: "pe-label" %>
+    <%= select_tag "user[height_cm]",
+                   options_for_select([ [ "Escolha", "" ] ] + ProfileDetails::HEIGHTS.map { |cm| [ ProfileDetails.height_label(cm), cm ] } + [ [ na, 0 ] ],
+                                      height.nil? ? "" : height),
+                   id: "user_height_cm", class: "pe-select",
+                   data: { select_chip_target: "select", action: "change->select-chip#sync" } %>
+    <div class="pe-chips pe-chips--after">
+      <button type="button" class="pe-chip pe-chip--toggle" data-select-chip-target="chip" data-action="select-chip#toggle"
+              aria-pressed="<%= height == 0 %>"><span><%= na %></span></button>
+    </div>
+  </div>
+
+  <%# Profissão: escolha 1, busca pelos chips, ou texto livre %>
+  <div class="pe-field" data-controller="chip-group chip-filter">
+    <p class="pe-label">Profissão <span class="pe-label-note">· escolha 1</span></p>
+    <label class="pe-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Buscar profissão" autocomplete="off" aria-label="Buscar profissão"
+             data-chip-filter-target="query" data-action="input->chip-filter#filter">
+    </label>
+    <div class="pe-chips">
+      <% (chips + [ na ]).each do |chip| %>
+        <%= render "users/edit_sections/chip", name: "user[occupation]", value: chip, checked: occupation == chip %>
+      <% end %>
+    </div>
+    <p class="pe-chip-empty" data-chip-filter-target="empty" hidden>Nenhuma profissão com esse nome. Escreva abaixo.</p>
+    <%= label_tag "user_occupation_other", class: "pe-label pe-label--spaced" do %>
+      Não achou? Escreva aqui <span class="pe-label-note">· opcional</span>
+    <% end %>
+    <%= text_field_tag "user[occupation_other]", (custom ? occupation : nil), id: "user_occupation_other",
+                       maxlength: ProfileDetails::OCCUPATION_MAX, placeholder: "Ex.: Fisioterapeuta", class: "pe-input",
+                       data: { chip_filter_target: "other", action: "input->chip-filter#typed" } %>
+  </div>
+
+  <%# Escolaridade (enum do User; "Graduação (cursando)" do cadastro continua valendo até trocar) %>
+  <fieldset class="pe-field" data-controller="chip-group">
+    <legend class="pe-label">Escolaridade</legend>
+    <div class="pe-chips">
+      <% ProfileDetails::EDUCATION.each do |label, value| %>
+        <% value = education if value == "college_complete" && education == "college_incomplete" %>
+        <%= render "users/edit_sections/chip", name: "user[education_level]", value: value, label: label,
+                   checked: education == value %>
+      <% end %>
+      <%= render "users/edit_sections/chip", name: "user[education_level]", value: "education_not_informed", label: na,
+                 checked: education == "education_not_informed" %>
+    </div>
+  </fieldset>
+
+  <fieldset class="pe-field" data-controller="chip-group">
+    <legend class="pe-label">Signo</legend>
+    <%= hidden_field_tag "user[zodiac_sign]", "", id: nil %>
+    <div class="pe-chips">
+      <% (ProfileDetails::ZODIAC + [ na ]).each do |sign| %>
+        <%= render "users/edit_sections/chip", name: "user[zodiac_sign]", value: sign, checked: user.profile_detail(:zodiac_sign) == sign %>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <fieldset class="pe-field" data-controller="chip-group" data-chip-group-exclusive-value="<%= na %>">
+    <legend class="pe-label">Idiomas <span class="pe-label-note">· escolha vários</span></legend>
+    <%= hidden_field_tag "user[languages][]", "", id: nil %>
+    <div class="pe-chips">
+      <% (ProfileDetails::LANGUAGES + [ na ]).each do |language| %>
+        <%= render "users/edit_sections/chip", name: "user[languages][]", value: language,
+                   checked: languages.include?(language), multiple: true %>
+      <% end %>
+    </div>
+  </fieldset>
+</section>

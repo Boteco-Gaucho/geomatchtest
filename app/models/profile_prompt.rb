@@ -15,7 +15,8 @@ class ProfilePrompt < ApplicationRecord
     "simple_pleasure" => "Um pequeno prazer do meu dia é…",
     "on_repeat"       => "A música que não sai da minha playlist é…",
     "best_trip"       => "A viagem que mais me marcou foi…",
-    "hot_take"        => "Uma opinião polêmica minha é…"
+    "hot_take"        => "Uma opinião polêmica minha é…",
+    "any_plan_but"    => "Topo qualquer rolê, menos…"
   }.freeze
 
   NO_CITY = {

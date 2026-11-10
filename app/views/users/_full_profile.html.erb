@@ -1,6 +1,8 @@
-<%# Perfil completo de uma pessoa — layout do mockup: foto com nome por cima,
-    X / Mandar mensagem / curtir na borda da foto, cartão com Sobre, Informações e
-    Interesses, e Denunciar | Bloquear no fim. Estilos: .up-* em user_profile.scss.
+<%# Perfil completo de uma pessoa — layout do mockup: foto com nome, distância/cidade e
+    "o que procura" por cima; X / Mandar mensagem / curtir na borda da foto; depois, em
+    cartões: Sobre mim, Em resumo, e intercalados as outras fotos, as perguntas, Interesses
+    (com os em comum), Lugares que curto e Estilo de vida; no fim "Mandar mensagem" e
+    Denunciar | Bloquear. Estilos: .up-* em user_profile.scss.
 
     Locals:
       user        — quem está sendo visto (obrigatório)
@@ -27,12 +29,27 @@
 <% first_name  = user.display_name.to_s.split.first %>
 <% shown_name  = in_map ? user.display_name : first_name %>
 <% place       = profile_place(user) %>
-<% facts = [
-     [ "person", profile_gender_label(user) ],
-     [ "heart",  profile_seeking_label(user) ],
-     [ "pin",    place ]
-   ].select { |_icon, text| text.present? } %>
 <% hobbies = user.hobbies_list.map(&:to_s).map(&:strip).compact_blank %>
+<% my_hobbies = own_profile ? [] : current_user.hobbies_list.map { |h| h.to_s.strip.downcase } %>
+<% common = hobbies.count { |h| my_hobbies.include?(h.downcase) } %>
+<% looking = profile_looking_for(user) %>
+<% places = profile_favorite_places(user) %>
+<% summary = profile_summary_rows(user) %>
+<% lifestyle = profile_lifestyle_rows(user) %>
+<%# Fotos intercaladas no meio do perfil: a 2ª, a 3ª… (a 1ª é a do topo) %>
+<% photos = (user.has_real_avatar? ? [ user.avatar ] : []) + user.album_photos.to_a %>
+<% inline_photos = photos.drop(1) %>
+<%# Perguntas do perfil, com as respostas que eu já mandei (estado "Respondida") %>
+<% prompts = ProfilePrompt.available? ? user.profile_prompts.to_a : [] %>
+<% replies = if prompts.any? && !own_profile
+     Message.joins(:match)
+            .where(sender_id: current_user.id, prompt_key: prompts.map(&:question_key))
+            .where("matches.user_id = :id OR matches.matched_user_id = :id", id: user.id)
+            .order(:created_at).index_by(&:prompt_key)
+   else
+     {}
+   end %>
+<% can_reply = !own_profile && current_user.can_reply_prompts? %>
 <% heart_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>'.html_safe %>
 <% x_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'.html_safe %>
 
@@ -95,15 +112,22 @@
         <% end %>
       </h1>
       <% if in_map %>
-        <%# "Menos de 300 m de você" — o map_3d.js preenche com a distância do mapa %>
-        <p class="up-place" data-map-profile-distance hidden>
+        <%# "~2 km de você · Salvador, BA" — o map_3d.js preenche a distância (1º span) %>
+        <p class="up-place" data-map-profile-distance <%= "hidden" unless place %>>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span></span>
+          <span class="up-place-dist"></span><% if place %><span class="up-place-city"><%= place %></span><% end %>
         </p>
       <% elsif place %>
         <p class="up-place">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <%= place %>
+        </p>
+      <% end %>
+      <% if looking %>
+        <%# "O que você procura" (Editar perfil) %>
+        <p class="up-looking">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+          <%= looking %>
         </p>
       <% end %>
     </div>
@@ -157,50 +181,104 @@
     </div>
   <% end %>
 
-  <%# Perguntas do perfil ("Um encontro perfeito em Salvador é…"); Gold responde ali mesmo %>
-  <%= render "users/profile_prompts", user: user, own_profile: own_profile %>
+  <%# ---------- Cartões (prompt-gold: o aviso do Gold das perguntas fica aqui dentro) ---------- %>
+  <div class="up-body <%= 'is-own' if own_profile %>" data-controller="prompt-gold">
+    <% if user.bio.present? %>
+      <section class="up-card">
+        <h2 class="up-label">Sobre mim</h2>
+        <p class="up-bio"><%= user.bio %></p>
+      </section>
+    <% end %>
 
-  <% if user.bio.present? || facts.any? || hobbies.any? %>
-    <section class="up-card <%= 'is-own' if own_profile %>">
-      <% if user.bio.present? %>
-        <div class="up-section">
-          <h2 class="up-label"><%= in_map ? "Sobre mim" : "Sobre" %></h2>
-          <p class="up-bio"><%= user.bio %></p>
-        </div>
-      <% end %>
+    <% if summary.any? %>
+      <section class="up-card">
+        <h2 class="up-label">Em resumo</h2>
+        <ul class="up-rows">
+          <% summary.each do |icon, label, value| %>
+            <li><span class="up-row-icon"><%= profile_row_icon(icon) %></span>
+                <span class="up-row-text"><small><%= label %></small> <strong><%= value %></strong></span></li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
 
-      <% if facts.any? %>
-        <div class="up-section">
-          <h2 class="up-label">Informações</h2>
-          <ul class="up-facts">
-            <% facts.each do |icon, text| %>
-              <li>
-                <% case icon %>
-                <% when "person" %>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-                <% when "heart" %>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                <% else %>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <% end %>
-                <%= text %>
-              </li>
-            <% end %>
-          </ul>
-        </div>
+    <%
+      # Ordem do mockup: foto, pergunta, interesses, lugares, foto, pergunta, estilo de vida,
+      # e o que sobrar (pergunta e fotos) no fim
+      blocks = [ [ :photo, inline_photos[0] ], [ :prompt, prompts[0] ], [ :interests ], [ :places ],
+                 [ :photo, inline_photos[1] ], [ :prompt, prompts[1] ], [ :lifestyle ], [ :prompt, prompts[2] ] ]
+      blocks += inline_photos.drop(2).map { |photo| [ :photo, photo ] }
+    %>
+    <% blocks.each do |kind, item| %>
+      <% case kind %>
+      <% when :photo %>
+        <% if item %>
+          <figure class="up-photo"><%= image_tag item, alt: "Foto de #{first_name}", loading: "lazy", decoding: "async" %></figure>
+        <% end %>
+      <% when :prompt %>
+        <% if item %>
+          <%= render "users/profile_prompt", prompt: item, owner: user, reply: replies[item.question_key],
+                                             own_profile: own_profile, can_reply: can_reply %>
+        <% end %>
+      <% when :interests %>
+        <% if hobbies.any? %>
+          <section class="up-card">
+            <div class="up-card-head">
+              <h2 class="up-label">Interesses</h2>
+              <% if common.positive? %><span class="up-common"><%= common %> em comum com você</span><% end %>
+            </div>
+            <ul class="up-tags">
+              <% hobbies.each do |hobby| %>
+                <% shared = my_hobbies.include?(hobby.downcase) %>
+                <li class="<%= 'is-common' if shared %>"><% if shared %><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><% end %><%= hobby %></li>
+              <% end %>
+            </ul>
+          </section>
+        <% end %>
+      <% when :places %>
+        <% if places.any? %>
+          <section class="up-card">
+            <h2 class="up-label">Lugares que curto</h2>
+            <ul class="up-tags up-tags--soft">
+              <% places.each do |place_name| %><li><%= place_name %></li><% end %>
+            </ul>
+          </section>
+        <% end %>
+      <% when :lifestyle %>
+        <% if lifestyle.any? %>
+          <section class="up-card">
+            <h2 class="up-label">Estilo de vida</h2>
+            <ul class="up-rows">
+              <% lifestyle.each do |icon, label, value| %>
+                <li><span class="up-row-icon"><%= profile_row_icon(icon) %></span>
+                    <span class="up-row-text"><small><%= label %></small> <strong><%= value %></strong></span></li>
+              <% end %>
+            </ul>
+          </section>
+        <% end %>
       <% end %>
+    <% end %>
 
-      <% if hobbies.any? %>
-        <div class="up-section">
-          <h2 class="up-label">Interesses</h2>
-          <ul class="up-tags">
-            <% hobbies.each do |hobby| %>
-              <li><%= hobby %></li>
-            <% end %>
-          </ul>
-        </div>
+    <% if prompts.any? && !own_profile && !can_reply %>
+      <%= render "users/prompt_gold_modal", owner: user %>
+    <% end %>
+  </div>
+
+  <%# "Mandar mensagem" no fim do perfil (já existe conversa: abre direto) %>
+  <% unless own_profile %>
+    <div class="up-cta-wrap">
+      <% if !in_map && !in_sheet && local_assigns[:match] %>
+        <%= link_to match_path(local_assigns[:match]), class: "up-cta" do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Mandar mensagem
+        <% end %>
+      <% else %>
+        <%= button_to start_chat_path(user_id: user.id), method: :post, class: "up-cta", form: { class: "up-cta-form" } do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Mandar mensagem
+        <% end %>
       <% end %>
-    </section>
+    </div>
   <% end %>
 
   <% unless own_profile %>

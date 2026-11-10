@@ -1,0 +1,42 @@
+<%# "Estilo de vida" — bebida, cigarro, atividade física (várias), pets e filhos %>
+<% na = ProfileDetails::NOT_INFORMED %>
+<section class="pe-card pe-details" id="pe-estilo">
+  <h2 class="pe-card-title">Estilo de vida</h2>
+  <p class="pe-card-sub">Ajuda a encontrar quem combina com você.</p>
+
+  <% [ [ :drinking, "Bebida", ProfileDetails::DRINKING ], [ :smoking, "Cigarro", ProfileDetails::SMOKING ] ].each do |field, title, options| %>
+    <fieldset class="pe-field" data-controller="chip-group">
+      <legend class="pe-label"><%= title %></legend>
+      <%= hidden_field_tag "user[#{field}]", "", id: nil %>
+      <div class="pe-chips">
+        <% (options.map(&:first) + [ na ]).each do |option| %>
+          <%= render "users/edit_sections/chip", name: "user[#{field}]", value: option, checked: user.profile_detail(field) == option %>
+        <% end %>
+      </div>
+    </fieldset>
+  <% end %>
+
+  <% exercise = Array(user.profile_detail(:exercise)) %>
+  <fieldset class="pe-field" data-controller="chip-group" data-chip-group-exclusive-value="<%= na %>">
+    <legend class="pe-label">Atividade física <span class="pe-label-note">· escolha várias</span></legend>
+    <%= hidden_field_tag "user[exercise][]", "", id: nil %>
+    <div class="pe-chips">
+      <% (ProfileDetails::EXERCISE.map(&:first) + [ na ]).each do |option| %>
+        <%= render "users/edit_sections/chip", name: "user[exercise][]", value: option,
+                   checked: exercise.include?(option), multiple: true %>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <% [ [ :pets, "Pets", ProfileDetails::PETS ], [ :kids, "Filhos", ProfileDetails::KIDS ] ].each do |field, title, options| %>
+    <fieldset class="pe-field" data-controller="chip-group">
+      <legend class="pe-label"><%= title %></legend>
+      <%= hidden_field_tag "user[#{field}]", "", id: nil %>
+      <div class="pe-chips">
+        <% (options.map(&:first) + [ na ]).each do |option| %>
+          <%= render "users/edit_sections/chip", name: "user[#{field}]", value: option, checked: user.profile_detail(field) == option %>
+        <% end %>
+      </div>
+    </fieldset>
+  <% end %>
+</section>

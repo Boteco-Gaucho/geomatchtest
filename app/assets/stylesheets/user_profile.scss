@@ -812,3 +812,151 @@ a.pg-cta { align-self: stretch; margin-top: 24px; }
   font-weight: 700;
   cursor: pointer;
 }
+
+// =================================================================
+// Perfil — layout novo (mockup "Luan Victor"): cartões empilhados com Sobre mim, Em resumo,
+// fotos e perguntas intercaladas, Interesses (em comum), Lugares que curto, Estilo de vida.
+// =================================================================
+.up-place-dist:not(:empty)::after { content: " · "; }
+
+// "O que você procura" — pílula embaixo da cidade, na foto
+.up-looking {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px !important;
+  padding: 5px 11px 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(20, 16, 12, 0.42);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+
+  svg { width: 13px; height: 13px; fill: currentColor; stroke: none; }
+}
+
+.up-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 24px 20px 0;
+
+  &.is-own { margin-top: 20px; }
+
+  .up-card,
+  .up-prompt { margin: 0; }
+
+  .up-card { padding: 17px 18px 18px; }
+  .up-label { margin-bottom: 10px; }
+}
+
+.up-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+
+  .up-label { margin-bottom: 0; }
+}
+
+.up-common {
+  color: var(--up-label);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// Linhas com ícone (Em resumo / Estilo de vida)
+.up-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  li { display: flex; align-items: center; gap: 12px; }
+}
+
+.up-row-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--up-fact-bg);
+  color: var(--up-label);
+
+  svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.up-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  small { color: #8a847e; font-size: 11.5px; line-height: 15px; }
+  strong { font-size: 15px; font-weight: 700; line-height: 20px; overflow-wrap: anywhere; }
+}
+
+// Interesses: em comum com quem está vendo = pêssego com ✓; os outros, bege claro
+.up-body .up-tags {
+  margin-top: 12px;
+
+  li { gap: 5px; background: var(--up-fact-bg); font-weight: 600; }
+  li.is-common { background: var(--up-tag-bg); font-weight: 700; }
+  li svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.up-body .up-tags--soft { margin-top: 2px; }
+
+// Fotos intercaladas
+.up-photo {
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  border-radius: 22px;
+  background: #7d6a5c;
+
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+// "Mandar mensagem" no fim do perfil
+.up-cta-wrap { margin: 22px 20px 0; }
+.up-cta-form { margin: 0; }
+
+.up-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ddca92 0%, #c9a35a 100%);
+  box-shadow: 0 8px 20px rgba(160, 120, 50, 0.22);
+  color: #1c1c1e;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  &:active { transform: scale(0.98); }
+}
+
+.up-safety { margin-top: 20px; }
+
+.dark-mode .up-row-text small,
+html.dark:not(.light-mode) .up-row-text small { color: #a8a29a; }
+
+// "Responder": pílula branca com contorno (mockup); "Respondida" continua pêssego
+.up-prompt-btn {
+  border: 1px solid var(--up-card-border);
+  background: var(--up-card);
+  font-size: 14.5px;
+}

@@ -44,8 +44,8 @@ RSpec.describe "Lead (/lead)", type: :request do
     expect(profile.at_css(".up-pass")["data-action"]).to eq("lead-swipe#rejectFromProfile")
     expect(profile.at_css(".up-like")["data-action"]).to eq("lead-swipe#likeFromProfile")
     expect(profile.at_css(".up-message-form")["action"]).to eq("/start_chat/#{brenda.id}")
-    expect(profile.css(".up-label").map(&:text)).to eq(%w[Sobre Informações Interesses])
-    expect(profile.css(".up-tags li").map(&:text)).to eq(%w[Praia Cinema Trilhas Pets])
+    expect(profile.css(".up-label").map(&:text)).to eq([ "Sobre mim", "Interesses" ])
+    expect(profile.css(".up-tags li").map { |li| li.text.squish }).to eq(%w[Praia Cinema Trilhas Pets])
     expect(profile.css(".up-safety-btn").map { |b| b.text.squish }).to eq(%w[Denunciar Bloquear])
     expect(profile.at_css("#favorite-btn-#{brenda.id}")).to be_present
     expect(page.css("#upgrade-modal-container").size).to eq(1) # o do /lead; o sheet não duplica

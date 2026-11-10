@@ -129,3 +129,15 @@ application.register("prompt-reply", PromptReplyController)
 
 import PromptGoldController from "./prompt_gold_controller"
 application.register("prompt-gold", PromptGoldController)
+
+import ChipGroupController from "./chip_group_controller"
+application.register("chip-group", ChipGroupController)
+
+import ChipFilterController from "./chip_filter_controller"
+application.register("chip-filter", ChipFilterController)
+
+import SelectChipController from "./select_chip_controller"
+application.register("select-chip", SelectChipController)
+
+import PromptSlotsController from "./prompt_slots_controller"
+application.register("prompt-slots", PromptSlotsController)

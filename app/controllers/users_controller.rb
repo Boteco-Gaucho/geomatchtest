@@ -352,6 +352,9 @@ class UsersController < ApplicationController
     # 1. Removemos album_photos dos parâmetros de atualização em massa
     # para evitar que o Rails tente sobrescrever as fotos que já existem
     user_update_params = user_params.except(:album_photos)
+    # Profissão: "Não achou? Escreva aqui" vale mais que o chip escolhido
+    other = params.dig(:user, :occupation_other).to_s.squish
+    user_update_params[:occupation] = other if other.present? && User.profile_details?
 
     # 2. Nova ordem do álbum (segurar e arrastar) — antes das fotos novas,
     # que sempre entram no fim
@@ -706,13 +709,20 @@ class UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(
+    permitted = [
       :avatar, :username, :bio, :birthdate, :gender,
       :share_location, :interested_in, :invisible,
       :city, :state, :coupon_code,
       { hobbies_list: [] },
-      album_photos: []
-    )
+      { album_photos: [] }
+    ]
+    # Mais sobre você / Estilo de vida / Lugares / O que você procura (ProfileDetails)
+    if User.profile_details?
+      permitted += [ :looking_for, :height_cm, :occupation, :education_level, :zodiac_sign,
+                     :drinking, :smoking, :pets, :kids,
+                     { languages: [] }, { exercise: [] }, { favorite_places: [] } ]
+    end
+    params.require(:user).permit(*permitted)
   end
 
   # Ids dos anexos do álbum na ordem em que ficaram em Editar Perfil

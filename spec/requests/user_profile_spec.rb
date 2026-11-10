@@ -22,7 +22,7 @@ RSpec.describe "Perfil de uma pessoa (/users/:id)", type: :request do
     sign_in me, scope: :user
   end
 
-  it "monta a tela do mockup: foto, nome, ações, Sobre/Informações/Interesses e Denunciar | Bloquear" do
+  it "monta a tela do mockup: foto, nome, ações, Sobre mim/Em resumo/Interesses, Mandar mensagem e Denunciar | Bloquear" do
     felipe = person(verified: true, bio: "O cara da TI", gender: "Homem", interested_in: "Mulher",
                     hobbies: "Praia,Cinema,Viagem", last_seen_at: Time.current)
 
@@ -43,22 +43,51 @@ RSpec.describe "Perfil de uma pessoa (/users/:id)", type: :request do
     expect(page.at_css("form[action^='/likes']")["action"]).to include("source=profile")
     expect(page.at_css("#favorite-btn-#{felipe.id} form[action^='/favorites']")).to be_present
 
-    expect(page.css(".up-label").map(&:text)).to eq(%w[Sobre Informações Interesses])
+    expect(page.css(".up-label").map(&:text)).to eq([ "Sobre mim", "Em resumo", "Interesses" ])
     expect(page.at_css(".up-bio").text).to eq("O cara da TI")
-    expect(page.css(".up-facts li").map { |li| li.text.squish }).to eq([ "Homem", "Quer conhecer mulheres", "Itabuna, BA" ])
-    expect(page.css(".up-tags li").map(&:text)).to eq(%w[Praia Cinema Viagem])
+    expect(page.css(".up-rows li").map { |li| li.text.squish }).to eq([ "Mora em Itabuna, BA" ])
+    expect(page.css(".up-tags li").map { |li| li.text.squish }).to eq(%w[Praia Cinema Viagem])
+    expect(page.at_css(".up-cta-wrap form[action='/start_chat/#{felipe.id}'] .up-cta").text.squish).to eq("Mandar mensagem")
 
     expect(page.at_css(".up-safety a[href='/report_incident?user_id=#{felipe.id}']").text.squish).to eq("Denunciar")
     expect(page.at_css(".up-safety button")["onclick"]).to include("/users/#{felipe.id}/block")
     expect(page.at_css("#upgrade-modal-container")).to be_present # modal de limite do plano Free
   end
 
-  it "mostra os rótulos certos para não binário e para quem quer conhecer todo mundo" do
-    sam = person("Sam", gender: "Não Binário", interested_in: "Todos")
+  it "Em resumo, Estilo de vida, o que procura e lugares: na 3ª pessoa, profissão pelo gênero, sem o \"Prefiro não informar\"" do
+    luan = person("Luan Victor", gender: "Homem", bio: "Advogado")
+    luan.update_columns(looking_for: "Algo sério, mas vamos ver", occupation: "Advogado(a)", education_level: User.education_levels["postgraduate"],
+                 height_cm: 178, zodiac_sign: "Leão", languages: %w[Português Inglês Espanhol],
+                 favorite_places: %w[Praia Restaurante Cafeteria], drinking: "Socialmente", smoking: "Não fumo",
+                 exercise: %w[Corrida Academia], pets: "Amo pets", kids: "Prefiro não informar")
+    me.update_columns(hobbies: "praia,Viagens,Futebol")
+    luan.update_columns(hobbies: "Praia,Viagens,Leitura")
 
-    facts = open_profile(sam).css(".up-facts li").map { |li| li.text.squish }
+    page = open_profile(luan)
 
-    expect(facts).to eq([ "Não binário", "Quer conhecer todo mundo", "Itabuna, BA" ])
+    expect(page.at_css(".up-looking").text.squish).to eq("Algo sério, mas vamos ver")
+    rows = page.css(".up-card").find { |card| card.at_css(".up-label").text == "Em resumo" }.css(".up-rows li").map { |li| li.text.squish }
+    expect(rows).to eq([ "Profissão Advogado", "Escolaridade Pós-graduação", "Altura 1,78 m", "Signo Leão",
+                         "Idiomas Português · Inglês · Espanhol", "Mora em Itabuna, BA" ])
+    life = page.css(".up-card").find { |card| card.at_css(".up-label").text == "Estilo de vida" }.css(".up-rows li").map { |li| li.text.squish }
+    expect(life).to eq([ "Bebida Socialmente", "Cigarro Não fuma", "Atividade física Corrida · Academia", "Pets Ama pets" ]) # Filhos: não informado
+    places = page.css(".up-card").find { |card| card.at_css(".up-label").text == "Lugares que curto" }
+    expect(places.css("li").map(&:text)).to eq(%w[Praia Restaurante Cafeteria])
+    expect(page.at_css(".up-common").text).to eq("2 em comum com você")
+    expect(page.css(".up-tags li.is-common").map { |li| li.text.squish }).to eq(%w[Praia Viagens])
+  end
+
+  it "profissão no feminino e no texto livre; não binário mostra o chip como está" do
+    ana = person("Ana", gender: "Mulher")
+    ana.update_columns(occupation: "Médico(a)")
+    expect(open_profile(ana).css(".up-rows li").first.text.squish).to eq("Profissão Médica")
+
+    ana.update_columns(occupation: "Fisioterapeuta")
+    expect(open_profile(ana).css(".up-rows li").first.text.squish).to eq("Profissão Fisioterapeuta")
+
+    sam = person("Sam", gender: "Não Binário")
+    sam.update_columns(occupation: "Engenheiro(a)")
+    expect(open_profile(sam).css(".up-rows li").first.text.squish).to eq("Profissão Engenheiro(a)")
   end
 
   it "sem bio, informações e interesses não mostra o cartão; offline não mostra 'Online agora'" do

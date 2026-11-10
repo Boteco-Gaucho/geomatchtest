@@ -1,0 +1,49 @@
+<%# "Perguntas para puxar assunto" — até 3 da lista pronta (ProfilePrompt). Cada uma aparece
+    como cartão (pergunta + resposta + lápis); o lápis abre a edição ali mesmo e "+ Escolher
+    outra pergunta" abre o próximo espaço vazio (prompt_slots_controller.js). Vão no Salvar
+    como profile_prompts[N][key|answer]; vazias são ignoradas (ProfilePrompt.sync!). %>
+<% if ProfilePrompt.available? %>
+  <% my_prompts = user.profile_prompts.to_a %>
+  <% options = ProfilePrompt.options_for(user) %>
+  <% pencil = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>'.html_safe %>
+  <section class="pe-card pe-prompts" id="pe-perguntas" data-controller="prompt-slots">
+    <div class="pe-card-head">
+      <h2 class="pe-card-title">Perguntas para puxar assunto</h2>
+      <span class="pe-section-meta" data-prompt-slots-target="count"><%= my_prompts.size %> de <%= ProfilePrompt::MAX_PER_USER %></span>
+    </div>
+    <%= hidden_field_tag :profile_prompts_submitted, "1", id: nil %>
+
+    <% ProfilePrompt::MAX_PER_USER.times do |index| %>
+      <% current = my_prompts[index] %>
+      <div class="pe-pq" data-prompt-slots-target="slot" <%= "hidden" unless current %>>
+        <button type="button" class="pe-pq-view" data-action="prompt-slots#edit" <%= "hidden" unless current %>
+                aria-label="Editar pergunta <%= index + 1 %>">
+          <span class="pe-pq-q" data-role="question"><%= current&.question %></span>
+          <span class="pe-pq-a" data-role="answer"><%= current&.answer %></span>
+          <span class="pe-pq-edit"><%= pencil %></span>
+        </button>
+
+        <div class="pe-pq-form" <%= "hidden" if current %>>
+          <%= label_tag "profile_prompts_#{index}_key", "Pergunta", class: "pe-label" %>
+          <%= select_tag "profile_prompts[#{index}][key]", options_for_select(options, current&.question_key),
+                         include_blank: "Escolha uma pergunta", id: "profile_prompts_#{index}_key", class: "pe-select",
+                         data: { role: "key", action: "change->prompt-slots#sync" } %>
+          <%= text_area_tag "profile_prompts[#{index}][answer]", current&.answer, id: "profile_prompts_#{index}_answer",
+                            rows: 2, maxlength: ProfilePrompt::ANSWER_MAX, class: "pe-prompt-answer",
+                            placeholder: "Sua resposta (até #{ProfilePrompt::ANSWER_MAX} caracteres)",
+                            aria: { label: "Resposta da pergunta #{index + 1}" }, data: { role: "answer-input" } %>
+          <div class="pe-pq-actions">
+            <button type="button" class="pe-pq-remove" data-action="prompt-slots#remove">Remover</button>
+            <button type="button" class="pe-pq-done" data-action="prompt-slots#done">Pronto</button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <button type="button" class="pe-pq-add" data-prompt-slots-target="add" data-action="prompt-slots#add"
+            <%= "hidden" if my_prompts.size >= ProfilePrompt::MAX_PER_USER %>>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Escolher outra pergunta
+    </button>
+  </section>
+<% end %>

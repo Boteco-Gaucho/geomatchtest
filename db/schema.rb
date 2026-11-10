@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -558,17 +558,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.string "city"
     t.string "country", default: "Brasil"
     t.datetime "created_at", null: false
+    t.string "drinking"
     t.integer "education_level"
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
+    t.string "exercise", default: [], null: false, array: true
+    t.string "favorite_places", default: [], null: false, array: true
     t.string "fcm_token"
     t.datetime "frozen_at"
     t.string "gender"
+    t.integer "height_cm"
     t.boolean "hidden_from_city_search", default: false, null: false
     t.boolean "hide_age", default: false, null: false
     t.string "hobbies"
     t.string "interested_in"
     t.boolean "invisible", default: false
+    t.string "kids"
+    t.string "languages", default: [], null: false, array: true
     t.datetime "last_like_reset_at"
     t.datetime "last_location_updated_at"
     t.datetime "last_message_reset_at"
@@ -576,11 +582,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.decimal "latitude", precision: 10, scale: 6
     t.integer "likes_count", default: 0
     t.decimal "longitude", precision: 10, scale: 6
+    t.string "looking_for"
     t.integer "messages_count", default: 0
     t.string "neighborhood"
     t.string "occupation"
     t.boolean "onboarding_completed", default: false, null: false
     t.integer "one_off_message_credits", default: 0, null: false
+    t.string "pets"
     t.string "phone"
     t.bigint "plan_id"
     t.jsonb "political_interests", default: []
@@ -590,6 +598,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.boolean "share_location"
+    t.string "smoking"
     t.string "state"
     t.string "street"
     t.string "uid"
@@ -597,6 +606,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.string "username"
     t.boolean "verified", default: false
     t.string "zip_code"
+    t.string "zodiac_sign"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["banned_at"], name: "index_users_on_banned_at"
     t.index ["email"], name: "index_users_on_email", unique: true

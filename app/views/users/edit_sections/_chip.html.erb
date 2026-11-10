@@ -1,0 +1,13 @@
+<%# Um chip de escolha do Editar perfil (radio = escolha 1, checkbox = várias).
+    Locals: name, value, checked, label (opcional), multiple (opcional) %>
+<% multiple = local_assigns.fetch(:multiple, false) %>
+<label class="pe-chip" data-chip-label="<%= (local_assigns[:label] || value).to_s.downcase %>">
+  <% if multiple %>
+    <%= check_box_tag name, value, checked, id: nil, class: "pe-chip-input", multiple: true,
+                      data: { action: "chip-group#change" } %>
+  <% else %>
+    <%= radio_button_tag name, value, checked, id: nil, class: "pe-chip-input",
+                         data: { action: "chip-group#change" } %>
+  <% end %>
+  <span><%= local_assigns[:label] || value %></span>
+</label>

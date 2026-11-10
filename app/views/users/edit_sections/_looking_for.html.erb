@@ -1,0 +1,12 @@
+<%# "O que você procura" — escolha 1; aparece no perfil (pílula embaixo do nome) %>
+<% current = user.profile_detail(:looking_for) %>
+<section class="pe-card pe-details" id="pe-procura" data-controller="chip-group">
+  <h2 class="pe-card-title">O que você procura</h2>
+  <p class="pe-card-sub">Escolha uma opção. Aparece no seu perfil.</p>
+  <%= hidden_field_tag "user[looking_for]", "", id: nil %>
+  <div class="pe-chips">
+    <% (ProfileDetails::LOOKING_FOR + [ ProfileDetails::NOT_INFORMED ]).each do |option| %>
+      <%= render "users/edit_sections/chip", name: "user[looking_for]", value: option, checked: current == option %>
+    <% end %>
+  </div>
+</section>

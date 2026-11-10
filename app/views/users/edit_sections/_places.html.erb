@@ -1,0 +1,18 @@
+<%# "Lugares que eu curto" — até 5 (chip_group_controller limita e trata o "Prefiro não informar") %>
+<% chosen = Array(user.profile_detail(:favorite_places)) %>
+<section class="pe-card pe-details" id="pe-lugares" data-controller="chip-group"
+         data-chip-group-max-value="<%= ProfileDetails::FAVORITE_PLACES_MAX %>"
+         data-chip-group-exclusive-value="<%= ProfileDetails::NOT_INFORMED %>">
+  <div class="pe-card-head">
+    <h2 class="pe-card-title">Lugares que eu curto</h2>
+    <span class="pe-section-meta" data-chip-group-target="count"></span>
+  </div>
+  <p class="pe-card-sub">Escolha até <%= ProfileDetails::FAVORITE_PLACES_MAX %>. Ajuda a combinar o encontro.</p>
+  <%= hidden_field_tag "user[favorite_places][]", "", id: nil %>
+  <div class="pe-chips">
+    <% (ProfileDetails::FAVORITE_PLACES + [ ProfileDetails::NOT_INFORMED ]).each do |place| %>
+      <%= render "users/edit_sections/chip", name: "user[favorite_places][]", value: place,
+                 checked: chosen.include?(place), multiple: true %>
+    <% end %>
+  </div>
+</section>
