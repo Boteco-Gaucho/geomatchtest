@@ -1,0 +1,27 @@
+<%# Coração do perfil (/users/:id — aberto por Curtidas, Novas conexões, etc.).
+    Vermelho = você ainda não curtiu: o toque curte e o coração fica escuro na hora
+    (user_profile_controller#like). Escuro = já curtiu (ou já é match): o toque só mostra
+    "Você já curtiu este usuário", sem mandar outra curtida (user_profile_controller#alreadyLiked).
+    O LikesController troca este bloco por Turbo Stream com o estado confirmado.
+    Já existe conversa/match (match) sem curtida sua: também escuro, com o aviso de conversa.
+    Locals: user, liked, match (opcional) %>
+<% first_name = user.display_name.to_s.split.first %>
+<% match      = local_assigns[:match] %>
+<% notice     = liked ? "Você já curtiu este usuário." : "Vocês já estão conversando." %>
+<% heart_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>'.html_safe %>
+<div class="up-slot" id="profile-like-<%= user.id %>">
+  <% if liked || match %>
+    <button type="button" class="up-action up-like is-liked" aria-pressed="true"
+            aria-label="<%= liked ? "Você já curtiu #{first_name}" : "Vocês já estão conversando" %>"
+            title="<%= liked ? "Você já curtiu" : "Vocês já estão conversando" %>"
+            data-notice="<%= notice %>"
+            data-action="user-profile#alreadyLiked"><%= heart_svg %></button>
+  <% else %>
+    <%= button_to likes_path(user_id: user.id, source: "profile"), method: :post,
+          class: "up-action up-like", title: "Curtir",
+          aria: { label: "Curtir #{first_name}", pressed: "false" },
+          form: { class: "up-action-form", data: { action: "submit->user-profile#like" } } do %>
+      <%= heart_svg %>
+    <% end %>
+  <% end %>
+</div>

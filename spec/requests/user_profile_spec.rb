@@ -80,7 +80,9 @@ RSpec.describe "Perfil de uma pessoa (/users/:id)", type: :request do
 
     heart = page.at_css(".up-like")
     expect(heart["class"]).to include("is-liked")
-    expect(heart["disabled"]).to be_present
+    # Escuro e tocável: avisa "Você já curtiu este usuário" (antes desabilitado, nada acontecia)
+    expect(heart["disabled"]).to be_nil
+    expect(heart["data-action"]).to eq("user-profile#alreadyLiked")
     expect(page.at_css("form[action^='/likes']")).to be_nil
     expect(page.at_css("#favorite-btn-#{felipe.id} .card-action-star--active")).to be_present
   end

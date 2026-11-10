@@ -205,7 +205,9 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
       expect(response.body).not_to include(%(id="like-card-#{ana.id}")) # virou conexão
 
       get "/users/#{ana.id}"
-      expect(Nokogiri::HTML(response.body).at_css(%(a.up-like.is-liked[href="/matches/#{match.id}"]))).to be_present
+      profile = Nokogiri::HTML(response.body)
+      expect(profile.at_css(%(button.up-like.is-liked[type="button"]))).to be_present          # escuro: já curtiu
+      expect(profile.at_css(%(a.up-message[href="/matches/#{match.id}"]))).to be_present       # mensagem abre a conversa
     end
 
     it "coração no card da grade: tira o card na hora junto com o modal" do
@@ -247,6 +249,89 @@ RSpec.describe "Curtidas (/notifications)", type: :request do
 
       expect(response).to redirect_to("/matches/#{match.id}")
       expect(Like.where(liker: me, liked: ana).count).to eq(1) # sem duplicar
+    end
+  end
+
+  # Coração do perfil (/users/:id): vermelho = ainda não curtiu; escuro = já curtiu
+  describe "coração do perfil aberto por Curtidas" do
+    let(:luan) { person("Luan Victor") }
+    let(:sam)  { person("Sam Rocha") }
+
+    before do
+      sign_in me, scope: :user
+      allow(PushNotificationJob).to receive(:perform_later)
+    end
+
+    def profile(user)
+      get "/users/#{user.id}"
+      Nokogiri::HTML(response.body)
+    end
+
+    it "ainda não curtiu: coração vermelho que curte (form) e \"Mandar mensagem\" pelo start_chat" do
+      page = profile(sam)
+      heart = page.at_css("#profile-like-#{sam.id} form[action^='/likes'] button.up-like")
+      expect(heart).to be_present
+      expect(heart["class"]).not_to include("is-liked")
+      expect(page.at_css("#profile-like-#{sam.id} form")["data-action"]).to eq("submit->user-profile#like")
+      expect(page.at_css("#profile-message-#{sam.id} form[action='/start_chat/#{sam.id}']")).to be_present
+    end
+
+    it "já curtiu (e é match, ex.: Luan): coração escuro que só avisa, e mensagem direto na conversa" do
+      Like.create!(liker: luan, liked: me)
+      Like.create!(liker: me, liked: luan)
+      match = Match.create!(user: me, matched_user: luan, status: "matched")
+
+      page = profile(luan)
+      heart = page.at_css("#profile-like-#{luan.id} button.up-like.is-liked")
+      expect(heart["type"]).to eq("button")
+      expect(heart["data-action"]).to eq("user-profile#alreadyLiked")
+      expect(heart["data-notice"]).to eq("Você já curtiu este usuário.")
+      expect(heart["disabled"]).to be_nil # antes: desabilitado, o toque não fazia nada
+      expect(page.at_css("#profile-like-#{luan.id} form")).to be_nil
+      expect(page.at_css("#profile-message-#{luan.id} a.up-message")["href"]).to eq("/matches/#{match.id}")
+    end
+
+    it "conversa começada pelo Mensagem, sem curtida sua: coração escuro com o aviso de conversa" do
+      match = Match.create!(user: me, matched_user: sam)
+
+      page = profile(sam)
+      expect(page.at_css("#profile-like-#{sam.id} button.is-liked")["data-notice"]).to eq("Vocês já estão conversando.")
+      expect(page.at_css("#profile-message-#{sam.id} a.up-message")["href"]).to eq("/matches/#{match.id}")
+    end
+
+    it "curtir sem match: o servidor confirma o coração escuro sem recarregar, com aviso" do
+      post "/likes", params: { user_id: sam.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html, text/html" }
+
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      stream = Nokogiri::HTML(response.body)
+      expect(stream.at_css(%(turbo-stream[action="replace"][target="profile-like-#{sam.id}"]))).to be_present
+      expect(response.body).to include('class="up-action up-like is-liked"')
+      expect(response.body).to include("Curtida enviada!")
+      expect(Like.positive.where(liker: me, liked: sam).count).to eq(1)
+    end
+
+    it "curtida repetida (outra aba): só o aviso \"Você já curtiu\", sem duplicar" do
+      Like.create!(liker: me, liked: sam)
+
+      post "/likes", params: { user_id: sam.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html, text/html" }
+
+      expect(response.body).to include("Você já curtiu este usuário.")
+      expect(response.body).to include(%(target="profile-like-#{sam.id}"))
+      expect(Like.where(liker: me, liked: sam).count).to eq(1)
+    end
+
+    it "limite de curtidas: modal de upgrade e o coração volta a vermelho" do
+      allow_any_instance_of(User).to receive(:can_like?).and_return(false)
+
+      post "/likes", params: { user_id: sam.id, source: "profile" },
+                     headers: { "ACCEPT" => "text/vnd.turbo-stream.html, text/html" }
+
+      expect(response.body).to include(%(target="upgrade-modal-container"))
+      replaced = Nokogiri::HTML(response.body).at_css(%(turbo-stream[target="profile-like-#{sam.id}"]))
+      expect(replaced.inner_html).to include("form")
+      expect(replaced.inner_html).not_to include("is-liked")
     end
   end
 end

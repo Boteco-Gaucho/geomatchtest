@@ -1,0 +1,15 @@
+<%# "Mandar mensagem" do perfil (/users/:id). Já existe conversa/match: abre direto a
+    conversa. Senão, start_chat (limite do plano e cria a conversa). O LikesController troca
+    este bloco quando a curtida vira match. Locals: user, match (Match ou nil) %>
+<% icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'.html_safe %>
+<div class="up-slot" id="profile-message-<%= user.id %>">
+  <% if match %>
+    <%= link_to match_path(match), class: "up-message" do %><%= icon %>Mandar mensagem<% end %>
+  <% else %>
+    <%= button_to start_chat_path(user_id: user.id), method: :post,
+          class: "up-message", form: { class: "up-action-form up-message-form" } do %>
+      <%= icon %>
+      Mandar mensagem
+    <% end %>
+  <% end %>
+</div>

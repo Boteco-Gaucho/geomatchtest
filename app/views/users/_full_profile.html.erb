@@ -13,7 +13,7 @@
                     esquerda, seta para baixo fechando, distância no lugar da cidade
                     (o JS preenche) e X / coração com source=map (o JS fecha a folha).
       liked       — já curtiu (coração marcado e desabilitado)
-      match       — /users/:id: já curtiu E é match — o coração leva para a conversa
+      match       — /users/:id: conversa/match que já existe — "Mandar mensagem" abre direto
       like_record — no mapa: a curtida (Like) para o coração saber se ainda dá para desfazer
       favorite_id — id do favorito (estrela marcada); omitido = consulta aqui
 
@@ -129,16 +129,18 @@
         <% end %>
       <% end %>
 
-      <%= button_to start_chat_path(user_id: user.id), method: :post,
-            class: "up-message", form: { class: "up-action-form up-message-form" } do %>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <%= in_map ? "Mensagem" : "Mandar mensagem" %>
+      <% if in_map || in_sheet %>
+        <%= button_to start_chat_path(user_id: user.id), method: :post,
+              class: "up-message", form: { class: "up-action-form up-message-form" } do %>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <%= in_map ? "Mensagem" : "Mandar mensagem" %>
+        <% end %>
+      <% else %>
+        <%# Já existe conversa: abre direto %>
+        <%= render "users/profile_message_button", user: user, match: local_assigns[:match] %>
       <% end %>
 
-      <% if liked && !in_map && !in_sheet && local_assigns[:match] %>
-        <%= link_to match_path(local_assigns[:match]), class: "up-action up-like is-liked",
-                    aria: { label: "Conversar com #{first_name}" }, title: "Vocês deram match — conversar" do %><%= heart_svg %><% end %>
-      <% elsif liked && !in_map %>
+      <% if liked && in_sheet %>
         <button type="button" class="up-action up-like is-liked" disabled aria-label="Você já curtiu <%= first_name %>" title="Você já curtiu"><%= heart_svg %></button>
       <% elsif in_map %>
         <%# Curtir / desfazer por alguns segundos (like_toggle_controller.js); a folha fica aberta %>
@@ -149,11 +151,8 @@
         <button type="button" class="up-action up-like" aria-label="Curtir <%= first_name %>" title="Curtir"
                 data-action="lead-swipe#likeFromProfile"><%= heart_svg %></button>
       <% else %>
-        <%= button_to likes_path(user_id: user.id, source: "profile"), method: :post,
-              class: "up-action up-like", aria: { label: "Curtir #{first_name}" }, title: "Curtir",
-              form: { class: "up-action-form" } do %>
-          <%= heart_svg %>
-        <% end %>
+        <%# Vermelho = ainda não curtiu; escuro = já curtiu (users/_profile_like_button) %>
+        <%= render "users/profile_like_button", user: user, liked: liked, match: local_assigns[:match] %>
       <% end %>
     </div>
   <% end %>

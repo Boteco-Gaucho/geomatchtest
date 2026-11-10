@@ -131,9 +131,10 @@ class UsersController < ApplicationController
     # Coração já preenchido (vermelho) e estrela de favorito no estado certo
     @liked       = current_user.likes.where(liked_id: @user.id, is_like: [ true, nil ]).exists?
     @favorite_id = current_user.favorites.where(favorited_user_id: @user.id).pick(:id)
-    # Já curtiu e é match: o coração do perfil leva para a conversa
+    # Conversa que já existe (match por curtida ou começada pelo "Mensagem"): o
+    # "Mandar mensagem" do perfil abre direto, sem passar pelo start_chat
     @match_with = Match.for_user(current_user.id)
-                       .where("user_id = :id OR matched_user_id = :id", id: @user.id).first if @liked
+                       .where("user_id = :id OR matched_user_id = :id", id: @user.id).first
 
     if in_map
       like_record = current_user.likes.positive.find_by(liked_id: @user.id)

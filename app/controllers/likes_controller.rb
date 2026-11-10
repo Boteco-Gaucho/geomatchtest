@@ -14,8 +14,11 @@ class LikesController < ApplicationController
 
       respond_to do |format|
         # --- MUDANÇA AQUI: Usa 'update' no container específico ---
-        format.turbo_stream { 
-          render turbo_stream: turbo_stream.update("upgrade-modal-container", partial: "shared/upgrade_modal", locals: { type: 'likes' }) 
+        format.turbo_stream {
+          streams = [ turbo_stream.update("upgrade-modal-container", partial: "shared/upgrade_modal", locals: { type: 'likes' }) ]
+          # Perfil: o coração tinha ficado escuro no toque — volta a vermelho (não curtiu)
+          streams << profile_heart_stream(liked_user, liked: false) if params[:source] == "profile"
+          render turbo_stream: streams
         }
         format.html { redirect_to return_path, alert: "Você atingiu seu limite de curtidas diárias." }
       end
@@ -35,6 +38,12 @@ class LikesController < ApplicationController
       return render json: like_json(existing) if request.format.json?
       # Se veio do MAPA, apenas fecha o popup (ok)
       return head :ok if params[:source] == "map"
+
+      # Perfil: coração escuro + o aviso, sem sair da tela e sem duplicar a curtida
+      if profile_stream?
+        return render turbo_stream: [ profile_heart_stream(liked_user, liked: true),
+                                      toast_stream("Você já curtiu este usuário.") ]
+      end
 
       # Já curtiu e já é match: leva para a conversa em vez de só avisar
       if (match = match_with(liked_user))
@@ -109,6 +118,14 @@ class LikesController < ApplicationController
                   auto_forward_ms: from_likes ? MATCH_AUTO_FORWARD_MS : 0
                 }) ]
               streams << turbo_stream.remove("like-card-#{liked_user.id}") if params[:source] == "likes"
+              if params[:source] == "profile"
+                # Atrás do modal o perfil já mostra o novo estado: coração escuro e
+                # "Mandar mensagem" abrindo a conversa
+                streams << profile_heart_stream(liked_user, liked: true)
+                streams << turbo_stream.replace("profile-message-#{liked_user.id}",
+                                                partial: "users/profile_message_button",
+                                                locals: { user: liked_user, match: match })
+              end
               render turbo_stream: streams
             end
             format.html { redirect_to match_path(match), status: :see_other, notice: "Deu match! 🎉" }
@@ -133,6 +150,9 @@ class LikesController < ApplicationController
         elsif params[:source] == "map"
           # Se veio do mapa, apenas diz OK (para o JS fechar o popup)
           head :ok
+        elsif profile_stream?
+          # Perfil: confirma o coração escuro sem recarregar a página
+          render turbo_stream: [ profile_heart_stream(liked_user, liked: true), toast_stream("Curtida enviada!") ]
         else
           # Se veio do swipe, recarrega a página para o próximo card
           redirect_to return_path, notice: "Curtida enviada!"
@@ -186,6 +206,19 @@ class LikesController < ApplicationController
 
   def like_json(like)
     { status: "liked", like_id: like.id, user_id: like.liked_id, undo_seconds: like.undo_seconds_left }
+  end
+
+  def profile_stream?
+    params[:source] == "profile" && request.format.turbo_stream?
+  end
+
+  def profile_heart_stream(user, liked:)
+    turbo_stream.replace("profile-like-#{user.id}", partial: "users/profile_like_button",
+                                                    locals: { user: user, liked: liked, match: match_with(user) })
+  end
+
+  def toast_stream(message, type: "notice")
+    turbo_stream.prepend("toast-container", partial: "shared/toast", locals: { message: message, type: type })
   end
 
   def match_with(other)

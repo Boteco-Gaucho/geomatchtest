@@ -241,6 +241,17 @@
   &.is-liked { color: #f2484a; transform: none; }
 }
 
+// Página /users/:id (aberta por Curtidas etc.): vermelho = ainda não curtiu (convite);
+// escuro = já curtiu. Os blocos .up-slot são trocados por Turbo Stream (LikesController).
+.up-slot { display: contents; }
+a.up-message { flex: 1; min-width: 0; text-decoration: none; }
+
+.user-profile:not(.is-in-sheet):not(.is-in-map) .up-like {
+  color: #f2484a;
+
+  &.is-liked { color: var(--up-text); }
+}
+
 .up-message {
   display: flex;
   align-items: center;
