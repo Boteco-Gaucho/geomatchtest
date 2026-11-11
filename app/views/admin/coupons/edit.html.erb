@@ -1,0 +1,10 @@
+<% content_for :page_title, "Editar Cupom" %>
+
+<div class="max-w-3xl">
+  <div class="mb-6">
+    <h2 class="text-lg font-bold text-white">Editar Cupom <span class="text-amber-500"><%= @coupon.code %></span></h2>
+    <p class="text-sm text-slate-500 mt-0.5">Usado <%= @coupon.used_count %> vez(es) até agora.</p>
+  </div>
+
+  <%= render 'form', coupon: @coupon %>
+</div>

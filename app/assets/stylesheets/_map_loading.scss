@@ -1,0 +1,21 @@
+.map-loading { --gm-speed: 1; --gm-c1: #F4DFC4; --gm-c2: #C9A079; --gm-c3: #6E4F38; position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: var(--map-loading-bg); overflow: hidden; font-family: 'Outfit', system-ui, -apple-system, sans-serif; color: var(--color-text); transition: opacity .45s ease, visibility .45s ease; }
+.map-loading.is-loaded, .map-loading.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.map-loading__stage { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+.map-loading__radar-stack { position: absolute; left: 50%; top: 50%; transform: translate(-50%, calc(-50% - 18px)); width: 1px; height: 1px; pointer-events: none; }
+.map-loading__radar { position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%; border: 1.5px solid rgba(201, 160, 121, 0.55); opacity: 0; animation: gmRadarPulse calc(2.8s * var(--gm-speed)) cubic-bezier(0.32, 0, 0.2, 1) infinite; will-change: transform, opacity; }
+.map-loading__radar--2 { animation-delay: calc(0.93s * var(--gm-speed)); }
+.map-loading__radar--3 { animation-delay: calc(1.86s * var(--gm-speed)); }
+@keyframes gmRadarPulse { 0% { transform: scale(0.35); opacity: 0; border-width: 2px; } 8% { opacity: 0.95; } 100% { transform: scale(3.2); opacity: 0; border-width: 0.5px; } }
+.map-loading__pin { position: relative; z-index: 3; width: 90px; height: 117px; transform-origin: 50% 100%; animation: gmFloat calc(3.8s * var(--gm-speed)) cubic-bezier(0.4, 0, 0.2, 1) infinite; filter: drop-shadow(0 22px 28px rgba(201, 160, 121, 0.18)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.6)); }
+.map-loading__pin svg { width: 100%; height: 100%; display: block; }
+@keyframes gmFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-12px) scale(1.012); } }
+.map-loading__heart { transform-box: fill-box; transform-origin: 50% 50%; animation: gmHeartbeat calc(1.4s * var(--gm-speed)) cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+@keyframes gmHeartbeat { 0%, 70%, 100% { transform: scale(1); } 8% { transform: scale(1.22); } 18% { transform: scale(0.94); } 28% { transform: scale(1.14); } 45% { transform: scale(1.00); } }
+.map-loading__shimmer { animation: gmShimmer calc(3.4s * var(--gm-speed)) cubic-bezier(0.45, 0, 0.25, 1) infinite; }
+@keyframes gmShimmer { 0% { transform: translateX(-90px); opacity: 0; } 18% { opacity: 1; } 65% { opacity: 1; } 100% { transform: translateX(140px); opacity: 0; } }
+.map-loading__caption { position: absolute; bottom: 38%; left: 0; right: 0; margin: 0; text-align: center; color: var(--map-loading-caption-color); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; }
+.map-loading__dots { position: absolute; bottom: calc(38% - 25px); left: 50%; transform: translateX(-50%); display: flex; gap: 7px; }
+.map-loading__dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--gm-c2); opacity: 0.25; animation: gmDotPulse calc(1.5s * var(--gm-speed)) ease-in-out infinite; }
+.map-loading__dots span:nth-child(2) { animation-delay: calc(0.18s * var(--gm-speed)); }
+.map-loading__dots span:nth-child(3) { animation-delay: calc(0.36s * var(--gm-speed)); }
+@media (prefers-reduced-motion: reduce) { .map-loading__pin, .map-loading__radar, .map-loading__heart, .map-loading__shimmer, .map-loading__dots span { animation-duration: 6s !important; } }

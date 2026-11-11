@@ -1,0 +1,9 @@
+<% flash.each do |type, message| %>
+  <div class="toast toast--<%= type.to_s == 'alert' ? 'alert' : 'notice' %>"
+       data-controller="toast"
+       role="alert"
+       aria-live="polite">
+    <span class="toast__message"><%= message %></span>
+    <button class="toast__close" data-action="toast#close" aria-label="Fechar">✕</button>
+  </div>
+<% end %>

@@ -1,0 +1,19 @@
+Olá, <%= @user.display_name %>!
+
+Infelizmente sua foto de verificação não pôde ser aprovada automaticamente pelo nosso sistema.
+
+MOTIVO DA RECUSA:
+<%= @rejection_reason %>
+
+Você pode enviar uma nova foto a qualquer momento acessando:
+<%= verification_url %>
+
+DICAS PARA UMA FOTO APROVADA:
+- Segure um papel com seu nome completo escrito de forma legível
+- Certifique-se de que seu rosto esteja bem iluminado e visível
+- Use uma foto recente, sem óculos escuros ou objetos cobrindo o rosto
+- Evite imagens com conteúdo inapropriado
+
+Se tiver dúvidas, entre em contato respondendo este e-mail.
+
+Equipe GeoMatch

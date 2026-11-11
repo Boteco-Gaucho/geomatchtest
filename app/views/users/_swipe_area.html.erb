@@ -1,0 +1,185 @@
+<% if next_user %>
+
+  <%# --- CARD DO USUÁRIO --- %>
+  <div class="gold-card-frame" data-lead-swipe-target="card" data-user-id="<%= next_user.id %>">
+
+    <div class="card-gallery">
+      <div class="swipe-overlay swipe-like" data-lead-swipe-target="like">
+        <i class="fas fa-heart"></i>
+      </div>
+      <div class="swipe-overlay swipe-nope" data-lead-swipe-target="nope">
+        <i class="fas fa-times"></i>
+      </div>
+
+      <%= render "shared/profile_carousel", user: next_user %>
+
+      <div class="card-user-info clickable-info" data-action="click->lead-swipe#openProfile">
+        <div class="info-header">
+          <div class="location-badge">
+            <i class="fas fa-map-marker-alt"></i> Perto de mim
+          </div>
+          <div class="info-up-indicator">
+            <i class="fas fa-chevron-up"></i>
+          </div>
+        </div>
+
+        <h2 class="user-title" style="display: flex; align-items: center; gap: 5px;">
+          <%= next_user.display_name %> <span class="age"><%= next_user.age %></span>
+          <% if next_user&.verified? %>
+            <%= image_tag "icone-verificar.png", style: "width: 20px; height: 20px;", title: "Perfil Verificado" %>
+          <% end %>
+        </h2>
+
+        <p class="user-distance">
+          <i class="fas fa-location-arrow"></i> a <%= distance || 1 %> km de distância
+        </p>
+
+        <% if next_user.respond_to?(:bio) && next_user.bio.present? %>
+          <p class="user-bio-preview" style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+            <%= next_user.bio %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# --- BOTÕES DE AÇÃO --- %>
+  <div class="action-buttons-container">
+    <%# Rewind (desfazer último nope) — primeiro à esquerda %>
+    <%= button_to rewind_lead_path, method: :post,
+          class: "action-btn btn-rewind", form_class: "btn-form",
+          data: { lead_swipe_target: "btnRewind" } do %>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"></polyline>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.51"></path>
+      </svg>
+    <% end %>
+
+    <%= button_to reject_user_path(user_id: next_user.id), method: :post,
+          class: "action-btn btn-reject", form_class: "btn-form",
+          data: { lead_swipe_target: "btnReject" } do %>
+      <%= image_tag "botao-rejeitar.svg", alt: "Rejeitar" %>
+    <% end %>
+
+    <%= button_to start_chat_path(user_id: next_user.id), method: :post,
+          class: "action-btn btn-chat", form_class: "btn-form" do %>
+      <%= image_tag "mensagem-prata.svg", alt: "Chat" %>
+    <% end %>
+
+    <%= button_to likes_path(user_id: next_user.id), method: :post,
+          class: "action-btn btn-like", form_class: "btn-form",
+          data: { lead_swipe_target: "btnLike" } do %>
+      <div class="heart-icon-wrapper">
+        <%= image_tag "coracao-chapada.png", alt: "Curtir" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Toast para "sem dislike para desfazer" %>
+  <div id="rewind-flash" class="rewind-flash-container"></div>
+
+  <%# --- PERFIL COMPLETO --- %>
+  <div class="full-profile-sheet" data-lead-swipe-target="profileModal">
+
+    <button class="close-profile-btn" data-action="click->lead-swipe#closeProfile">
+      <i class="fas fa-arrow-down"></i>
+    </button>
+
+    <div class="profile-scroll-content">
+
+      <div class="profile-cover-section">
+        <%= render "shared/profile_carousel", user: next_user, show_gradient: false %>
+        <div class="profile-cover-overlay">
+          <div class="cover-info">
+            <h2 class="cover-name">
+              <%= next_user.display_name %>
+              <span class="cover-age"><%= next_user.age %></span>
+              <% if next_user.respond_to?(:verified) && next_user.verified %>
+                <%= image_tag "verificado.svg", class: "cover-verified" rescue nil %>
+              <% end %>
+            </h2>
+            <% if next_user.respond_to?(:job_title) && next_user.job_title.present? %>
+              <p class="cover-job"><i class="fas fa-briefcase"></i> <%= next_user.job_title %></p>
+            <% end %>
+            <p class="cover-distance"><i class="fas fa-location-arrow"></i> a <%= distance || 1 %> km de distância</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-body-container">
+
+        <div class="profile-info-card">
+          <h3 class="card-header">Sobre mim</h3>
+          <p class="profile-bio-text">
+            <%= next_user.bio.present? ? next_user.bio : "Sem biografia." %>
+          </p>
+        </div>
+
+        <div class="profile-info-card">
+          <h3 class="card-header">Informações básicas</h3>
+          <div class="info-pills-container">
+            <% if next_user.gender.present? %>
+              <span class="info-pill">
+                <i class="fas fa-venus-mars"></i> <%= next_user.gender.capitalize %>
+              </span>
+            <% end %>
+            <% if next_user.interested_in.present? %>
+              <span class="info-pill">
+                <i class="fas fa-search"></i> Busca: <%= next_user.interested_in.capitalize %>
+              </span>
+            <% end %>
+            <% if next_user.city.present? %>
+              <span class="info-pill">
+                <i class="fas fa-map-marker-alt"></i> <%= next_user.city %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+
+        <% if next_user.respond_to?(:hobbies_list) && next_user.hobbies_list.any? %>
+          <div class="profile-info-card">
+            <h3 class="card-header">Interesses</h3>
+            <div class="tags-container">
+              <% next_user.hobbies_list.each do |hobby| %>
+                <span class="tag-pill"><%= hobby %></span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="profile-safety-actions">
+          <div class="safety-divider"></div>
+
+          <%= button_to report_incident_path(user_id: next_user.id),
+              method: :get,
+              class: "btn-safety-block" do %>
+            DENUNCIAR <%= next_user.display_name.upcase %>
+          <% end %>
+
+          <div class="safety-separator"></div>
+
+          <button type="button"
+                  class="btn-safety-block"
+                  onclick="openBlockConfirm('<%= j next_user.display_name %>', '<%= block_user_path(next_user) %>')">
+            BLOQUEAR <%= next_user.display_name.upcase %>
+          </button>
+
+          <div class="safety-divider"></div>
+        </div>
+
+        <div class="bottom-spacer"></div>
+      </div>
+    </div>
+  </div>
+
+<% else %>
+  <%# --- EMPTY STATE --- %>
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h3>Sem mais usuários por perto</h3>
+    <button class="btn-gold-outline" data-action="click->filters#open">
+      Ajustar Filtros
+    </button>
+  </div>
+<% end %>

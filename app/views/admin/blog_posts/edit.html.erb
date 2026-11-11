@@ -1,0 +1,143 @@
+<div class="admin-form-container">
+  <div class="admin-nav" style="display: flex; gap: 10px; margin-bottom: 30px;">
+    <%= link_to "Configurações", admin_settings_url, class: "admin-nav-btn", style: "background: var(--color-section-light); color: var(--color-text); padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 1px solid var(--color-border);" %>
+    <%= link_to "Blog Posts", admin_blog_posts_url, class: "admin-nav-btn admin-nav-btn--active", style: "background: var(--color-primary); color: #000; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;" %>
+  </div>
+
+  <h1>Editar Post</h1>
+
+  <%= form_with(model: [:admin, @blog_post], local: true, class: "admin-form") do |form| %>
+    <% if @blog_post.errors.any? %>
+      <div id="error_explanation" class="alert alert-danger">
+        <h4><%= pluralize(@blog_post.errors.count, "erro") %> encontrado:</h4>
+        <ul>
+          <% @blog_post.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= form.label :title, "Título" %>
+      <%= form.text_field :title, class: "form-control", placeholder: "Título do post" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :excerpt, "Resumo (opcional)" %>
+      <%= form.text_area :excerpt, class: "form-control", rows: 3, placeholder: "Resumo curto do post" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :content, "Conteúdo" %>
+      <%= form.text_area :content, class: "form-control", rows: 15, placeholder: "Conteúdo completo do post" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :blog_category_id, "Categoria" %>
+      <%= form.collection_select :blog_category_id, @categories, :id, :name, { class: "form-control" } %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :featured_image, "Imagem Destacada" %>
+      <%= form.text_field :featured_image, class: "form-control", placeholder: "blog/imagem.jpg" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :published_at, "Data de Publicação" %>
+      <%= form.text_field :published_at, type: "datetime-local", class: "form-control" %>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit "Atualizar Post", class: "btn btn-primary" %>
+      <%= link_to "Cancelar", admin_blog_posts_url, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .admin-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-text);
+  }
+
+  .form-control {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: #000;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-secondary {
+    background: var(--color-section-light);
+    color: var(--color-text);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-border);
+  }
+
+  .alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+
+  .alert-danger {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid #dc2626;
+    color: #991b1b;
+  }
+</style>

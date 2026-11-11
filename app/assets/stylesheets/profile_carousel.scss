@@ -1,0 +1,91 @@
+// ==========================================================
+// Shared Profile Carousel (.pc-*)
+// Used in: /lead swipe card (.card-gallery)
+//          /lead profile modal (.profile-cover-section)
+//          /users/:id show page (.v-view-carousel-wrapper)
+// ==========================================================
+
+.pc-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+// Scrollable photo strip — flex + scroll-snap
+.pc-slides {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.pc-slide {
+  flex: 0 0 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pc-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 100%);
+  pointer-events: none;
+}
+
+// Indicator bars (top of photo)
+.pc-indicators {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  display: flex;
+  gap: 5px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.pc-indicator {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 2px;
+  transition: background 0.2s ease;
+
+  &.pc-indicator--active { background: #fff; }
+}
+
+// Tap navigation zones (full height for clean left/right tap areas)
+.pc-tap-zones {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 9;
+  pointer-events: none; // Container is transparent — children handle events
+}
+
+.pc-tap-l,
+.pc-tap-r {
+  flex: 1;
+  pointer-events: auto;
+}

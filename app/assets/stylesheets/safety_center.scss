@@ -1,0 +1,318 @@
+// =========================================================
+// CENTRAL DE SEGURANÇA (SAFETY CENTER)
+// =========================================================
+
+.safety-wrapper {
+  background-color: var(--color-background);
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+/* --- 1. HEADER --- */
+.safety-header {
+  padding: 20px 25px;
+  padding-top: calc(20px + env(safe-area-inset-top));
+  margin-bottom: 10px;
+}
+
+.header-top-row {
+  display: flex;
+  align-items: flex-start; /* Alinha no topo */
+  gap: 15px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 5px; /* Ajuste fino */
+}
+
+.icon-arrow {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(0); // PNG branco → preto no modo claro
+
+  .dark-mode & {
+    filter: none; // mantém branco no modo escuro
+  }
+}
+
+.header-text-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.title-img {
+  width: 180px; /* Ajuste conforme tamanho do PNG */
+  height: auto;
+  display: block;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+.header-icon-right {
+  margin-top: 0;
+}
+
+.icon-shield {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* --- 2. BODY (GRID) --- */
+.safety-body {
+  padding: 0 25px;
+  flex: 1;
+}
+
+.safety-wrapper .section-label {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* Card Genérico */
+.safety-card {
+  border-radius: 20px;
+  padding: 20px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 15px;
+  position: relative;
+  min-height: 140px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  
+  &:active { transform: scale(0.98); }
+}
+
+/* Cores dos Cards */
+.card-pink { background-color: #ffdcd9; color: #5c1e1e; }
+.card-blue { background-color: #dbe4ff; color: #1e2b5c; }
+.card-purple { background-color: #e2dfff; color: #2e1e5c; }
+.card-pink-light { background-color: #ffdad6; color: #5c1e1e; }
+
+/* Ícones Circulares dentro dos Cards */
+.card-icon-circle {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  svg { width: 24px; height: 24px; }
+}
+
+.icon-red { background-color: #ff5449; color: #fff; }
+.icon-blue-dark { background-color: #3b5ba9; color: #fff; }
+.icon-purple-dark { background-color: #5256a9; color: #fff; }
+.icon-red-light { background-color: #ba1a1a; color: #fff; opacity: 0.4; } /* Simulado */
+
+/* Badge de Alerta (!) */
+.card-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 18px;
+  height: 18px;
+  background-color: #ff5449;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  strong {
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  span {
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+}
+
+/* --- 3. FOOTER (INSTRUÇÕES) --- */
+.safety-footer {
+  background-color: var(--color-section-gray);
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  padding: 30px 25px;
+  margin-top: 30px;
+  color: var(--color-text);
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.footer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ba1a1a; /* Vermelho escuro */
+  font-size: 1rem;
+  margin: 0 0 20px 0;
+  font-weight: 700;
+}
+
+.warning-icon {
+  background-color: #ba1a1a;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.instruction-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    strong {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      line-height: 1.3;
+    }
+  }
+}
+
+/* --- CARD PREMIUM: BLOQUEADOS & DENÚNCIAS --- */
+.safety-history-btn {
+  display: block;
+  text-decoration: none;
+  margin: 24px 20px;
+  background-color: var(--color-section-light);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  padding: 16px;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    border-color: #C9A079;
+  }
+}
+
+.sh-btn-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sh-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sh-btn-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(244, 223, 196, 0.2) 0%, rgba(201, 160, 121, 0.2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #C9A079;
+  flex-shrink: 0;
+
+  svg { width: 22px; height: 22px; }
+}
+
+.sh-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+
+  strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: block;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    display: block;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.sh-btn-chevron {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); }
+  70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(255, 77, 77, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+}

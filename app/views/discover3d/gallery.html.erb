@@ -1,0 +1,167 @@
+<div class="gallery-screen">
+
+  <%# ============================================== %>
+  <%#  HEADER                                         %>
+  <%# ============================================== %>
+  <div class="gallery-header">
+    <%= link_to discover_3d_path, class: "gallery-back-btn", title: "Voltar ao mapa" do %>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+    <% end %>
+
+    <h1 class="gallery-header-title">Busca por Cidade</h1>
+
+    <div class="gallery-header-right">
+      <%# Modo invisível: navegação 100% oculta — some do filtro de cidade/estado,
+          do mapa e da tela de perfil. Recurso Gold (403 abre modal de upgrade). %>
+      <button type="button"
+              class="gallery-visibility-btn"
+              data-controller="visibility-toggle"
+              data-action="visibility-toggle#toggle"
+              data-visibility-toggle-invisible-value="<%= current_user.invisible ? 'true' : 'false' %>">
+        <svg data-visibility-toggle-target="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <svg data-visibility-toggle-target="eyeClosed" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        </svg>
+      </button>
+
+      <%= image_tag "logo-geomatch-dourada.png", class: "gallery-header-logo", alt: "GeoMatch" %>
+    </div>
+  </div>
+
+  <%# Container do modal de upgrade (plano Gold) — preenchido via JS quando necessário %>
+  <div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>
+
+  <%# ============================================== %>
+  <%#  FILTROS                                        %>
+  <%# ============================================== %>
+  <section class="gallery-filters"
+           data-controller="location-filter"
+           data-location-filter-current-city-value="<%= @filters[:city].to_s %>">
+    <%= form_with url: discover_3d_gallery_path, method: :get, local: true, class: "gallery-filter-form", data: { controller: "gallery-filters" } do |f| %>
+
+      <%# --- Sexo --- %>
+      <div>
+        <h3 class="filter-group-title">
+          <%= image_tag "filtro-dourado.svg", alt: "" %>
+          Sexo
+        </h3>
+        <div class="gender-pills" role="radiogroup" aria-label="Filtrar por sexo">
+          <% [
+               { value: "homem",       label: "Homem"       },
+               { value: "mulher",      label: "Mulher"      },
+               { value: "nao-binario", label: "Não Binário" },
+               { value: "",            label: "Todos"       }
+             ].each do |opt| %>
+            <% selected = (@filters[:sexo].to_s.downcase == opt[:value]) %>
+            <label class="gender-pill <%= 'is-active' if selected %>">
+              <%= f.radio_button :sexo, opt[:value], checked: selected,
+                    data: { action: "change->gallery-filters#submit" } %>
+              <%= opt[:label] %>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <%# --- Localização: Estado > Cidade --- %>
+      <div>
+        <h3 class="filter-group-title">
+          <%= image_tag "mapa-vazada.svg", alt: "" %>
+          Localização
+        </h3>
+
+        <div class="location-selects two-cols">
+          <%# Estado — lista estática dos 27 estados do Brasil %>
+          <div class="gallery-select-wrapper">
+            <%= f.select :state,
+                  options_for_select([
+                    ["Estado", ""],
+                    ["Acre", "AC"], ["Alagoas", "AL"], ["Amapá", "AP"],
+                    ["Amazonas", "AM"], ["Bahia", "BA"], ["Ceará", "CE"],
+                    ["Distrito Federal", "DF"], ["Espírito Santo", "ES"],
+                    ["Goiás", "GO"], ["Maranhão", "MA"], ["Mato Grosso", "MT"],
+                    ["Mato Grosso do Sul", "MS"], ["Minas Gerais", "MG"],
+                    ["Pará", "PA"], ["Paraíba", "PB"], ["Paraná", "PR"],
+                    ["Pernambuco", "PE"], ["Piauí", "PI"],
+                    ["Rio de Janeiro", "RJ"], ["Rio Grande do Norte", "RN"],
+                    ["Rio Grande do Sul", "RS"], ["Rondônia", "RO"],
+                    ["Roraima", "RR"], ["Santa Catarina", "SC"],
+                    ["São Paulo", "SP"], ["Sergipe", "SE"], ["Tocantins", "TO"]
+                  ], @filters[:state]),
+                  {},
+                  class: "gallery-select",
+                  data: { "location-filter-target": "state", action: "change->location-filter#fetchCities" } %>
+          </div>
+
+          <%# Cidade — populada via IBGE pelo Stimulus após selecionar estado %>
+          <div class="gallery-select-wrapper">
+            <%= f.select :city,
+                  options_for_select([["Cidade", ""]], @filters[:city]),
+                  {},
+                  class: "gallery-select",
+                  disabled: @filters[:state].blank?,
+                  data: {
+                    "location-filter-target": "city",
+                    action: "change->gallery-filters#submit"
+                  } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-actions-row">
+        <button type="submit" class="filter-apply-btn">Aplicar Filtros</button>
+        <%= link_to "Limpar", discover_3d_gallery_path, class: "filter-clear-btn" %>
+        <%= link_to favorites_path, class: "filter-favorites-btn", title: "Meus favoritos" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Favoritos
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ============================================== %>
+  <%#  META / CONTAGEM                                %>
+  <%# ============================================== %>
+  <div class="gallery-meta">
+    <span class="meta-count">
+      <strong><%= @users.size %></strong>
+      <%= @users.size == 1 ? "perfil encontrado" : "perfis encontrados" %>
+    </span>
+    <% if @filters.values.any?(&:present?) %>
+      <span class="meta-tag">Filtros ativos</span>
+    <% else %>
+      <span class="meta-tag">Em destaque</span>
+    <% end %>
+  </div>
+
+  <%# ============================================== %>
+  <%#  GRID DE CARDS                                  %>
+  <%# ============================================== %>
+  <% if @users.any? %>
+    <div class="gallery-grid">
+      <% @users.each do |user| %>
+        <%= render "discover3d/profile_card", user: user, favorites_map: @favorites_map %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="gallery-empty">
+      <div class="empty-icon">🔍</div>
+      <% if @filters[:state].present? %>
+        <h3>Nenhum usuário encontrado nesta região</h3>
+        <p>Tente expandir sua busca para o estado inteiro ou limpe os filtros!</p>
+      <% else %>
+        <h3>Nenhum perfil encontrado</h3>
+        <p>Ajuste os filtros acima para descobrir mais pessoas.</p>
+      <% end %>
+      <%= link_to "Limpar filtros", discover_3d_gallery_path, class: "favorites-explore-btn", style: "margin-top: 14px;" %>
+    </div>
+  <% end %>
+
+</div>

@@ -1,0 +1,50 @@
+<%# -------------------------------------------------------
+ Shared photo carousel — /lead swipe card & /users/:id
+ Locals:
+   user          — User whose photos to show (required)
+   show_gradient — bottom dark gradient inside each slide (default: true)
+ ------------------------------------------------------- %>
+<% pc_user     = local_assigns[:user] %>
+<% pc_gradient = local_assigns.fetch(:show_gradient, true) %>
+
+<% pc_photos = [] %>
+<% pc_photos << pc_user.avatar if pc_user.has_real_avatar? %>
+<% pc_user.album_photos.each { |p| pc_photos << p } if pc_user.album_photos.attached? %>
+
+<div class="pc-wrapper" data-controller="carousel">
+
+  <%# Indicator bars — only rendered when >1 photo %>
+  <% if pc_photos.length > 1 %>
+    <div class="pc-indicators">
+      <% pc_photos.length.times do |i| %>
+        <div class="pc-indicator <%= 'pc-indicator--active' if i.zero? %>"
+             data-carousel-target="indicator"></div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# Scrollable photo strip (flex + scroll-snap) %>
+  <div class="pc-slides" data-carousel-target="slides">
+    <% if pc_photos.empty? %>
+      <div class="pc-slide">
+        <%= image_tag "default-avatar.png", class: "pc-img", alt: "" %>
+      </div>
+    <% else %>
+      <% pc_photos.each do |photo| %>
+        <div class="pc-slide">
+          <%= image_tag photo, class: "pc-img no-drag", alt: "" %>
+          <% if pc_gradient %><div class="pc-gradient"></div><% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# Tap zones — only rendered when there is more than one photo %>
+  <% if pc_photos.length > 1 %>
+    <div class="pc-tap-zones">
+      <div class="pc-tap-l" data-action="click->carousel#prev"></div>
+      <div class="pc-tap-r" data-action="click->carousel#next"></div>
+    </div>
+  <% end %>
+
+</div>

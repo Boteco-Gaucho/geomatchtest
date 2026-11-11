@@ -1,0 +1,11 @@
+Solicitação de Exclusão de Conta — GeoMatch
+============================================
+
+Uma nova solicitação de exclusão de conta e dados foi enviada pela página pública /exclusao-de-conta.
+
+Nome:               <%= @name %>
+Email da conta:     <%= @email %>
+Motivo:             <%= @reason %>
+Data da solicitação: <%= Time.current.strftime('%d/%m/%Y %H:%M') %> (horário do servidor)
+
+Ação necessária: localizar a conta pelo email informado e processar a exclusão conforme a política de privacidade.

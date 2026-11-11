@@ -1,0 +1,52 @@
+<div class="map-loading" data-map-loader-target="overlay" role="status" aria-live="polite">
+  <div class="map-loading__stage">
+    <div class="map-loading__radar-stack" aria-hidden="true">
+      <span class="map-loading__radar"></span>
+      <span class="map-loading__radar map-loading__radar--2"></span>
+      <span class="map-loading__radar map-loading__radar--3"></span>
+    </div>
+    <div class="map-loading__pin">
+      <svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="gmGoldGrad" x1="0.12" y1="0.05" x2="0.88" y2="1">
+            <stop offset="0%"   stop-color="#F4DFC4"/>
+            <stop offset="48%"  stop-color="#C9A079"/>
+            <stop offset="100%" stop-color="#6E4F38"/>
+          </linearGradient>
+          <linearGradient id="gmGoldGradG" x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0%"   stop-color="#F4DFC4"/>
+            <stop offset="100%" stop-color="#C9A079"/>
+          </linearGradient>
+          <linearGradient id="gmShimmer" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0"/>
+            <stop offset="50%"  stop-color="#FFFFFF" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="gmInnerLight" cx="0.3" cy="0.25" r="0.85">
+            <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.25"/>
+            <stop offset="40%"  stop-color="#FFFFFF" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </radialGradient>
+          <clipPath id="gmPinClip">
+            <path d="M 50 4 C 25 4, 5 23, 5 48 C 5 70, 30 96, 50 126 C 70 96, 95 70, 95 48 C 95 23, 75 4, 50 4 Z"/>
+          </clipPath>
+        </defs>
+        <path d="M 50 4 C 25 4, 5 23, 5 48 C 5 70, 30 96, 50 126 C 70 96, 95 70, 95 48 C 95 23, 75 4, 50 4 Z" fill="url(#gmGoldGrad)"/>
+        <path d="M 50 4 C 25 4, 5 23, 5 48 C 5 70, 30 96, 50 126 C 70 96, 95 70, 95 48 C 95 23, 75 4, 50 4 Z" fill="url(#gmInnerLight)"/>
+        <circle cx="50" cy="44" r="21" fill="#0a0a0a"/>
+        <text x="50" y="54" text-anchor="middle" font-family="'Nunito', system-ui, sans-serif" font-weight="900" font-size="30" fill="url(#gmGoldGradG)">G</text>
+        <path class="map-loading__heart" d="M 50 84.5 C 50 81.5 46.5 79 43 79 C 39.5 79 37 81.5 37 85.2 C 37 91 50 99 50 99 C 50 99 63 91 63 85.2 C 63 81.5 60.5 79 57 79 C 53.5 79 50 81.5 50 84.5 Z" fill="#0a0a0a"/>
+        <g clip-path="url(#gmPinClip)">
+          <g transform="rotate(18 50 65)">
+            <rect class="map-loading__shimmer" x="-25" y="-30" width="22" height="200" fill="url(#gmShimmer)"/>
+          </g>
+        </g>
+        <path d="M 50 4 C 25 4, 5 23, 5 48 C 5 70, 30 96, 50 126 C 70 96, 95 70, 95 48 C 95 23, 75 4, 50 4 Z" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="0.5"/>
+      </svg>
+    </div>
+    <div class="map-loading__dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+    <p class="map-loading__caption">Localizando usuários próximos</p>
+  </div>
+</div>

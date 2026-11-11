@@ -1,0 +1,150 @@
+// GeoMatch Chat Menu — Premium Component
+// Adapts to light / dark themes via CSS custom properties.
+
+// ── Light-mode defaults ──────────────────────────────────────────
+:root {
+  --gm-menu-bg:              rgba(255, 255, 255, 0.96);
+  --gm-menu-border:          rgba(0, 0, 0, 0.08);
+  --gm-menu-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.08),
+    0 8px 22px   rgba(0, 0, 0, 0.12),
+    0 24px 56px  rgba(0, 0, 0, 0.08);
+  --gm-menu-text:            rgba(0, 0, 0, 0.82);
+  --gm-menu-icon:            rgba(0, 0, 0, 0.35);
+  --gm-menu-separator:       rgba(0, 0, 0, 0.06);
+  --gm-menu-hover-bg:        rgba(0, 0, 0, 0.04);
+  --gm-menu-hover-icon:      rgba(0, 0, 0, 0.55);
+  --gm-menu-danger-hover-bg: rgba(220, 38, 38, 0.08);
+  --gm-menu-danger-text:     #dc2626;
+  --gm-menu-danger-icon:     #dc2626;
+  --gm-icon-btn-color:       #555;
+  --gm-icon-btn-hover:       rgba(0, 0, 0, 0.06);
+}
+
+// ── Dark-mode overrides ──────────────────────────────────────────
+.dark-mode {
+  --gm-menu-bg:              rgba(28, 28, 30, 0.97);
+  --gm-menu-border:          rgba(255, 255, 255, 0.10);
+  --gm-menu-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.45),
+    0 8px 22px   rgba(0, 0, 0, 0.45),
+    0 24px 56px  rgba(0, 0, 0, 0.55);
+  --gm-menu-text:            rgba(255, 255, 255, 0.88);
+  --gm-menu-icon:            rgba(255, 255, 255, 0.40);
+  --gm-menu-separator:       rgba(255, 255, 255, 0.07);
+  --gm-menu-hover-bg:        rgba(255, 255, 255, 0.07);
+  --gm-menu-hover-icon:      rgba(255, 255, 255, 0.65);
+  --gm-menu-danger-hover-bg: rgba(239, 68, 68, 0.12);
+  --gm-menu-danger-text:     #f87171;
+  --gm-menu-danger-icon:     #f87171;
+  --gm-icon-btn-color:       #aaa;
+  --gm-icon-btn-hover:       rgba(255, 255, 255, 0.08);
+}
+
+// ── Trigger wrapper ──────────────────────────────────────────────
+.gm-header-trigger {
+  position: relative;
+  display: inline-block;
+  overflow: visible !important;
+  z-index: 1001;
+}
+
+// ── Three-dots button ────────────────────────────────────────────
+.gm-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--gm-icon-btn-color);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+
+  svg { width: 22px; height: 22px; }
+
+  &:hover  { background: var(--gm-icon-btn-hover); }
+  &:active { transform: scale(0.88); }
+}
+
+// ── Menu panel ───────────────────────────────────────────────────
+.gm-chat-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: var(--gm-menu-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--gm-menu-border);
+  border-radius: 16px;
+  box-shadow: var(--gm-menu-shadow);
+  overflow: hidden;
+  z-index: 1000;
+  transform-origin: top right;
+  animation: gmMenuIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  &[hidden] {
+    display: none !important;
+    animation: none;
+  }
+}
+
+@keyframes gmMenuIn {
+  from { opacity: 0; transform: scale(0.88) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+// ── Menu rows ────────────────────────────────────────────────────
+.gm-menu-item {
+  & + & { border-top: 1px solid var(--gm-menu-separator); }
+
+  // button_to renders <form class="..."><button>…</button></form>
+  form {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 16px;
+    background: transparent;
+    color: var(--gm-menu-text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    svg {
+      flex-shrink: 0;
+      stroke: var(--gm-menu-icon);
+      transition: stroke 0.12s ease;
+    }
+
+    &:hover, &:active {
+      background: var(--gm-menu-hover-bg);
+      svg { stroke: var(--gm-menu-hover-icon); }
+    }
+  }
+
+  // Destructive actions
+  &.gm-menu-item--danger button {
+    &:hover, &:active {
+      background: var(--gm-menu-danger-hover-bg);
+      color: var(--gm-menu-danger-text);
+      svg { stroke: var(--gm-menu-danger-icon); }
+    }
+  }
+}

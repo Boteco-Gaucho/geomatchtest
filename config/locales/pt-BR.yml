@@ -1,0 +1,76 @@
+"pt-BR":
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "A validação falhou: %{errors}"
+        required: "é obrigatório"
+        taken: "já está em uso"
+        blank: "não pode ficar em branco"
+        too_short: "é muito curto (mínimo: %{count} caracteres)"
+        too_long: "é muito longo (máximo: %{count} caracteres)"
+        invalid: "não é válido"
+        confirmation: "não coincide com %{attribute}"
+        inclusion: "não está incluído na lista"
+      models:
+        user:
+          attributes:
+            email:
+              taken: "já está cadastrado. Tente fazer login ou use outro e-mail."
+              blank: "não pode ficar em branco"
+              invalid: "não é um endereço de e-mail válido"
+            password:
+              too_short: "deve ter no mínimo %{count} caracteres"
+              blank: "não pode ficar em branco"
+            name:
+              blank: "não pode ficar em branco"
+        payment:
+          attributes:
+            plan:
+              required: "é obrigatório"
+            user:
+              required: "é obrigatório"
+    attributes:
+      user:
+        email: "E-mail"
+        password: "Senha"
+        password_confirmation: "Confirmação de senha"
+        name: "Nome completo"
+        current_password: "Senha atual"
+
+# Adicione o bloco abaixo mantendo este alinhamento:
+  datetime:
+    distance_in_words:
+      half_a_minute: "meio minuto"
+      less_than_x_seconds:
+        one: "menos de 1 segundo"
+        other: "menos de %{count} segundos"
+      x_seconds:
+        one: "1 segundo"
+        other: "%{count} segundos"
+      less_than_x_minutes:
+        one: "menos de um minuto"
+        other: "menos de %{count} minutos"
+      x_minutes:
+        one: "1 minuto"
+        other: "%{count} minutos"
+      about_x_hours:
+        one: "aproximadamente 1 hora"
+        other: "aproximadamente %{count} horas"
+      x_days:
+        one: "1 dia"
+        other: "%{count} dias"
+      about_x_months:
+        one: "aproximadamente 1 mês"
+        other: "aproximadamente %{count} meses"
+      x_months:
+        one: "1 mês"
+        other: "%{count} meses"
+      about_x_years:
+        one: "aproximadamente 1 ano"
+        other: "aproximadamente %{count} anos"
+      over_x_years:
+        one: "mais de 1 ano"
+        other: "mais de %{count} anos"
+      almost_x_years:
+        one: "quase 1 ano"
+        other: "quase %{count} anos"

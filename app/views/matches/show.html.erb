@@ -1,95 +1,135 @@
-<div class="chat-wrapper">
-  <div class="chat-container">
+<div class="chat-screen-wrapper" style="overflow-x: hidden; width: 100%; max-width: 100vw;">
+  
+  <%# --- 1. HEADER MINIMALISTA (Fixo no topo) --- %>
+  <div class="chat-header-dark">
+    <%= link_to matches_path, class: "back-btn" do %>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    <% end %>
 
-    <!-- Chat Header -->
-    <div class="chat-header">
-      <div class="header-content">
-        <div class="header-back">
-          <%= link_to matches_path, class: "back-link" do %>
-            <span class="back-icon">←</span>
+    <div class="header-user-info">
+      <%= link_to user_path(@other_user), class: "header-avatar-link" do %>
+        <%= image_tag @other_user.avatar_url, class: "header-avatar" %>
+      <% end %>
+
+      <div class="header-text">
+        <h2 class="header-name" style="display: flex; align-items: center; gap: 5px;">
+          <%= @other_user.display_name %>
+          <% if @other_user&.verified? %>
+            <%= image_tag "icone-verificar.png", style: "width: 18px; height: 18px; flex-shrink: 0;", title: "Perfil Verificado" %>
           <% end %>
-        </div>
-
-        <div class="header-user">
-          <% other_user = @match.other_user(current_user) %>
-
-          <% if other_user.avatar.attached? %>
-            <%= image_tag other_user.avatar, class: "header-avatar" %>
+        </h2>
+        <span class="header-status">
+          <% if @other_user.respond_to?(:online?) && @other_user.online? %>
+            <span class="dot-online">●</span> Online
           <% else %>
-            <div class="header-avatar-placeholder">
-              <%= other_user.display_name[0].upcase rescue "?" %>
-            </div>
+            <span class="dot-offline">●</span> Offline
           <% end %>
-
-          <div class="header-info">
-            <h2 class="header-name"><%= other_user.display_name %></h2>
-            <p class="header-status">Ativo agora</p>
-          </div>
-        </div>
+        </span>
       </div>
     </div>
 
-    <!-- Messages -->
-    <div id="chat-messages" class="chat-messages">
-      <% if @messages.empty? %>
-        <div class="messages-empty">
-          <div class="empty-icon">💬</div>
-          <p class="empty-text">Comece a conversa! Envie uma mensagem para <strong><%= other_user.display_name %></strong></p>
-        </div>
+    <div class="header-actions">
+      <div class="gm-header-trigger" data-controller="chat-menu">
+        <button type="button" class="gm-icon-btn"
+                data-action="click->chat-menu#toggle"
+                data-chat-menu-target="trigger"
+                aria-haspopup="menu"
+                aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+          </svg>
+        </button>
+        <%= render "matches/chat_menu", match: @match, other_user: @other_user %>
+      </div>
+    </div> 
+  </div> 
+
+  <%# --- 2. ÁREA DE MENSAGENS --- %>
+  <div id="chat-window" class="chat-window-dark"
+       data-match-id="<%= @match.id %>"
+       data-current-user-id="<%= current_user.id %>">
+
+  <div class="messages-slide-container">
+
+   <%# Aviso de Match (Topo) %>
+    <div class="match-date-notice">
+      <%# Verifica se é um Match Mútuo %>
+      <% is_mutual = current_user.likes.exists?(liked_id: @other_user.id) && @other_user.likes.exists?(liked_id: current_user.id) %>
+
+      <% if is_mutual %>
+        VOCÊ DEU MATCH COM <%= @other_user.display_name.upcase %> NO DIA <%= @match.created_at.strftime("%d/%m/%Y") %>
       <% else %>
-        <% @messages.each do |message| %>
-          <div class="message-group <%= message.sender == current_user ? 'sent' : 'received' %>">
-            <div class="message-bubble">
-              <p class="message-text"><%= message.content %></p>
-              <span class="message-time"><%= message.created_at.strftime("%H:%M") %></span>
-            </div>
-          </div>
-        <% end %>
+        VOCÊ INICIOU A CONVERSA COM <%= @other_user.display_name.upcase %> NO DIA <%= @match.created_at.strftime("%d/%m/%Y") %>
       <% end %>
     </div>
 
-    <!-- Input -->
-    <div class="chat-footer">
-      <div class="message-form-wrapper">
-        <%= form_with model: [@match, @message], local: true, class: "message-form", id: "message-form" do |f| %>
-          <%= f.text_field :content,
-              placeholder: "Digite uma mensagem...",
-              class: "message-input",
-              autocomplete: "off",
-              id: "message-input" %>
-          <%= f.submit "Enviar", class: "send-btn", id: "send-btn" %>
+    <%# Loop de Mensagens %>
+    <% last_date = nil %>
+    <% @messages.each do |message| %>
+
+      <%# Separador de Data %>
+      <% msg_date = message.created_at.to_date %>
+      <% if last_date != msg_date %>
+        <div class="date-separator">
+          <%= l(msg_date, format: :long) rescue msg_date.strftime("%d de %b") %>
+        </div>
+        <% last_date = msg_date %>
+      <% end %>
+
+      <div id="msg-<%= message.id %>"
+           data-sending="false"
+           data-content="<%= message.content %>"
+           class="message message-row <%= message.sender_id == current_user.id ? 'sent' : 'received' %>">
+
+        <%# Avatar (apenas nas recebidas) %>
+        <% unless message.sender_id == current_user.id %>
+          <div class="msg-avatar-container">
+            <% if message.sender&.avatar&.attached? %>
+              <%= image_tag message.sender.avatar, class: "msg-avatar" %>
+            <% else %>
+              <div class="msg-avatar-placeholder"><%= message.sender&.display_name.to_s[0] || "?" %></div>
+            <% end %>
+          </div>
         <% end %>
+
+       <div class="message-bubble">
+        <%= message.content %>
+       </div>
+       <% if message.sender_id == current_user.id %>
+         <div class="message-status status-<%= message.status %>" data-status-id="<%= message.id %>"></div>
+       <% end %>
+       <span class="message-timestamp"><%= message.created_at.strftime("%H:%M") %></span>
       </div>
+    <% end %>
+
+    <%# --- INDICADOR DE DIGITAÇÃO (INSERIDO AQUI) --- %>
+    <div id="typing-indicator" style="display: none; padding: 10px 20px; font-size: 0.8rem; color: #888;">
+      <%# O JS vai injetar: "Fulano está digitando..." aqui %>
     </div>
 
+  </div><%# /messages-slide-container %>
+
   </div>
+
+  <%# --- 3. INPUT (Barra inferior) --- %>
+  <%# Usamos <div> em vez de <form> para eliminar a barra de navegação de formulário do iOS (^ v ✓) %>
+  <div class="chat-input-dark">
+    <button type="button" class="btn-gif">GIF</button>
+
+    <div id="new-message-form" class="dark-form">
+      <input type="text"
+             id="message-input"
+             placeholder="Digite uma mensagem"
+             autocomplete="off"
+             autocorrect="off"
+             autocapitalize="sentences"
+             enterkeyhint="send"
+             class="dark-input">
+
+      <button type="button" id="send-button" class="btn-send">➤</button>
+    </div>
+  </div>
+
 </div>
 
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const chatMessages = document.getElementById("chat-messages");
-    const messageInput = document.getElementById("message-input");
-    const messageForm = document.getElementById("message-form");
-
-    const scrollToBottom = () => {
-      setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }, 0);
-    };
-
-    scrollToBottom();
-    messageInput.focus();
-
-    messageForm.addEventListener("submit", () => {
-      setTimeout(scrollToBottom, 100);
-    });
-
-    messageInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        messageForm.submit();
-      }
-    });
-  });
-</script>
+<%= javascript_include_tag "chat_logic", type: "module" %>

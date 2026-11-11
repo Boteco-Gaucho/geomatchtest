@@ -1,0 +1,130 @@
+<%
+  left_name    ||= ""
+  right_name   ||= ""
+  left_avatar  ||= nil
+  right_avatar ||= nil
+  message_path ||= "#"
+  dismiss_path ||= lead_path
+%>
+
+<div class="gm-match"
+     data-controller="match-modal"
+     data-match-modal-message-path-value="<%= message_path %>"
+     data-match-modal-dismiss-path-value="<%= dismiss_path %>"
+     data-match-modal-auto-open-value="true">
+
+  <div class="gm-match__scrim" data-action="click->match-modal#dismiss"></div>
+
+  <div class="gm-match__sheet">
+    <div class="gm-match__stage" data-match-modal-target="sheet">
+
+      <%# Título %>
+      <div class="gm-match__title-wrap">
+        <p class="gm-match__eyebrow" data-match-modal-target="eyebrow">Vocês se curtiram</p>
+        <h1 class="gm-match__title">É UM MATCH!</h1>
+      </div>
+
+      <%# Avatares + Burst %>
+      <div class="gm-match__avatars">
+
+        <div class="gm-match__avatar gm-match__avatar--left" data-match-modal-target="leftAvatar">
+          <% if left_avatar.present? %>
+            <img src="<%= left_avatar %>" alt="<%= left_name %>">
+          <% else %>
+            <div class="gm-match__initials"><%= left_name.split.map(&:first).first(2).join.upcase %></div>
+          <% end %>
+        </div>
+
+        <div class="gm-match__burst">
+          <div class="gm-match__ring"></div>
+          <div class="gm-match__ring gm-match__ring--2"></div>
+          <div class="gm-match__ring gm-match__ring--3"></div>
+
+          <div class="gm-match__spark" style="width:6px;height:6px;--dx:0px;--dy:-80px;animation-delay:1050ms"></div>
+          <div class="gm-match__spark" style="width:5px;height:5px;--dx:76px;--dy:-25px;animation-delay:1100ms"></div>
+          <div class="gm-match__spark" style="width:7px;height:7px;--dx:50px;--dy:65px;animation-delay:1070ms"></div>
+          <div class="gm-match__spark" style="width:4px;height:4px;--dx:-60px;--dy:55px;animation-delay:1130ms"></div>
+          <div class="gm-match__spark" style="width:6px;height:6px;--dx:-78px;--dy:-22px;animation-delay:1090ms"></div>
+          <div class="gm-match__spark" style="width:5px;height:5px;--dx:28px;--dy:-85px;animation-delay:1150ms"></div>
+          <div class="gm-match__spark" style="width:4px;height:4px;--dx:-32px;--dy:-80px;animation-delay:1060ms"></div>
+          <div class="gm-match__spark" style="width:5px;height:5px;--dx:80px;--dy:28px;animation-delay:1120ms"></div>
+
+          <div class="gm-match__center-heart">
+            <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="heartGoldGrad" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%"   stop-color="#F4DFC4"/>
+                  <stop offset="50%"  stop-color="#C9A079"/>
+                  <stop offset="100%" stop-color="#6E4F38"/>
+                </linearGradient>
+              </defs>
+              <path class="gm-match__heart"
+                    d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z"
+                    fill="url(#heartGoldGrad)"/>
+              <path class="gm-match__shimmer"
+                    d="M50 73 C50 73 28 55 22 40 C18 30 22 20 30 18"
+                    stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="gm-match__avatar gm-match__avatar--right" data-match-modal-target="rightAvatar">
+          <% if right_avatar.present? %>
+            <img src="<%= right_avatar %>" alt="<%= right_name %>">
+          <% else %>
+            <div class="gm-match__initials"><%= right_name.split.map(&:first).first(2).join.upcase %></div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Floaters (corações subindo) %>
+      <div class="gm-match__floaters">
+        <div class="gm-match__floater" style="--x:15%;--size:14px;--dur:4.8s;--delay:0.2s">
+          <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="fhg0" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F4DFC4"/><stop offset="100%" stop-color="#C9A079"/></linearGradient></defs>
+            <path d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z" fill="url(#fhg0)"/>
+          </svg>
+        </div>
+        <div class="gm-match__floater" style="--x:30%;--size:10px;--dur:5.2s;--delay:0.9s">
+          <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="fhg1" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F4DFC4"/><stop offset="100%" stop-color="#C9A079"/></linearGradient></defs>
+            <path d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z" fill="url(#fhg1)"/>
+          </svg>
+        </div>
+        <div class="gm-match__floater" style="--x:50%;--size:18px;--dur:4.5s;--delay:0s">
+          <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="fhg2" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F4DFC4"/><stop offset="100%" stop-color="#C9A079"/></linearGradient></defs>
+            <path d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z" fill="url(#fhg2)"/>
+          </svg>
+        </div>
+        <div class="gm-match__floater" style="--x:68%;--size:12px;--dur:5.8s;--delay:1.4s">
+          <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="fhg3" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F4DFC4"/><stop offset="100%" stop-color="#C9A079"/></linearGradient></defs>
+            <path d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z" fill="url(#fhg3)"/>
+          </svg>
+        </div>
+        <div class="gm-match__floater" style="--x:82%;--size:9px;--dur:4.2s;--delay:0.6s">
+          <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="fhg4" x1="5" y1="4" x2="95" y2="85" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F4DFC4"/><stop offset="100%" stop-color="#C9A079"/></linearGradient></defs>
+            <path d="M50 85 C50 85 5 55 5 28 C5 13 16 4 28 4 C37 4 45 9 50 16 C55 9 63 4 72 4 C84 4 95 13 95 28 C95 55 50 85 50 85Z" fill="url(#fhg4)"/>
+          </svg>
+        </div>
+      </div>
+
+      <%# CTAs %>
+      <div class="gm-match__ctas">
+        <a href="<%= message_path %>"
+           class="gm-match__btn gm-match__btn--primary"
+           data-match-modal-target="messageBtn"
+           data-action="click->match-modal#sendMessage">
+          💬 Conversar Agora
+        </a>
+        <button class="gm-match__btn gm-match__btn--ghost"
+                data-action="click->match-modal#dismiss">
+          Continuar deslizando
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

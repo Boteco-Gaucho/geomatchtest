@@ -1,0 +1,186 @@
+<% plans = Array(@plans).compact %>
+
+<%# --- ESTADOS DE CARREGAMENTO --- %>
+<% if plans.blank? %>
+  <div class="pricing-page">
+    <div class="pricing-container empty-state-container">
+      <h1 class="pricing-title"><%= t(".title") %></h1>
+      <p class="pricing-subtitle"><%= t(".empty_state") %></p>
+    </div>
+  </div>
+<% else %>
+  <%# --- PREPARAÇÃO DE DADOS --- %>
+  <% free_plan = plans.find { |p| p.respond_to?(:code) && p.code == "free" } %>
+  <% paid_plans = plans.reject { |p| p.respond_to?(:code) && p.code == "free" } %>
+  <% recommended_plan = paid_plans.find { |p| p.respond_to?(:is_recommended) && p.is_recommended } %>
+
+  <%# Coleta todas as chaves de funcionalidades de todos os planos %>
+  <%# AQUI ESTÁ A ATUALIZAÇÃO: O .reject remove as linhas que não queremos mostrar %>
+  <% feature_keys = plans
+       .map { |p| p.respond_to?(:features) && p.features.is_a?(Hash) ? p.features.keys : [] }
+       .flatten
+       .uniq
+       .reject { |k| ["likes_right_limit", "likes_right_reset_hours", "direct_messages", "likes_left_unlimited", "likes_right_unlimited"].include?(k.to_s) }
+       .sort_by { |k| t("plans.features.#{k}", default: k.to_s.humanize) } %>
+
+  <div class="pricing-page">
+    <div class="pricing-container">
+      
+      <%# --- HEADER DA PÁGINA --- %>
+      <header class="pricing-hero">
+        <h1 class="pricing-title"><%= t(".title") %></h1>
+        <p class="pricing-subtitle"><%= t(".subtitle") %></p>
+        
+        <div class="pricing-badges">
+          <span class="pricing-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <%= t(".badges.secure_payment") %>
+          </span>
+          <span class="pricing-badge">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            <%= t(".badges.cancel_anytime") %>
+          </span>
+          <span class="pricing-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            <%= t(".badges.instant_upgrade") %>
+          </span>
+        </div>
+      </header>
+
+      <%# --- VERSÃO DESKTOP (TABELA CORRIGIDA) --- %>
+      <section class="pricing-compare" aria-label="<%= t('.aria.comparison') %>">
+        <%# Define o Grid dinamicamente baseado no número de planos %>
+        <div class="pricing-grid" style="grid-template-columns: minmax(200px, 1fr) repeat(<%= plans.size %>, minmax(180px, 1fr));">
+          
+          <%# 1. CABEÇALHO DA TABELA (ROW HEADERS) %>
+          <div class="pricing-cell head-empty">
+             <span class="features-label">Comparativo</span>
+          </div>
+
+          <% plans.each do |plan| %>
+            <% is_recommended = recommended_plan.present? && plan.id == recommended_plan.id %>
+            <% is_current = current_user&.respond_to?(:plan_id) && current_user.plan_id == plan.id %>
+            
+            <div class="pricing-cell pricing-header-cell <%= 'recommended-col' if is_recommended %> plan-theme-<%= plan.code %>">
+               <% if is_recommended %>
+                 <div class="desktop-tag-recommended"><%= t("plans.index.recommended_tag") %></div>
+               <% end %>
+               
+               <h3 class="desktop-plan-name"><%= plan.name %></h3>
+               <div class="desktop-plan-price">
+                 <%= plan.price.format %>
+                 <% unless plan.code == "free" %>
+                   <span class="period">/mês</span>
+                 <% end %>
+               </div>
+               
+               <div class="desktop-current-status">
+                 <% if is_current %>
+                   <span class="badge-current"><%= t(".cta.current") %></span>
+                 <% end %>
+               </div>
+            </div>
+          <% end %>
+
+          <%# 2. LINHAS DE FUNCIONALIDADES (FEATURES) %>
+          <% feature_keys.each do |feature_key| %>
+            <%# Coluna 1: Nome da Feature %>
+            <div class="pricing-cell feature-name-cell">
+              <%= t("plans.features.#{feature_key}", default: feature_key.to_s.humanize) %>
+            </div>
+
+            <%# Colunas 2+: Valores por plano %>
+            <% plans.each do |plan| %>
+              <% is_recommended = recommended_plan.present? && plan.id == recommended_plan.id %>
+              <% value = plan.features.is_a?(Hash) ? plan.features[feature_key] : nil %>
+
+              <div class="pricing-cell feature-value-cell <%= 'recommended-col' if is_recommended %>">
+                 <%= render_plan_feature(plan, feature_key) %>
+              </div>
+
+            <% end %>
+          <% end %>
+
+          <%# 3. LINHA DE BOTÕES (ACTIONS) %>
+          <div class="pricing-cell action-empty"></div>
+          
+          <% plans.each do |plan| %>
+            <% is_recommended = recommended_plan.present? && plan.id == recommended_plan.id %>
+            <% is_current = current_user&.respond_to?(:plan_id) && current_user.plan_id == plan.id %>
+
+            <div class="pricing-cell action-cell <%= 'recommended-col' if is_recommended %>">
+              <% if user_signed_in? && is_current %>
+                <button class="pricing-btn pricing-btn--disabled" disabled><%= t(".cta.current") %></button>
+              <% elsif plan.code == "free" %>
+                 <button class="pricing-btn pricing-btn--outline" disabled><%= t(".cta.free") %></button>
+              <% else %>
+                <%= button_to t(".cta.subscribe"),
+                    checkout_path(plan_id: plan.id),
+                    method: :post,
+                    form: { data: { turbo: false } },
+                    class: is_recommended ? "pricing-btn pricing-btn--glow" : "pricing-btn" %>
+              <% end %>
+            </div>
+          <% end %>
+
+        </div>
+      </section>
+
+      <%# --- VERSÃO MOBILE (CARDS OTIMIZADOS) --- %>
+      <div class="pricing-mobile-cards">
+        <% plans.each do |plan| %>
+          <% is_recommended = recommended_plan.present? && plan.id == recommended_plan.id %>
+          <% is_current = current_user&.respond_to?(:plan_id) && current_user.plan_id == plan.id %>
+          
+          <div class="mobile-plan-card <%= 'recommended' if is_recommended %> plan-theme-<%= plan.code %> ">
+            <% if is_recommended %>
+              <div class="mobile-tag-recommended"><%= t("plans.index.recommended_tag") %></div>
+            <% end %>
+
+            <div class="mobile-card-header">
+              <h3 class="mobile-plan-name"><%= plan.name %></h3>
+              <div class="mobile-plan-price">
+                <%= plan.price.format %>
+                <% unless plan.code == "free" %>
+                  <span class="period">/mês</span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mobile-features-list">
+              <% feature_keys.each do |feature_key| %>
+                <% value = plan.features.is_a?(Hash) ? plan.features[feature_key] : nil %>
+                <div class="mobile-feature-row">
+                  <span class="feature-label"><%= t("plans.features.#{feature_key}", default: feature_key.to_s.humanize) %></span>
+                <span class="feature-value">
+                  <%= render_plan_feature(plan, feature_key) %>
+                </span>
+
+                </div>
+              <% end %>
+            </div>
+
+            <div class="mobile-card-action">
+              <% if user_signed_in? && is_current %>
+                <button class="pricing-btn pricing-btn--disabled" disabled><%= t(".cta.current") %></button>
+              <% elsif plan.code == "free" %>
+                <button class="pricing-btn pricing-btn--outline" disabled><%= t(".cta.free") %></button>
+              <% else %>
+                <%= button_to t(".cta.subscribe"),
+                    checkout_path(plan_id: plan.id),
+                    method: :post,
+                    form: { data: { turbo: false } },
+                    class: is_recommended ? "pricing-btn pricing-btn--glow" : "pricing-btn" %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <%# --- FIM MOBILE --- %>
+
+      <p class="pricing-footnote">
+        <%= t(".footnote") %>
+      </p>
+    </div>
+  </div>
+<% end %>

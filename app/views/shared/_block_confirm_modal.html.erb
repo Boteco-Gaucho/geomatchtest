@@ -1,0 +1,77 @@
+<%# Modal de confirmação — bloqueio de usuário %>
+<div id="block-confirm-overlay"
+     class="bcm-overlay"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="bcm-title">
+
+  <div class="bcm-sheet">
+
+    <div class="bcm-icon-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+      </svg>
+    </div>
+
+    <h2 id="bcm-title" class="bcm-title">Bloquear usuário?</h2>
+    <p id="bcm-message" class="bcm-message">Tem certeza que deseja bloquear este usuário?</p>
+    <p class="bcm-sub">Vocês não verão mais o perfil um do outro.</p>
+
+    <form id="block-confirm-form" action="#" method="post" data-turbo="true">
+      <input type="hidden" name="authenticity_token" id="bcm-csrf-token" value="">
+      <div class="bcm-actions">
+        <button type="button" class="bcm-btn bcm-btn-cancel" onclick="closeBlockConfirm()">
+          Não
+        </button>
+        <button type="submit" class="bcm-btn bcm-btn-confirm">
+          Sim, bloquear
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openBlockConfirm(userName, blockPath) {
+  const overlay   = document.getElementById('block-confirm-overlay');
+  const message   = document.getElementById('bcm-message');
+  const form      = document.getElementById('block-confirm-form');
+  const csrfInput = document.getElementById('bcm-csrf-token');
+
+  message.textContent = 'Tem certeza que deseja bloquear ' + userName + '?';
+  form.action = blockPath;
+
+  // Sempre busca o token mais recente (Turbo pode ter cacheado a página)
+  const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (csrfInput && metaToken) csrfInput.value = metaToken;
+
+  overlay.classList.add('bcm-show');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('bcm-body-lock');
+}
+
+function closeBlockConfirm() {
+  const overlay = document.getElementById('block-confirm-overlay');
+  overlay.classList.remove('bcm-show');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('bcm-body-lock');
+}
+
+// Fecha ao clicar fora do sheet
+document.addEventListener('click', function(e) {
+  const overlay = document.getElementById('block-confirm-overlay');
+  if (overlay && overlay.classList.contains('bcm-show') && e.target === overlay) {
+    closeBlockConfirm();
+  }
+});
+
+// Fecha com ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeBlockConfirm();
+});
+</script>

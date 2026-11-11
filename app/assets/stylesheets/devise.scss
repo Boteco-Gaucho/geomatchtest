@@ -1,6 +1,5 @@
 // --------------------------------------------------
 // Estilos para Formulários Devise (Login, Cadastro, etc.)
-// Usando valores hexadecimais para evitar problemas de carregamento de variáveis
 // --------------------------------------------------
 
 .devise-container {
@@ -9,20 +8,22 @@
   align-items: center;
   min-height: 80vh;
   padding: 2rem 1rem;
+  background-color: var(--color-background);
 }
 
 .devise-form-card {
-  background: #ffffff; /* $white */
+  background: var(--color-section-light);
   padding: 2.5rem;
   border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(#121212, 0.1); /* $color-dark */
+  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 400px;
   text-align: center;
+  border: 1px solid var(--color-border);
 
   h2 {
     font-size: 1.8rem;
-    color: #121212; /* $color-dark */
+    color: var(--color-text);
     margin-bottom: 1.5rem;
     font-weight: 700;
   }
@@ -35,7 +36,7 @@
       display: block;
       font-weight: 500;
       margin-bottom: 0.4rem;
-      color: #1a1a1a; /* $color-text */
+      color: var(--color-text);
       font-size: 0.95rem;
     }
 
@@ -44,14 +45,21 @@
     input[type="text"] {
       width: 100%;
       padding: 0.75rem 1rem;
-      border: 1px solid #ccc;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
       border-radius: 8px;
       font-size: 1rem;
       transition: border-color 0.2s, box-shadow 0.2s;
 
+      &::placeholder {
+        color: var(--color-text-secondary);
+        opacity: 0.7;
+      }
+
       &:focus {
-        border-color: #d4af37; /* $color-primary */
-        box-shadow: 0 0 0 3px rgba(#d4af37, 0.2); /* $color-primary */
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); // Sutil brilho dourado
         outline: none;
       }
     }
@@ -66,6 +74,19 @@
       font-size: 1.1rem;
       font-weight: 600;
       border-radius: 10px;
+      background-color: var(--color-primary);
+      color: #121212; // Texto escuro no botão dourado para contraste
+      border: none;
+      cursor: pointer;
+      transition: filter 0.2s, transform 0.1s;
+
+      &:hover {
+        filter: brightness(0.9);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
     }
   }
 
@@ -73,30 +94,226 @@
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
 
     input[type="checkbox"] {
       margin-right: 0.5rem;
       width: 16px;
       height: 16px;
-      accent-color: #d4af37; /* $color-primary */
+      accent-color: var(--color-primary);
+      cursor: pointer;
     }
   }
 
   .devise-links {
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--color-border);
 
     a {
       display: block;
-      color: #d4af37; /* $color-primary */
+      color: var(--color-primary);
       text-decoration: none;
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+        filter: brightness(1.2);
+      }
+    }
+  }
+}
+
+// Ajuste para mensagens de erro do Devise
+#error_explanation {
+  background: rgba(255, 59, 92, 0.1); // Usando tom de $accent-color
+  color: var(--color-accent);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  font-size: 0.85rem;
+
+  h2 {
+    font-size: 1rem;
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+}
+
+// ... seu código existente ...
+
+// Adicione isso ao final do arquivo ou dentro de .devise-form-card
+
+.terms-container {
+  margin: 1.5rem 0;
+  text-align: left;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: flex-start; /* Alinha o checkbox com o topo do texto caso quebre linha */
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    margin-top: 2px; /* Ajuste fino vertical */
+    accent-color: var(--color-primary); /* Deixa o check da cor do seu tema */
+    cursor: pointer;
+    flex-shrink: 0; /* Impede o checkbox de esmagar */
+  }
+
+  label {
+    margin: 0 !important; /* Remove margem padrão definida no .field label */
+    font-weight: 400 !important;
+    line-height: 1.4;
+    cursor: pointer;
+    
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 600;
 
       &:hover {
         text-decoration: underline;
       }
     }
+  }
+}
+
+// --------------------------------------------------
+// OAuth — Botão Google, divisor e banner de completar perfil
+// --------------------------------------------------
+
+// button_to gera <form class="form-google-auth"><button class="btn-google-auth">.
+// display: block + width: 100% impedem que o <form> quebre o layout do card.
+.form-google-auth {
+  display: block;
+  width: 100%;
+}
+
+// Divisor "ou" entre o botão Google e o formulário email/senha
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 1.5rem 0;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3); // gold translúcido
+  }
+
+  span {
+    padding: 0 10px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// Botão "Continuar com o Google" — glassmorphism gold
+.btn-google-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  .google-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    // A imagem carrega do CDN svgrepo.com — requer conexão à internet.
+    // Se o projeto usar CSP estrito, adicione svgrepo.com à diretiva img-src.
+  }
+
+  &:hover {
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Banner exibido quando o usuário vem do Google e precisa completar o cadastro.
+// Usa a paleta dourada do app (--color-primary) em vez de azul externo.
+.google-signup-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(212, 175, 55, 0.08);  // gold translúcido
+  color: var(--color-primary);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 10px;
+  padding: 0.72rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 1.4rem;
+  text-align: left;
+
+  &__icon {
+    flex-shrink: 0;
+    margin-top: 1px; // alinhamento óptico com o texto
+  }
+}
+
+// Campo de e-mail bloqueado (vindo do Google).
+// A especificidade precisa superar o seletor input[type="email"] que está
+// dentro de .devise-form-card .field — por isso usamos .devise-form-card aqui.
+.devise-form-card .field input.form-input--locked {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  color: var(--color-text-secondary) !important;
+  border-style: dashed !important;
+  cursor: not-allowed;
+  user-select: none;
+
+  &:focus {
+    // Cancela o glow dourado do focus — campo não é editável
+    border-color: var(--color-border) !important;
+    box-shadow: none !important;
+  }
+}
+
+// Dica abaixo do campo de e-mail locked
+.field-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+
+  &--locked {
+    color: var(--color-primary);
+    opacity: 0.85;
   }
 }

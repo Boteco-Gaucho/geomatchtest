@@ -1,0 +1,6 @@
+<%= render "shared/crop_screen",
+     image_url:    url_for(current_user.avatar_original),
+     form_url:     apply_crop_profile_path,
+     cancel_path:  edit_profile_path,
+     title:        "Ajustar foto",
+     aspect_ratio: "3/4" %>

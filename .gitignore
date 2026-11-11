@@ -8,6 +8,7 @@
 /.bundle
 
 # Ignore all environment files.
+env
 /.env*
 
 # Ignore all logfiles and tempfiles.
@@ -32,6 +33,13 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
+
+# Ignore APNs auth keys (Apple Push Notifications)
+/config/*.p8
+*.p8
+
+# Ignore Firebase (FCM) service account credentials
+/firebase-credentials.json
 
 
 /app/assets/builds/*

@@ -1,0 +1,42 @@
+// CTA exclusivo para Hotwire Native (iOS/Android) — header oculto no app
+.native-app-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
+  background: var(--color-background, #f8f2e7);
+}
+
+.native-btn {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 14px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: opacity 0.18s ease, transform 0.15s ease;
+  box-sizing: border-box;
+
+  &:active {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+}
+
+.native-btn-primary {
+  background: var(--color-primary, #dbcc98);
+  color: #121212;
+  border: none;
+  box-shadow: 0 4px 14px rgba(219, 204, 152, 0.45);
+}
+
+.native-btn-outline {
+  background: transparent;
+  color: var(--color-text, #222121);
+  border: 2px solid var(--color-primary, #dbcc98);
+}

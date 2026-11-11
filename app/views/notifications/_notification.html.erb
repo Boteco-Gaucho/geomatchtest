@@ -1,0 +1,53 @@
+<% actor = notification.actor %>
+<% is_locked = !current_user.can_see_who_liked_me? %>
+
+<div class="like-card <%= 'locked' if is_locked %>" data-notification-id="<%= notification.id %>">
+  
+  <%# Define o destino do link %>
+  <% link_target = is_locked ? plans_path : user_path(actor) %>
+  
+  <%= link_to link_target, class: "like-card-link #{'trigger-upgrade-modal' if is_locked}" do %>
+    
+    <%# --- FOTO (O CSS cuida do Blur se tiver a classe 'locked') --- %>
+    <%= image_tag actor.avatar_url, class: "like-card-img" %>
+
+    <%# --- GRADIENTE (Sempre visível para ler o texto) --- %>
+    <div class="like-card-gradient"></div>
+
+    <%# --- INFORMAÇÕES DO CARD --- %>
+    <div class="like-card-info">
+      
+      <% if is_locked %>
+        <%# --- VERSÃO BLOQUEADA (Igual à imagem de referência) --- %>
+        <%# Mostra apenas idade em uma pílula e um indicador --- %>
+        <div class="locked-pill-wrapper">
+          <div class="age-pill">
+             <span class="age-val"><%= actor.age rescue "??" %></span>
+             <span class="status-dot"></span> <%# Bolinha verde/azul %>
+          </div>
+        </div>
+        
+        <%# Texto opcional abaixo, como na referência "Nada sério..." ou genérico %>
+        <p class="locked-hint">Ver perfil completo</p>
+
+      <% else %>
+        
+        <%# --- VERSÃO DESBLOQUEADA (Original) --- %>
+        <div class="location-badge-small">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          Perto de mim
+        </div>
+
+        <div class="user-details">
+          <span class="name"><%= actor.display_name.split.first %></span>
+          <span class="age"><%= actor.age rescue "" %></span>
+          <% if actor.respond_to?(:verified) && actor.verified %>
+             <%= image_tag "verificado.svg", class: "verified-icon-small" rescue nil %>
+          <% end %>
+        </div>
+
+      <% end %>
+    </div>
+
+  <% end %>
+</div>

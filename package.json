@@ -2,8 +2,13 @@
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.20",
+    "@rails/actiontext": "^8.1.100",
+    "@turf/turf": "^7.3.4",
+    "canvas-confetti": "^1.9.4",
     "leaflet": "^1.9.4",
-    "leaflet.markercluster": "^1.5.3"
+    "leaflet.markercluster": "^1.5.3",
+    "overlapping-marker-spiderfier-leaflet": "^0.2.7",
+    "trix": "^2.1.15"
   },
   "devDependencies": {
     "esbuild": "^0.25.12"

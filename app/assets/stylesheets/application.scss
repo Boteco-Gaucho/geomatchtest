@@ -1,31 +1,193 @@
 // --------------------------------------------------
 // GeoMatch - Layout Moderno e Responsivo
 // --------------------------------------------------
-
 @use "sass:color";
 
-// 🎨 Paleta de cores <--- AGORA ESTÁ AQUI
-$color-primary: #d4af37; // dourado
-$color-background: #f8f2e7; // bege claro
-$color-dark: #121212; // preto escuro
-$color-text: #1a1a1a;
-$color-accent: #ff3b5c; // detalhe vibrante
-$white: #ffffff;
+@use "admin";
+@use "discover";
+@use "public";
+@use "profile";
+@use "matches";
+@use "chat";
+@use "devise"; 
+@use "edit_profile";
+@use "lead";
+@use "notifications";
+@use "usershow";
+@use "safety_center";
+@use "safety_history";
+@use "report_incident";
+@use "plans";
+@use "preview";
+@use "map_3d";
+@use "gallery";
+@use "map_loading";
+@use "toast";
+@use "onboarding";
+@use "match_modal";
+@use "profile_carousel";
+@use "chat_menu";
+@use "block_confirm_modal";
+@use "crop_screen";
+
+// Leaflet CSS é carregado via CDN no layout (application.html.erb).
+// @import de .css em DartSass gera browser-level @import — propshaft não serve node_modules.
+
+// ==================================================
+// ANDROID TAP HIGHLIGHT FIX
+// Remove o "flash azul" nativo do Android/Chrome ao tocar
+// em elementos interativos, além do callout de long-press.
+// ==================================================
+a,
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+label,
+select,
+.nav-item,
+.action-btn,
+.btn,
+.btn-form,
+.header-btn,
+.icon-btn,
+.gm-icon-btn,
+.fab-button,
+.btn-gender-icon,
+.btn-apply-gold,
+.btn-safety-block,
+.btn-gold-outline,
+.btn-send,
+.btn-gif,
+.emoji-btn,
+.icon-btn-dots {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+// Opcional: Customização para o GeoMatch
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+    background-color: rgba(212, 175, 55, 0.6); // Dourado com opacidade
+    div {
+        background-color: rgba(212, 175, 55, 1);
+        color: white;
+        font-weight: bold;
+    }
+}
 
 
-/* 
- *= require markercluster/MarkerCluster
+// ==================================================
+// 2. VARIÁVEIS CSS (CUSTOM PROPERTIES) - TEMAS
+// ==================================================
+:root {
+  --color-primary: #dbcc98; // dourado
+  --color-accent: #ceaa75; // detalhe vibrante
+  --color-background: #f8f2e7; // bege claro
+  --color-dark: #121212; // preto escuro
+  --color-text: #222121;
+  --color-light: #e7e3e3; // branco
+  --color-text-secondary: #2e2e2e; // Usado em btn-link e seções
+  
+  // Cores de Componentes Específicos (Modo Claro)
+  --color-header-bg: rgba(255, 255, 255, 0.9);
+  --color-header-shadow: rgba(0, 0, 0, 0.05);
+  --color-section-light: #ffffff;
+  --color-section-gray: #f6f6f6;
+  --color-footer-bg: #111;
+  --color-footer-text: #ddd;
+  --color-footer-text-light: #fff;
+  --color-footer-copyright: #aaa;
+  
+  /* Variáveis adicionais */
+  --color-border: #e0e0e0;
+  --color-scrollbar-track: #f1f1f1;
+  --color-hover-bg: #f8f8f8;
+  --color-border-input: #ccc;
+  --color-border-link: #eee;
+  --color-input-bg: #fafafa;
+  --color-input-bg-focus: #ffffff;
+
+  /* Variáveis para gradientes e variações de cor */
+  --color-background-lighten-3: #ffffff; 
+  --color-primary-darken-8: #ddcb91; 
+  --shadow-hover: 0 10px 22px rgba(0, 0, 0, 0.14);
+  --color-accent-darken-8: #d1bf8c; 
+  --border-radius: 20px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.2);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --color-dark-lighten-10: #333333;
+  --shadow-primary: 0 6px 20px rgba(212, 175, 55, 0.2); /* Fallback para sombra colorida */
+
+  /* Sidebar / Nav */
+  --nav-icon-filter: brightness(0);
+  --nav-icon-active-filter: brightness(0);
+  --nav-text-color: #222121;
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+
+  /* Mapa / Discover */
+  --map-spotlight-color: rgba(248, 242, 231, 0.35);
+  --map-loading-bg: radial-gradient(ellipse at 50% 45%, #f5f0e8 0%, #ece6d8 65%, #e0d8cc 100%);
+  --map-loading-caption-color: rgba(160, 120, 70, 0.80);
+}
+
+// 🌙 Modo Escuro
+// .dark-mode → classe do nosso JS (toggle explícito)
+// html.dark:not(.light-mode) → classe injetada pelo iOS WebView, ignorada quando usuário escolheu light explicitamente
+.dark-mode, html.dark:not(.light-mode) {
+  --color-background: #121212;
+  --color-text: #f8f2e7;
+  --color-dark: #f8f2e7; // Inversão para manter legibilidade
+  --color-light: #1a1a1a;
+  --color-text-secondary: #cccccc;
+  --color-header-bg: rgba(18, 18, 18, 0.9);
+  --color-header-shadow: rgba(255, 255, 255, 0.05);
+  --color-section-light: #1a1a1a;
+  --color-section-gray: #222222;
+  --color-footer-bg: #000000;
+  --color-footer-text: #aaaaaa;
+  --color-footer-text-light: #cccccc;
+  --color-footer-copyright: #777777;
+
+  /* Variáveis adicionais */
+  --color-border: #333333;
+  --color-scrollbar-track: #222222;
+  --color-hover-bg: #2a2a2a;
+  --color-border-input: #444;
+  --color-border-link: #333;
+  --color-input-bg: #1e1e1e;
+  --color-input-bg-focus: #121212;
+
+  /* Variáveis para gradientes e variações */
+  --color-background-lighten-3: #1a1a1a; 
+  --color-primary-darken-8: #d6c289; 
+  --shadow-hover: 0 10px 22px rgba(255, 255, 255, 0.14);
+  --color-accent-darken-8: #8d762a; 
+  --shadow-sm: 0 2px 8px rgba(255, 255, 255, 0.1);
+  --shadow-md: 0 8px 24px rgba(255, 255, 255, 0.15);
+  --shadow-lg: 0 16px 48px rgba(255, 255, 255, 0.2);
+  --color-dark-lighten-10: #444444;
+  --shadow-primary: 0 6px 20px rgba(0, 0, 0, 0.4);
+
+  /* Sidebar / Nav */
+  --nav-icon-filter: brightness(0) invert(1);
+  --nav-icon-active-filter: brightness(0) invert(1) drop-shadow(0 0 3px rgba(255,255,255,0.5));
+  --nav-text-color: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+
+  /* Mapa / Discover */
+  --map-spotlight-color: rgba(14, 14, 16, 0.35);
+  --map-loading-bg: radial-gradient(ellipse at 50% 45%, #0c0a08 0%, #050505 65%, #000 100%);
+  --map-loading-caption-color: rgba(232, 200, 160, 0.70);
+}
+
+/* *= require markercluster/MarkerCluster
  *= require markercluster/MarkerCluster.Default
 */
 
 
-@use "discover";
-@use "public";
-@use "profile";
-@use "map";
-@use "matches";
-@use "chat";
-@use "devise"; // <--- AGORA IMPORTA DEPOIS DAS VARIÁVEIS
 
 // 🧱 Layout base
 .container {
@@ -40,17 +202,22 @@ $white: #ffffff;
   box-sizing: border-box;
 }
 
+html.dark-mode, html.dark:not(.light-mode), body.dark-mode {
+  --color-background: #121212;
+  --color-text: #f8f2e7;
+}
+
+
+
 html, body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-  background: $color-background;
-  color: $color-text;
+  background: var(--color-background);
+  color: var(--color-text);
   line-height: 1.6;
   scroll-behavior: smooth;
 }
-
-
 
 // --------------------------------------------------
 // Hero (Topo da Landing)
@@ -61,20 +228,20 @@ html, body {
   justify-content: space-between;
   gap: 60px;
   padding: 80px 8%;
-  background: linear-gradient(180deg, lighten($color-background, 3%) 0%, $color-background 100%);
+  background: linear-gradient(180deg, var(--color-background-lighten-3) 0%, var(--color-background) 100%);
 
   .hero-content {
     flex: 1;
     h1 {
       font-size: 3rem;
       font-weight: 700;
-      color: $color-dark;
+      color: var(--color-dark);
       margin-bottom: 16px;
     }
 
     p {
       font-size: 1.2rem;
-      color: rgba($color-dark, 0.8);
+      color: var(--color-text-secondary);
       margin-bottom: 32px;
     }
 
@@ -85,33 +252,33 @@ html, body {
     }
 
     .btn-primary {
-      background: $color-primary;
-      color: $color-dark;
+      background: var(--color-primary);
+      color: var(--color-dark); /* Mantém contraste no botão */
       font-weight: 700;
       padding: 14px 28px;
       border-radius: 12px;
       border: none;
-      box-shadow: 0 6px 20px rgba($color-primary, 0.2);
+      box-shadow: var(--shadow-primary);
       transition: all 0.2s ease;
 
       &:hover {
-        background: #111($color-primary, 8%);
+        background: var(--color-primary-darken-8);
         transform: translateY(-2px);
       }
     }
 
     .btn-social {
-      background: $white;
-      border: 1px solid rgba($color-dark, 0.1);
+      background: var(--color-section-light);
+      border: 1px solid var(--color-border);
       padding: 12px 20px;
       border-radius: 8px;
-      color: $color-dark;
+      color: var(--color-text);
       font-weight: 500;
       flex: 1;
       text-align: center;
 
       &:hover {
-        background: rgba($color-primary, 0.1);
+        background: var(--color-hover-bg); // Substituído rgba($color-primary, 0.1) por hover-bg genérico
       }
     }
   }
@@ -125,7 +292,7 @@ html, body {
       width: 100%;
       max-width: 400px;
       border-radius: 20px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-md);
     }
   }
 
@@ -155,16 +322,16 @@ html, body {
 .section {
   padding: 80px 10%;
   text-align: center;
-  background: $color-background;
+  background: var(--color-background);
 
   h2 {
-    color: $color-primary;
+    color: var(--color-primary);
     font-size: 2rem;
     margin-bottom: 1rem;
   }
 
   p {
-    color: rgba($color-dark, 0.8);
+    color: var(--color-text-secondary);
     max-width: 600px;
     margin: 0 auto 2rem;
   }
@@ -172,16 +339,16 @@ html, body {
   .btn-outline {
     display: inline-block;
     padding: 12px 28px;
-    border: 2px solid $color-primary;
+    border: 2px solid var(--color-primary);
     border-radius: 10px;
-    color: $color-dark;
+    color: var(--color-text);
     font-weight: 600;
     text-decoration: none;
     transition: 0.2s;
 
     &:hover {
-      background: $color-primary;
-      color: $color-dark;
+      background: var(--color-primary);
+      color: #121212; /* Fixo para contraste com dourado */
     }
   }
 
@@ -191,22 +358,20 @@ html, body {
   }
 }
 
-
-
 // --------------------------------------------------
 // Conteúdo Principal
 // --------------------------------------------------
 .site-content {
-  min-height: calc(100vh - 100px); /* Ajuste conforme a altura do header e footer */
-  padding-top: 0; /* O header é sticky, então não precisa de padding aqui */
+  min-height: calc(100vh - 100px); 
+  padding-top: 0; 
 }
 
 // --------------------------------------------------
 // Rodapé
 // --------------------------------------------------
 .site-footer {
-  background-color: #111; // Cor base do rodapé
-  color: #ddd;
+  background-color: var(--color-footer-bg);
+  color: var(--color-footer-text);
   font-family: "Poppins", sans-serif;
   padding: 3rem 1rem 1.5rem;
   font-size: 0.95rem;
@@ -221,7 +386,7 @@ html, body {
     text-align: center;
     margin-bottom: 2rem;
     font-weight: 500;
-    color: #fff;
+    color: var(--color-footer-text-light);
   }
 
   .footer-links {
@@ -232,7 +397,7 @@ html, body {
 
     .footer-column {
       h4 {
-        color: #d4af37;
+        color: var(--color-primary);
         font-size: 1.1rem;
         margin-bottom: 1rem;
       }
@@ -246,12 +411,12 @@ html, body {
           margin-bottom: 0.5rem;
 
           a {
-            color: #ddd;
+            color: var(--color-footer-text);
             text-decoration: none;
             transition: color 0.2s;
 
             &:hover {
-              color: #d4af37;
+              color: var(--color-primary);
             }
           }
         }
@@ -270,7 +435,7 @@ html, body {
   }
 
   .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--color-border);
     padding-top: 1.5rem;
     text-align: center;
 
@@ -294,7 +459,7 @@ html, body {
 
     .copyright {
       font-size: 0.85rem;
-      color: #aaa;
+      color: var(--color-footer-copyright);
     }
   }
 
@@ -326,19 +491,19 @@ html, body {
   }
 }
 
-
 // --------------------------------------------------
 // HEADER - GEO MATCH
 // --------------------------------------------------
 
 .site-header {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-header-bg);
   backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
-  z-index: 1000; /* <-- AUMENTADO PARA GARANTIR QUE FIQUE POR CIMA */
+  z-index: 1000;
   width: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
 
   .header-inner {
     max-width: 1200px;
@@ -381,60 +546,70 @@ html, body {
       cursor: pointer;
 
       &.btn-link {
-        color: #222;
+        color: var(--color-text-secondary);
         padding: 0.5rem 0.8rem;
         border: none;
         background: transparent;
 
         &:hover {
-          color: #d4af37;
+          color: var(--color-primary);
         }
       }
 
       &.btn-outline {
-        border: 2px solid #d4af37;
-        color: #222;
+        border: 2px solid var(--color-primary);
+        color: var(--color-text);
         background: transparent;
         padding: 0.5rem 1rem;
 
         &:hover {
-          background: #d4af37;
-          color: #121212;
-          box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+          background: var(--color-primary);
+          color: #121212; /* Mantido escuro para contraste no dourado */
+          box-shadow: var(--shadow-primary);
         }
       }
 
       &.btn-primary {
-        background: #d4af37;
+        background: var(--color-primary);
         color: #121212;
         border: none;
         padding: 0.5rem 1.2rem;
-        box-shadow: 0 3px 10px rgba(212, 175, 55, 0.25);
+        box-shadow: var(--shadow-primary);
 
         &:hover {
-          background: darken(#d4af37, 8%);
+          background: var(--color-primary-darken-8);
           transform: translateY(-2px);
         }
       }
     }
   }
 
-  // Modo responsivo
+  // Modo responsivo — mantém uma linha horizontal compacta no mobile
   @media (max-width: 900px) {
+    padding-top: env(safe-area-inset-top, 0px);
+
     .header-inner {
-      flex-direction: column;
-      gap: 0.8rem;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 1rem;
+      gap: 0;
+    }
+
+    .brand-logo {
+      height: 30px;
     }
 
     .nav {
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.6rem;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
     }
 
     .btn {
-      font-size: 0.9rem;
-      padding: 0.4rem 0.8rem;
+      font-size: 0.78rem;
+      padding: 0.38rem 0.85rem;
+      border-radius: 8px;
+      white-space: nowrap;
     }
   }
 }
@@ -447,13 +622,13 @@ html, body {
   padding: 5rem 1.5rem;
 
   &.section-light {
-    background: #ffffff;
-    color: #222;
+    background: var(--color-section-light);
+    color: var(--color-text-secondary);
   }
 
   &.section-gold {
-    background: #d4af37;
-    color: #121212;
+    background: var(--color-primary);
+    color: #121212; /* Fixo para garantir contraste sobre o dourado */
 
     h2, p {
       color: #121212;
@@ -465,14 +640,14 @@ html, body {
 
       &:hover {
         background: #121212;
-        color: #d4af37;
+        color: var(--color-primary);
       }
     }
   }
 
   &.section-gray {
-    background: #f6f6f6;
-    color: #222;
+    background: var(--color-section-gray);
+    color: var(--color-text-secondary);
   }
 
   .container {
@@ -520,7 +695,7 @@ html, body {
 
     .highlight {
       font-weight: 600;
-      color: #d4af37;
+      color: var(--color-primary);
     }
 
     .btn {
@@ -538,7 +713,7 @@ html, body {
       height: 380px;
       object-fit: cover;
       border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-md);
       transition: transform 0.3s ease;
 
       &:hover {
@@ -555,24 +730,11 @@ html, body {
 
 
 .site-footer {
-  background-color: #111; // Cor base do rodapé
-  color: #ddd;
-  font-family: "Poppins", sans-serif;
-  padding: 3rem 1rem 1.5rem;
-  font-size: 0.95rem;
-  line-height: 1.6;
-
-  .footer-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .footer-top {
-    text-align: center;
-    margin-bottom: 2rem;
-    font-weight: 500;
-    color: #fff;
-  }
+  // Já definido acima, mas mantendo a estrutura original
+  background-color: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  
+  // ... (Estilos internos já cobertos pela seção anterior .site-footer)
 
   .footer-links {
     display: grid;
@@ -583,29 +745,22 @@ html, body {
 
   .footer-column {
     h4 {
-      color: #fff;
+      color: var(--color-footer-text-light);
       font-size: 1rem;
       margin-bottom: 0.8rem;
       font-weight: 600;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid var(--color-border);
       padding-bottom: 0.3rem;
     }
 
     ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
       li {
         margin: 0.4rem 0;
 
         a {
-          color: #ccc;
-          text-decoration: none;
-          transition: color 0.2s ease;
-
+          color: var(--color-footer-text);
           &:hover {
-            color: #fff;
+            color: var(--color-footer-text-light);
           }
         }
       }
@@ -629,7 +784,7 @@ html, body {
   }
 
   .footer-bottom {
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--color-border);
     padding-top: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -662,7 +817,7 @@ html, body {
     }
 
     .copyright {
-      color: #aaa;
+      color: var(--color-footer-copyright);
       font-size: 0.85rem;
       margin-top: 0.5rem;
     }
@@ -704,19 +859,19 @@ html, body {
 .profile-container {
   max-width: 700px;
   margin: 4rem auto;
-  background: #fff;
+  background: var(--color-section-light);
   border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   padding: 3rem 2.5rem;
   text-align: center;
   font-family: "Poppins", sans-serif;
-  color: #121212;
+  color: var(--color-text);
 
   h1 {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 2rem;
-    color: #d4af37;
+    color: var(--color-primary);
   }
 
   form {
@@ -728,7 +883,7 @@ html, body {
       display: block;
       text-align: left;
       font-weight: 600;
-      color: #222;
+      color: var(--color-text);
       margin-bottom: 0.4rem;
     }
 
@@ -736,16 +891,17 @@ html, body {
     textarea {
       width: 100%;
       padding: 0.8rem 1rem;
-      border: 1.5px solid #ddd;
+      border: 1.5px solid var(--color-border-input);
       border-radius: 10px;
       font-size: 1rem;
       transition: all 0.2s ease-in-out;
-      background: #fafafa;
+      background: var(--color-input-bg);
+      color: var(--color-text);
 
       &:focus {
-        border-color: #d4af37;
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        border-color: var(--color-primary);
+        background: var(--color-input-bg-focus);
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); /* Pode ser ajustado para var(--shadow-sm) se desejar */
         outline: none;
       }
     }
@@ -761,7 +917,7 @@ html, body {
     }
 
     .btn-save {
-      background: #d4af37;
+      background: var(--color-primary);
       color: #121212;
       font-weight: 700;
       padding: 0.9rem 1.6rem;
@@ -770,10 +926,10 @@ html, body {
       transition: all 0.2s ease-in-out;
       cursor: pointer;
       font-size: 1rem;
-      box-shadow: 0 6px 18px rgba(212, 175, 55, 0.25);
+      box-shadow: var(--shadow-primary);
 
       &:hover {
-        background: darken(#d4af37, 8%);
+        background: var(--color-primary-darken-8);
         transform: translateY(-2px);
       }
     }
@@ -792,9 +948,9 @@ html, body {
       height: 130px;
       border-radius: 50%;
       overflow: hidden;
-      border: 4px solid rgba(212, 175, 55, 0.7);
-      background: #f4f4f4;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      border: 4px solid rgba(255, 239, 188, 0.7); // Mantido RGB para alpha, ou usar variação opaca se necessário
+      background: var(--color-hover-bg);
+      box-shadow: var(--shadow-sm);
       position: relative;
 
       img {
@@ -813,8 +969,8 @@ html, body {
     }
 
     .btn-upload {
-      background: #121212;
-      color: #fff;
+      background: var(--color-dark);
+      color: var(--color-section-light);
       padding: 0.6rem 1.2rem;
       border-radius: 10px;
       font-weight: 600;
@@ -822,9 +978,9 @@ html, body {
       transition: all 0.2s ease;
 
       &:hover {
-        background: #d4af37;
+        background: var(--color-primary);
         color: #121212;
-        box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+        box-shadow: var(--shadow-primary);
       }
     }
 
@@ -835,9 +991,9 @@ html, body {
 
   // Alerta de erro
   #error_explanation {
-    background: rgba(255, 59, 92, 0.1);
+    background: rgba(255, 59, 92, 0.1); // Pode ser refatorado para var(--chat-failed-bg) se desejar
     border: 1.5px solid rgba(255, 59, 92, 0.4);
-    color: #ff3b5c;
+    color: var(--color-accent);
     padding: 1rem;
     border-radius: 10px;
     text-align: left;
@@ -870,5 +1026,214 @@ html, body {
       width: 100px;
       height: 100px;
     }
+  }
+}
+
+
+
+// --------------------------------------------------
+// SIDEBAR (CORREÇÃO DEFINITIVA PARA GESTOS)
+// --------------------------------------------------
+
+.sidebar {
+  height: auto;
+  min-height: 70px;
+  background-color: var(--color-background);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Colado ao fundo do ecrã em qualquer iPhone/Android */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;   /* mais robusto que width:100% em fixed elements */
+  width: 100%;
+  z-index: 1000;
+
+  border-top: 1px solid var(--sidebar-border);
+
+  /* Empurra os ícones acima do Home Indicator do iPhone */
+  padding-top: 10px;
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+
+  .sidebar-nav {
+    display: flex;
+    width: 100%;
+    max-width: 500px;
+    justify-content: space-around;
+    align-items: flex-end; /* Alinha itens na base para ficarem uniformes */
+    padding: 0 10px;
+    margin-bottom: 0; /* Remove margem extra para controlar tudo pelo padding */
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Empurra conteúdo para baixo */
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    max-width: 70px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+
+    .icon-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 4px;
+      height: 28px;
+    }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      filter: var(--nav-icon-filter);
+    }
+
+    .nav-text {
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--nav-text-color);
+      font-family: 'Poppins', sans-serif;
+      margin-top: 2px;
+    }
+
+    &.active {
+      opacity: 1;
+      .nav-text { color: var(--color-primary); font-weight: 700; }
+      .nav-icon { filter: var(--nav-icon-active-filter); }
+    }
+  }
+
+  // Badges (Contadores) - Mantendo sua configuração do círculo dourado
+  .badge-counter {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background-image: url("circulo-dourado.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #000000;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border: 2px solid var(--color-background);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .badge-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background-color: #ff4b4b;
+    border-radius: 50%;
+    border: 2px solid var(--color-background);
+  }
+}
+
+// Empurra conteúdo para baixo do notch/Dynamic Island em qualquer iPhone
+.authenticated-layout {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+// IMPORTANTE: Empurrar o conteúdo da página para cima
+.site-content {
+  /* 85px (altura base estimada) + área segura + 15px de folga */
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
+
+// No app nativo iOS a Tab Bar nativa já gerencia o espaço inferior
+body.turbo-native .sidebar,
+body.turbo-native nav {
+  display: none !important;
+}
+
+body.turbo-native .site-content {
+  padding-bottom: 0;
+}
+
+// Trava horizontal iOS — bloqueia scroll lateral no app nativo
+body.turbo-native,
+body.turbo-native html {
+  overflow-x: hidden !important;
+  overscroll-behavior-x: none !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+}
+
+/* Ajuste para telas menores (mobile) */
+@media (max-width: 768px) {
+  .site-content {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Estilização Geral dos Inputs do Formulário */
+.devise-form-card {
+  /* ... seus estilos existentes do card ... */
+
+  /* Isso garante que TODOS os tipos de input fiquem iguais */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="tel"],
+  select, 
+  textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 5px; /* Espaço antes do label ou próximo campo */
+    border: 1px solid #eee; /* Borda sutil ou 'none' se preferir */
+    border-radius: 8px; /* Arredondamento */
+    background-color: #f9f9f9; /* Cor de fundo igual ao print (ajuste se for mais bege) */
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Garante que o padding não estoure a largura */
+    
+    /* Remove estilo padrão feio do navegador */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Foco (quando clica no campo) */
+  input:focus, select:focus {
+    background-color: #fff;
+    border-color: #aaa;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+
+  /* Ajuste específico para o Select (Gênero) ter a setinha */
+  select {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+    cursor: pointer;
   }
 }

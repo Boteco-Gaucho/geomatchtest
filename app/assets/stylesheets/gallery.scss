@@ -1,0 +1,504 @@
+// =================================================================
+// Galeria de Perfis (Discover 3D — Gallery)
+// Estética dourada / premium — consistente com o restante do app
+// =================================================================
+
+.gallery-screen {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--color-background) 0%, var(--color-section-light) 100%);
+  padding: 0 0 calc(120px + env(safe-area-inset-bottom));
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-text);
+}
+
+// ----- HEADER -----
+.gallery-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+
+  .gallery-header-logo { height: 28px; width: auto; object-fit: contain; }
+  .gallery-header-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--color-dark);
+    margin: 0;
+  }
+
+  .gallery-back-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-dark);
+    transition: background 0.2s ease;
+    &:hover { background: rgba(212, 175, 55, 0.12); }
+    svg { width: 20px; height: 20px; }
+  }
+}
+
+.dark-mode .gallery-header { background: rgba(18, 18, 18, 0.85); border-bottom-color: rgba(212, 175, 55, 0.25); }
+
+// No app nativo iOS o wrapper nativo já gerencia o safe area — remove o inset extra
+body.turbo-native .gallery-header { padding-top: 14px; }
+
+// ----- FILTROS -----
+.gallery-filters {
+  padding: 18px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gallery-filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filter-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-accent);
+  margin: 0 0 6px;
+
+  img { height: 16px; width: auto; }
+}
+
+// Pílulas de Sexo
+// Linha 1: 3 opções lado a lado | Linha 2: "Todos" em largura total
+.gender-pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+
+  // "Todos" é sempre o último pill e ocupa as 3 colunas
+  .gender-pill:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.gender-pill {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--color-section-light);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-dark);
+  }
+
+  input { display: none; }
+
+  &.is-active {
+    background: linear-gradient(135deg, #d4be91, #b8975a);
+    border-color: transparent;
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(180, 140, 70, 0.35);
+  }
+}
+
+// Selects hierárquicos
+.location-selects {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+
+  &.two-cols { grid-template-columns: repeat(2, 1fr); }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+
+    &.two-cols { grid-template-columns: 1fr; }
+  }
+}
+
+.gallery-select-wrapper {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-accent);
+    border-bottom: 2px solid var(--color-accent);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+}
+
+.gallery-select {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-section-light);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-family: inherit;
+  font-weight: 500;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.filter-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.filter-apply-btn {
+  flex: 2;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #d4be91, #b8975a);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(180, 140, 70, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover  { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(180, 140, 70, 0.45); }
+  &:active { transform: translateY(0); }
+}
+
+.filter-clear-btn {
+  flex: 1;
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover { border-color: var(--color-primary); color: var(--color-dark); }
+}
+
+// ----- CONTAGEM -----
+.gallery-meta {
+  padding: 4px 22px 14px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+
+  .meta-count {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+
+    strong { color: var(--color-dark); font-weight: 700; }
+  }
+
+  .meta-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-accent);
+  }
+}
+
+// ----- GRID DE CARDS -----
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+  padding: 0 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+    padding: 0 20px;
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 22px;
+    padding: 0 28px;
+  }
+}
+
+.profile-card {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(212, 175, 55, 0.18);
+  isolation: isolate;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(212, 175, 55, 0.35);
+  }
+}
+
+.profile-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+
+  .profile-card:hover & { transform: scale(1.04); }
+}
+
+.profile-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.profile-card-info {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  z-index: 3;
+  pointer-events: none;
+  color: #fff;
+
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+    .verified-badge { width: 14px; height: 14px; }
+  }
+
+  .location-row {
+    margin-top: 4px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+
+    i { font-size: 0.72rem; color: var(--color-primary); }
+  }
+}
+
+// Distintivo de plano premium (canto superior esquerdo)
+.profile-card-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d4be91, #b8975a);
+  color: #1a1a1a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+// Botões de ação (coração + balão de mensagem)
+.profile-card-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  &:hover  { background: rgba(0, 0, 0, 0.65); transform: scale(1.08); }
+  &:active { transform: scale(0.95); }
+
+  img { width: 20px; height: 20px; object-fit: contain; }
+}
+
+.card-action-form { margin: 0; }
+
+// Botão Ver Favoritos (ao lado de Aplicar e Limpar)
+.filter-favorites-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1.5px solid rgba(212, 175, 55, 0.55);
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+
+  svg { flex-shrink: 0; }
+  &:hover { background: rgba(212, 175, 55, 0.12); border-color: var(--color-primary); color: var(--color-dark); }
+}
+
+// Botão estrela no card
+.card-action-star {
+  color: rgba(255, 255, 255, 0.9);
+  svg { width: 18px; height: 18px; }
+  &:hover { background: rgba(212, 175, 55, 0.65); color: #fff; }
+
+  &--active {
+    background: linear-gradient(135deg, #d4be91, #b8975a);
+    color: #1a1a1a;
+    &:hover { background: linear-gradient(135deg, #c8a870, #9a7040); }
+  }
+}
+
+// Botão explorar galeria (empty state de favoritos)
+.favorites-explore-btn {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #d4be91, #b8975a);
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(180, 140, 70, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover  { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(180, 140, 70, 0.45); }
+  &:active { transform: translateY(0); }
+}
+
+// ----- ESTADO VAZIO -----
+.gallery-empty {
+  margin: 40px 24px;
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--color-section-light);
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+  border-radius: 20px;
+
+  .empty-icon { font-size: 2.4rem; margin-bottom: 12px; }
+  h3 { font-size: 1.1rem; margin: 0 0 6px; color: var(--color-dark); }
+  p  { font-size: 0.92rem; color: var(--color-text-secondary); margin: 0; }
+}
+
+// ----- MODO INVISÍVEL (navegação 100% oculta) -----
+.gallery-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Verde = visível | Vermelho = invisível (mesmas cores do FAB do mapa 3D)
+.gallery-visibility-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(15, 209, 24, 0.12);
+  border: 1.5px solid #0fd118;
+  color: #0aa812;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+
+  svg { flex-shrink: 0; }
+  &:active { transform: scale(0.93); }
+
+  &.is-invisible {
+    background: rgba(255, 77, 77, 0.14);
+    border-color: #ff4d4d;
+    color: #ff4d4d;
+  }
+}

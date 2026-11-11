@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="2374.95mm" height="382.851mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 42634.27 6872.8"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <font id="FontID0" horiz-adv-x="758" font-variant="normal" style="fill-rule:nonzero" font-weight="600">
+	<font-face 
+		font-family="Montserrat SemiBold">
+		<font-face-src>
+			<font-face-name name="Montserrat SemiBold"/>
+		</font-face-src>
+	</font-face>
+   <missing-glyph><path d="M0 0z"/></missing-glyph>
+   <glyph unicode="M" horiz-adv-x="914" d="M77.0001 700l0 -700 143 0 0 472 186 -401 103 0 186 401 0 -472 142 0 0 700 -176 0 -203 -428 -204 428 -177 0z"/>
+   <glyph unicode="a" horiz-adv-x="596" d="M537.333 0l-0.999787 351c-1.00002,121 -84.1667,193 -228.334,193 -94,0 -163,-22 -243,-62l47.9999 -106c56.0001,31 112,46.9999 160,46.9999 74.1667,0 112.167,-32.9998 112.167,-89.9999l0 -9.99999 -148.167 0c-132,-1.00002 -205,-61 -205,-162 0,-98.0001 69.9999,-168 185,-168 75,0 133.167,24.9999 169.167,69.9999l0 -63 151.167 0zm-277.333 103c-52,0 -84,27.0001 -84,68.0001 0,42.9998 28.9999,61 88.0001,61l121.167 0 0 -48.0001c-8.99997,-45.9999 -59.9999,-80.9999 -125.167,-80.9999z"/>
+   <glyph unicode="e" horiz-adv-x="597" d="M305 543c-164,0 -277,-110 -277,-276 0,-163 109,-273 281,-273 97.0001,0 176,34.9998 230,94.9998l-80.9999 82.0002c-36.9999,-37.0001 -85,-57.0001 -136,-57.0001 -68.9999,0 -121,40 -139,108l386 0c13.0001,196 -74.9998,321 -264,321zm-125 -230c12,71 57.9999,117 126,117 71,0 117,-46.0001 119,-117l-245 0z"/>
+   <glyph unicode="g" horiz-adv-x="644" d="M425 538l0 -73c-36.9999,50.0002 -93,79.0001 -166,78.0001 -137,0 -231,-103 -231,-255 0,-156 96.0001,-260 235,-260 71,0 126,28.0002 162,78.0001l0 -61c0,-73 -55.9999,-120 -144,-120 -61,0 -118,19 -167,54l-56.9999 -108c62,-42 143,-71 234,-71 172,0 287,97.0001 287,250l0 488 -153 0zm-126 -393c-75.9998,0 -126,57.0001 -127,139 1.00002,82 52,140 127,140 75,0 126,-56.9999 126,-140 0,-82 -51,-139 -126,-139z"/>
+   <glyph unicode="n" horiz-adv-x="670" d="M414 544c-84,-1.00002 -148,-33 -186,-100l0 94 -154 0 0 -538 154 0 0 265c0,78.9999 46.0001,137 123,138 66.0001,0 106,-42 106,-110l0 -293 154 0 0 338c0,126 -76.9999,206 -197,206z"/>
+   <glyph unicode="s" horiz-adv-x="498" d="M413 380l53 105c-59.9999,38.0002 -136,60.0002 -210,60.0002 -117,0 -212,-57.0001 -212,-168 0,-189 279,-143 279,-229 0,-28.9999 -28.9999,-42 -67.9999,-42 -59.0002,0 -131,24.0001 -187,66.9999l-50 -104c61,-48.9999 146,-74.9998 233,-74.9998 122,0 219,57.9999 219,168 1.00002,190 -283,149 -283,230 0,28.0002 26.0001,40.0002 62,40.0002 45.0001,0 105,-19.0002 164,-52z"/>
+  </font>
+  <style type="text/css">
+   <![CDATA[
+    @font-face { font-family:"Montserrat SemiBold";font-variant:normal;font-weight:600;src:url("#FontID0") format(svg)}
+    .fil0 {fill:url(#id0)}
+    .fnt0 {font-weight:600;font-size:7636.44px;font-family:'Montserrat SemiBold'}
+   ]]>
+  </style>
+  <linearGradient id="id0" gradientUnits="userSpaceOnUse" x1="11714.62" y1="3397.81" x2="30955.26" y2="3397.81">
+   <stop offset="0" style="stop-opacity:1; stop-color:#806B5A"/>
+   <stop offset="0.509804" style="stop-opacity:1; stop-color:#D8BFAB"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#836D5D"/>
+  </linearGradient>
+ </defs>
+ <g id="Conteúdo_x0020_do_x0020_PowerClip">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <text x="-588.01" y="5345.51"  class="fil0 fnt0">Mensagens</text>
+ </g>
+</svg>

@@ -1,0 +1,270 @@
+<div class="safety-wrapper">
+
+  <%# --- 1. HEADER --- %>
+  <div class="safety-header">
+    <div class="header-top-row">
+      <%# Botão Voltar (Seta PNG) %>
+      <%= link_to my_profile_path, class: "btn-back" do %>
+        <%= image_tag "seta-esqueda-png.png", class: "icon-arrow" %>
+      <% end %>
+
+      <%# Título e Subtítulo %>
+      <div class="header-text-block">
+        <%= image_tag "texto-central-de-seguranca.png", class: "title-img" %>
+        <p class="subtitle">Recursos e ferramentas para sua proteção</p>
+      </div>
+
+      <%# Ícone Escudo (Direita) %>
+      <div class="header-icon-right">
+        <%= image_tag "icone-central-de-seguranca.png", class: "icon-shield" %>
+      </div>
+    </div>
+  </div>
+
+  <%# --- 2. AÇÕES RÁPIDAS (GRID) --- %>
+  <div class="safety-body">
+    <h3 class="section-label">Ações Rápidas</h3>
+
+    <div class="cards-grid">
+      
+      <%# CARD 1: Polícia (Rosa) - Link para discar 190 %>
+<%= link_to "tel:190", class: "safety-card card-pink", style: "text-decoration: none;" do %>
+  <div class="card-icon-circle icon-red">
+     <%# Ícone de Telefone %>
+     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+  </div>
+  <div class="card-badge">!</div>
+  <div class="card-text">
+    <strong>Ações Rápidas</strong>
+    <span>Ligar 190</span>
+  </div>
+<% end %>
+
+    <%# CARD 2: Denúncias (LINK ATUALIZADO) %>
+      <%= link_to report_incident_path, class: "safety-card card-blue", style: "text-decoration: none;" do %>
+        <div class="card-icon-circle icon-blue-dark">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+        </div>
+        <div class="card-text">
+          <strong>Denúncias Rápidas</strong>
+          <span>Reportar Incidencia</span>
+        </div>
+      <% end %>
+
+     <%# CARD 3: Compartilhar Localização (JavaScript) %>
+<button type="button" id="share-location-btn" class="safety-card card-purple" style="border: none; width: 100%; text-align: left; cursor: pointer; padding: 15px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+  
+  <div class="card-icon-circle icon-purple-dark" style="flex-shrink: 0;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+    </svg>
+  </div>
+  
+  <div class="card-text">
+    <strong style="display: block;">Compartilhar Local</strong>
+    <span style="display: block;">Enviar localização atual</span>
+  </div>
+
+</button>
+
+      <%# CARD 4: Modo Pânico (Ajustado para Compartilhamento) %>
+<button type="button" id="panic-btn" class="safety-card card-pink-light" style="border: none; width: 100%; text-align: left; cursor: pointer; padding: 15px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+  
+  <div class="card-icon-circle icon-red-light">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg>
+  </div>
+  
+  <div class="card-text">
+    <strong id="panic-text-title">Modo Pânico</strong>
+    <span id="panic-text-status">Enviar alerta de emergência</span>
+  </div>
+</button>
+
+    </div>
+
+    <%# --- CARD PREMIUM: HISTÓRICO (Bloqueados + Denúncias) --- %>
+    <%= link_to safety_history_path, class: "safety-history-btn" do %>
+      <div class="sh-btn-inner">
+        <div class="sh-btn-left">
+          <div class="sh-btn-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="sh-btn-text">
+            <strong>Bloqueados &amp; Denúncias</strong>
+            <span>Gerencie perfis bloqueados e veja seu histórico</span>
+          </div>
+        </div>
+        <svg class="sh-btn-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+    <% end %>
+
+  </div>
+
+  <%# --- 3. INSTRUÇÕES DE EMERGÊNCIA (RODAPÉ) --- %>
+  <div class="safety-footer">
+    <h4 class="footer-title">
+      <span class="warning-icon">!</span> Instrução de Emergência
+    </h4>
+
+    <ul class="instruction-list">
+      <li>
+        <strong>1. Mantenha a calma e avalie a situação</strong>
+        <p>Respire fundo e tente entender o que está acontecendo</p>
+      </li>
+      <li>
+        <strong>2. Saia do local se não se sentir seguro</strong>
+        <p>Procure um local público e movimentado</p>
+      </li>
+      <li>
+        <strong>3. Use ações rápidas confirme necessario</strong>
+        <p>Ligue para Emergencia ou compartilhe sua localização.</p>
+      </li>
+      <li>
+        <strong>4. Documente incidente</strong>
+        <p>Faça uma denuncia detalhada para a segurança*</p>
+      </li>
+    </ul>
+  </div>
+
+
+  <script>
+  // Função para inicializar o botão de compartilhar
+  function initShareButton() {
+    const shareBtn = document.getElementById("share-location-btn");
+
+    // Evita adicionar múltiplos eventos se o script rodar 2x
+    if (shareBtn && !shareBtn.dataset.listenerAdded) {
+      shareBtn.dataset.listenerAdded = "true"; // Marca como iniciado
+
+      shareBtn.addEventListener("click", () => {
+        // 1. Verifica suporte
+        if (!navigator.geolocation) {
+          alert("Seu navegador não suporta geolocalização.");
+          return;
+        }
+
+        // Feedback visual
+        const textSpan = shareBtn.querySelector("span");
+        const originalText = textSpan.innerText;
+        textSpan.innerText = "Obtendo localização...";
+
+        // 2. Obtém posição
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // --- CORREÇÃO AQUI: URL CORRETA DO GOOGLE MAPS ---
+            const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            
+            const shareData = {
+              title: 'Minha Localização',
+              text: 'Estou aqui! Segue minha localização atual:',
+              url: mapUrl
+            };
+
+            // 3. Compartilhamento Nativo (Mobile)
+            if (navigator.share) {
+              navigator.share(shareData)
+                .then(() => console.log('Compartilhado com sucesso'))
+                .catch((error) => console.log('Erro ao compartilhar', error));
+            } else {
+              // Fallback (WhatsApp Web)
+              window.open(`https://wa.me/?text=${encodeURIComponent(shareData.text + " " + mapUrl)}`, '_blank');
+            }
+
+            // Restaura texto
+            textSpan.innerText = originalText;
+          },
+          (error) => {
+            console.error(error);
+            alert("Erro ao obter localização. Verifique o GPS.");
+            textSpan.innerText = originalText;
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      });
+    }
+  }
+
+  // Inicializa com Turbo (Rails padrão) e carregamento normal
+  document.addEventListener("turbo:load", initShareButton);
+  document.addEventListener("DOMContentLoaded", initShareButton);
+
+
+  // --- FUNÇÃO MODO PÂNICO ---
+ function initPanicButton() {
+  const panicBtn = document.getElementById("panic-btn");
+  const statusText = document.getElementById("panic-text-status");
+
+  if (panicBtn && !panicBtn.dataset.listenerAdded) {
+    panicBtn.dataset.listenerAdded = "true";
+
+    panicBtn.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        alert("Seu navegador não suporta geolocalização.");
+        return;
+      }
+
+      // Feedback visual de carregamento
+      const originalText = statusText.innerText;
+      statusText.innerText = "Preparando alerta...";
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          // Link do Google Maps
+          const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          
+          // Sua mensagem personalizada
+          const messageText = `Olá! Esta é uma mensagem de alerta 🚨 do GeoMatch. Maria Clara ativou o modo de segurança e pode precisar da sua ajuda ou atenção. Por favor, entre em contato com ela o mais breve possível e acompanhe sua localização em tempo real aqui: ${mapUrl} Sua atenção é muito importante neste momento.`;
+
+          const shareData = {
+            title: 'ALERTA DE SEGURANÇA - GeoMatch',
+            text: messageText
+          };
+
+          // Disparar compartilhamento nativo ou WhatsApp
+          if (navigator.share) {
+            navigator.share(shareData)
+              .then(() => console.log('Alerta enviado'))
+              .catch((err) => console.log('Erro ao compartilhar', err));
+          } else {
+            // Fallback para WhatsApp
+            window.open(`https://wa.me/?text=${encodeURIComponent(messageText)}`, '_blank');
+          }
+
+          statusText.innerText = originalText;
+        },
+        (error) => {
+          console.error(error);
+          alert("Erro ao obter localização para o alerta.");
+          statusText.innerText = originalText;
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
+}
+
+  // --- ATUALIZE OS LISTENERS NO FINAL DO SCRIPT ---
+  document.addEventListener("turbo:load", () => {
+    initShareButton(); // Sua função anterior
+    initPanicButton(); // Nova função
+  });
+  
+  document.addEventListener("DOMContentLoaded", () => {
+    initShareButton();
+    initPanicButton();
+  });
+</script>
+
+
+
+</div>

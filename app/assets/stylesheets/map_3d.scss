@@ -1,0 +1,116 @@
+/* ===================== MAP LOADING OVERLAY ===================== */
+#map-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d0d0d;
+  transition: opacity 0.6s ease;
+  pointer-events: all;
+  /* Garantia CSS: libera cliques após 3s mesmo que o JS trave */
+  animation: loader-unblock 0s 3s forwards;
+}
+
+@keyframes loader-unblock {
+  to { pointer-events: none; }
+}
+
+#map-loader.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.map-loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.map-loader-text {
+  margin: 0;
+  color: rgba(212, 175, 55, 0.6);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+
+.map-loader-spinner {
+  width: 52px;
+  height: 52px;
+  border: 4px solid rgba(212, 175, 55, 0.2);
+  border-top-color: #d4af37;
+  border-radius: 50%;
+  animation: map-loader-spin 0.9s linear infinite;
+}
+
+@keyframes map-loader-spin {
+  to { transform: rotate(360deg); }
+}
+/* ============================================================== */
+
+#map-3d .mapboxgl-canvas {
+    filter: brightness(0.8) contrast(1.2); /* Deixa o mapa mais "premium" */
+}
+
+/* Garante que o radar fique atrás dos cards mas na frente do mapa */
+.discover-fullscreen-container {
+    perspective: 1000px;
+}
+
+/* Container do Mapa */
+#map-3d {
+    background-color: var(--color-section-gray);
+}
+
+/* Marcador estilo Apple/Uber */
+.floating-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.marker-content {
+    width: 50px;
+    height: 50px;
+    background: var(--color-section-light);
+    border-radius: 12px; /* Bordas arredondadas estilo iOS */
+    padding: 3px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 2px solid var(--color-section-light);
+}
+
+.marker-content img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+/* Sombra projetada no chão do mapa */
+.marker-shadow {
+    width: 20px;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    margin-top: 5px;
+    filter: blur(3px);
+}
+
+/* Marcador Flutuante com Sombra */
+.custom-marker {
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+}
+
+.custom-marker:hover {
+    transform: translateY(-10px) scale(1.1); /* Efeito de flutuar ao passar o mouse */
+}
+
+/* Deixa o mapa com cores mais vivas e detalhadas */
+.mapboxgl-canvas {
+    outline: none;
+}

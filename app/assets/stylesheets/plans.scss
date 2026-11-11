@@ -1,0 +1,503 @@
+/* =========================================================
+   PLANS / PRICING - DARK PREMIUM (DESKTOP & MOBILE FIXED)
+   ========================================================= */
+
+.pricing-page {
+  /* Variáveis Dark Premium */
+  --p-bg: #0e0e10;
+  --p-surface: #18181b;
+  --p-surface-2: #27272a;
+  --p-border: #333;
+  --p-text: #ffffff;
+  --p-text-muted: #a1a1aa;
+  
+  --p-accent: #bba96f; /* Dourado */
+  --p-accent-glow: rgba(212, 175, 55, 0.4);
+  
+  --p-success: #4cd964;
+  --p-danger: #ff453a;
+  
+  background-color: var(--p-bg);
+  color: var(--p-text);
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  padding: 40px 16px 80px;
+
+  .pricing-container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* --- HEADER --- */
+  .pricing-hero {
+    text-align: center;
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .pricing-title {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    /* Gradiente no texto do título */
+    background: linear-gradient(135deg, #fff 30%, var(--p-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+  }
+
+  .pricing-subtitle {
+    margin: 0;
+    color: var(--p-text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    line-height: 1.5;
+  }
+
+  .pricing-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid var(--p-border);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.85rem;
+    color: var(--p-text);
+  }
+
+  /* =========================================================
+     DESKTOP TABLE (O Grid CSS Poderoso)
+     ========================================================= */
+  .pricing-compare {
+    display: block; /* Visível no Desktop */
+    background: var(--p-surface);
+    border: 1px solid var(--p-border);
+    border-radius: 20px;
+    /* Sombra suave */
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    overflow: hidden; /* Arredonda cantos */
+    position: relative;
+  }
+
+  .pricing-grid {
+    display: grid;
+    /* Grid columns definido inline no HTML */
+  }
+
+  /* Células Gerais */
+  .pricing-cell {
+    padding: 20px;
+    border-bottom: 1px solid var(--p-border);
+    border-right: 1px solid var(--p-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+  }
+
+  /* Tira borda direita da última coluna */
+  .pricing-grid .pricing-cell:nth-child(n) {
+    /* Lógica complexa de nth-child não necessária se usarmos borda no container */
+  }
+
+  /* Coluna 1: Nome da Feature */
+  .feature-name-cell, .head-empty {
+    justify-content: flex-start;
+    text-align: left;
+    color: var(--p-text-muted);
+    font-weight: 500;
+    padding-left: 30px;
+    background: rgba(255,255,255,0.01);
+  }
+  
+  .head-empty {
+    border-bottom: none; /* O header cell já tem borda */
+    align-items: flex-end;
+    padding-bottom: 25px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  /* Header Cell (Nomes dos Planos) */
+  .pricing-header-cell {
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background: var(--p-surface-2);
+    position: relative;
+  }
+
+  .desktop-plan-name {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: var(--p-text-muted);
+  }
+
+  .desktop-plan-price {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--p-text);
+  }
+  
+  .desktop-plan-price .period {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--p-text-muted);
+  }
+
+  /* Coluna Recomendada (Desktop) */
+  .pricing-cell.recommended-col {
+    background: rgba(212, 175, 55, 0.03); /* Fundo Dourado Muito Sutil */
+    position: relative;
+  }
+  
+  /* Header da Recomendada */
+  .pricing-header-cell.recommended-col {
+    background: linear-gradient(to bottom, rgba(212,175,55,0.15), rgba(212,175,55,0.02));
+    border-top: 3px solid var(--p-accent);
+  }
+
+  .desktop-tag-recommended {
+    position: absolute;
+    top: -15px; /* Sai pra fora da célula */
+    background: var(--p-accent);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px var(--p-accent-glow);
+  }
+
+  /* Ícones e Valores */
+  .icon-yes { color: var(--p-success); }
+  .icon-no { color: #333; opacity: 0.5; }
+  .icon-neutral { color: #444; }
+  .text-value { font-weight: 600; }
+
+  /* Célula de Ação (Botões) */
+  .action-cell {
+    padding: 30px 20px;
+    border-bottom: none; /* Última linha */
+  }
+  .action-empty { border-bottom: none; border-right: 1px solid var(--p-border); }
+
+
+  /* =========================================================
+     BOTÕES
+     ========================================================= */
+  .pricing-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 1px solid var(--p-accent);
+    background: transparent;
+    color: var(--p-accent);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pricing-btn:hover {
+    background: var(--p-accent);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+  }
+
+  .pricing-btn--glow {
+    background: var(--p-accent);
+    color: #000;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+  .pricing-btn--glow:hover {
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+  }
+
+  .pricing-btn--disabled {
+    border-color: #333;
+    color: #555;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.02);
+  }
+  .pricing-btn--disabled:hover {
+    transform: none;
+    box-shadow: none;
+    background: rgba(255,255,255,0.02);
+    color: #555;
+  }
+  
+  .pricing-btn--outline {
+    border-color: #555;
+    color: #aaa;
+  }
+
+
+  /* =========================================================
+     MOBILE: CARDS
+     ========================================================= */
+  .pricing-mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 35px; /* Aumentei o gap para dar espaço à tag do próximo card */
+  padding-top: 20px; /* Adiciona um espaço no topo da lista */
+}
+
+  .mobile-plan-card {
+    background: var(--p-surface);
+    border: 1px solid var(--p-border);
+    border-radius: 20px;
+    padding: 30px 24px;
+    position: relative;
+    margin-top: 15px; /* Garante que a tag não suba para fora da área clicável */
+  }
+
+  /* Card Recomendado Mobile */
+  .mobile-plan-card.recommended {
+    border: 1px solid var(--p-accent);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+  }
+
+  .mobile-tag-recommended {
+  position: absolute;
+  /* 3. Posicionamento fixo no topo, centralizado */
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  
+  /* 4. Garante que fique acima de qualquer degradê */
+  z-index: 20; 
+
+  /* Estilização para garantir visibilidade */
+  background: #7e20d6; 
+  color: #fff !important;
+  padding: 6px 20px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+  .mobile-card-header {
+    text-align: center;
+    border-bottom: 1px solid var(--p-border);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+
+  .mobile-plan-name {
+    color: var(--p-text);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .mobile-plan-price {
+    color: var(--p-accent);
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .mobile-features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 30px;
+  }
+
+  .mobile-feature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+
+  .mobile-feature-row .feature-label {
+    color: var(--p-text-muted);
+  }
+
+  .mobile-feature-row .feature-value {
+    font-weight: 600;
+  }
+
+  .pricing-footnote {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  /* =========================================================
+     MEDIA QUERY - O PULO DO GATO
+     ========================================================= */
+  @media (max-width: 900px) {
+    .pricing-page {
+      padding: 30px 16px;
+    }
+
+    /* ESCONDE A TABELA NO MOBILE */
+    .pricing-compare {
+      display: none !important;
+    }
+
+    /* MOSTRA OS CARDS NO MOBILE */
+    .pricing-mobile-cards {
+      display: flex;
+    }
+  }
+}
+
+/* =========================================================
+   TEMAS DOS PLANOS (GRADIENTES)
+   ========================================================= */
+
+/* Mixin para facilitar a criação dos cards com degradê */
+@mixin plan-gradient($color-start, $color-mid, $text-color: #ffffff) {
+  /* 1. O Fundo Degradê */
+  background: linear-gradient(180deg, 
+    $color-start 0%, 
+    $color-mid 40%, 
+    var(--p-surface) 100%
+  );
+  border: 1px solid rgba($color-start, 0.3);
+
+  /* 2. FORÇAR TUDO BRANCO */
+  /* Aplica branco em todos os textos diretos e internos */
+  &, h1, h2, h3, h4, p, span, div, strong, small, li {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Leve sombra para leitura */
+  }
+
+  /* 3. ÍCONES BRANCOS */
+  /* Sobrescreve cores de SVGs (checks, locks) */
+  svg {
+    stroke: #ffffff !important;
+    fill: none; /* Ou white se seus ícones forem preenchidos */
+  }
+  
+  path, circle, line, rect {
+    stroke: #ffffff !important;
+  }
+
+  /* Se você usa classes de ícones como .icon-yes ou FontAwesome */
+  .icon-yes, .icon-no, .fa, .fas, .far {
+    color: #ffffff !important;
+  }
+
+  /* 4. DETALHES ESPECÍFICOS */
+  /* Preço com fundo translúcido escuro para destacar */
+  .desktop-plan-price, .mobile-plan-price {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 50px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: fit-content;
+    display: inline-block;
+  }
+
+  /* Texto "/mês" levemente transparente para hierarquia, mas ainda branco */
+  .period, .pricing-plan-status {
+    opacity: 0.9;
+    font-weight: 400;
+  }
+
+  /* Botão Transparente Branco */
+  .pricing-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff !important;
+    
+    &:hover {
+      background: #ffffff;
+      color: $color-mid !important; /* Texto ganha a cor do plano no hover */
+      border-color: #ffffff;
+    }
+    
+    &[disabled] {
+        opacity: 0.6;
+        background: transparent;
+        border-color: rgba(255,255,255, 0.3);
+    }
+  }
+}
+
+/* APLICAÇÃO DOS TEMAS */
+
+.pricing-page {
+
+  /* --- 1. PLANO FREE (PRATA) --- */
+  .plan-theme-free { 
+    @include plan-gradient(
+      #9ca3af, /* Prata Claro */
+      #4b5563  /* Prata Escuro */
+    );
+  }
+
+  /* --- 2. PLANO PLUS (VIOLETA) --- */
+  .plan-theme-plus {
+    @include plan-gradient(
+      #c084fc, /* Roxo Claro/Lilás */
+      #7e22ce  /* Roxo Intenso */
+    );
+    box-shadow: 0 -10px 40px -10px rgba(168, 85, 247, 0.3) inset;
+  }
+
+  /* --- 3. PLANO GOLD (DOURADO) --- */
+  .plan-theme-gold {
+    @include plan-gradient(
+      #332500, /* Ouro Amarelo */
+      #684c00  /* Bronze */
+    );
+    border: 1px solid rgba(251, 191, 36, 0.6);
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.2);
+  }
+
+
+  /* =========================================================
+     AJUSTES FINAIS DE LAYOUT
+     ========================================================= */
+  
+  /* Arredondar topo das colunas da tabela no desktop para parecer cards */
+  .pricing-header-cell {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom: none; /* Remove borda inferior para fundir com a tabela */
+    padding-bottom: 40px; /* Espaço extra para o degradê morrer suavemente */
+    margin-bottom: -1px; /* Hack para colar na célula de baixo */
+  }
+
+  /* Ajuste para o Mobile Card ficar igual à imagem */
+  .mobile-plan-card {
+    padding-top: 45px;
+    /* overflow: hidden;  Garante que o gradiente respeite as bordas */
+    position: relative;
+  border-radius: 24px;
+  }
+}

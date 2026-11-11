@@ -1,0 +1,12 @@
+# Sidekiq Cron schedule
+# Carregado via sidekiq-cron (ex: config/initializers/sidekiq_cron.rb)
+#
+# Docs: https://github.com/sidekiq-cron/sidekiq-cron
+
+expire_subscriptions:
+  cron: "0 3 * * *"
+  class: "ExpireSubscriptionsJob"
+  queue: default
+  description: "Faz downgrade para Free quando premium_until expirou"
+
+

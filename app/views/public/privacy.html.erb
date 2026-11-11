@@ -1,7 +1,208 @@
-<div class="privacy-page">
-  <h1>Política de Privacidade</h1>
-  <p>
-    No GeoMatch, damos prioridade à sua privacidade. Os dados de localização só
-    são usados para encontrar pessoas próximas. Não compartilhamos dados com terceiros.
-  </p>
+<div class="legal-container">
+  <div class="legal-content">
+
+    <h1>Política de Privacidade — GeoMatch</h1>
+    <p class="last-updated">Última atualização: junho de 2026</p>
+
+    <p>A GeoMatch leva sua privacidade a sério. Esta Política descreve como coletamos, usamos e protegemos seus dados pessoais ao usar o aplicativo GeoMatch.</p>
+
+    <h2>1. Dados que coletamos</h2>
+    <ul>
+      <li><strong>Dados de cadastro:</strong> nome, e-mail, data de nascimento, foto de perfil e gênero fornecidos no registro.</li>
+      <li><strong>Dados de localização:</strong> coletamos sua localização em tempo real apenas enquanto o app está em uso e você escolhe aparecer no mapa. Nunca coletamos localização em segundo plano sem consentimento explícito.</li>
+      <li><strong>Dados de uso:</strong> mensagens trocadas dentro do app, perfis visualizados, interações e denúncias.</li>
+      <li><strong>Dados técnicos:</strong> modelo do dispositivo, sistema operacional, identificadores de dispositivo e logs de acesso.</li>
+    </ul>
+
+    <h2>2. Como usamos seus dados</h2>
+    <ul>
+      <li>Exibir seu perfil para usuários no raio de até 300 metros que estão com o app ativo.</li>
+      <li>Facilitar conversas e conexões entre usuários próximos.</li>
+      <li>Manter a segurança da plataforma e investigar denúncias e abusos.</li>
+      <li>Melhorar a experiência do app com base em dados agregados e anônimos.</li>
+      <li>Cumprir obrigações legais.</li>
+    </ul>
+
+    <h2>3. Compartilhamento de dados</h2>
+    <p>Não vendemos seus dados. Podemos compartilhá-los apenas com:</p>
+    <ul>
+      <li><strong>Provedores de serviço</strong> (hospedagem, notificações push, análise) estritamente para operar o app.</li>
+      <li><strong>Autoridades competentes</strong>, quando exigido por lei ou ordem judicial.</li>
+      <li><strong>Outros usuários</strong>, apenas os dados que você escolhe tornar visíveis no seu perfil.</li>
+    </ul>
+
+    <h2>4. Localização — detalhamento</h2>
+    <p>Sua localização exata nunca é exposta a outros usuários. O app apenas informa que você está dentro do raio de 300 metros. Você pode ativar o Modo Oculto a qualquer momento para sair do mapa sem encerrar a sessão.</p>
+
+    <h2>5. Retenção de dados</h2>
+    <ul>
+      <li>Dados de conta: mantidos enquanto sua conta estiver ativa.</li>
+      <li>Mensagens: armazenadas por até 90 dias após exclusão da conversa.</li>
+      <li>Logs de acesso: retidos por até 12 meses para segurança.</li>
+      <li>Ao excluir sua conta, seus dados são removidos em até 30 dias, exceto quando exigida retenção por obrigação legal.</li>
+    </ul>
+
+    <h2>6. Seus direitos (LGPD — Lei 13.709/2018)</h2>
+    <p>Você tem direito a:</p>
+    <ul>
+      <li>Acessar os dados que temos sobre você.</li>
+      <li>Corrigir dados incorretos ou desatualizados.</li>
+      <li>Solicitar a exclusão dos seus dados.</li>
+      <li>Revogar o consentimento para uso de localização a qualquer momento.</li>
+      <li>Portabilidade dos seus dados em formato legível.</li>
+    </ul>
+    <p>Para exercer seus direitos, envie um e-mail para <a href="mailto:suporte@geomatchbr.com" class="legal-link">suporte@geomatchbr.com</a>.</p>
+
+    <h2>7. Segurança</h2>
+    <p>Adotamos criptografia em trânsito (TLS), acesso restrito por autenticação e sistemas de detecção de uso abusivo. Nenhum sistema é 100% seguro — em caso de incidente, notificaremos os usuários afetados conforme exigido por lei.</p>
+
+    <h2>8. Menores de idade</h2>
+    <p>O GeoMatch é destinado exclusivamente a maiores de 18 anos. Não coletamos intencionalmente dados de menores. Se identificarmos uma conta de menor, ela será encerrada imediatamente.</p>
+
+    <h2>9. Alterações nesta política</h2>
+    <p>Notificaremos os usuários por e-mail ou notificação no app com 15 dias de antecedência sobre mudanças relevantes nesta política.</p>
+
+    <h2>10. Contato</h2>
+    <p>
+      GeoMatch —
+      <a href="mailto:suporte@geomatchbr.com" class="legal-link">suporte@geomatchbr.com</a>
+      &nbsp;|&nbsp;
+      <a href="https://www.geomatchbr.com" target="_blank" rel="noopener" class="legal-link">www.geomatchbr.com</a>
+    </p>
+
+    <div class="legal-footer">
+      <%= link_to "← Voltar", :back, class: "btn-back" %>
+    </div>
+
+  </div>
 </div>
+
+<style>
+  .legal-container {
+    padding: 48px 20px 64px;
+    background-color: var(--color-background);
+    min-height: 100vh;
+    color: var(--color-text);
+  }
+
+  .legal-content {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--color-section-light);
+    padding: 48px 48px 56px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+  }
+
+  .legal-content h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .last-updated {
+    font-size: 0.875rem;
+    font-style: italic;
+    color: var(--color-text-secondary);
+    margin-bottom: 28px;
+    display: block;
+  }
+
+  .legal-content > p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .legal-content h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-top: 40px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .legal-content ul {
+    padding-left: 0;
+    margin-bottom: 20px;
+    list-style: none;
+  }
+
+  .legal-content ul li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  .legal-content ul li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .legal-content ul li strong {
+    color: var(--color-text);
+  }
+
+  .legal-content p {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .legal-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .legal-link:hover {
+    text-decoration: underline;
+  }
+
+  .legal-footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .btn-back {
+    display: inline-block;
+    background: var(--color-primary);
+    color: #000;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-back:hover {
+    opacity: 0.88;
+    transform: scale(1.02);
+  }
+
+  @media (max-width: 600px) {
+    .legal-content {
+      padding: 28px 20px 36px;
+    }
+
+    .legal-content h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

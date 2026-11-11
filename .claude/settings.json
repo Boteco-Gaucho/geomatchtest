@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(ruby bin/rails dartsass:build; \"CSS EXIT: $LASTEXITCODE\"; yarn build; \"JS EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails dartsass:build; \"CSS EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"html = ApplicationController.renderer.render\\(partial: 'users/gender_filter', locals: { selected: 'all' }\\); puts 'partial OK \\(' + html.length.to_s + ' bytes\\)'; puts 'botoes: ' + html.scan\\('gm-gender-filter__opt'\\).size.to_s; puts 'aria-pressed true no all: ' + html.include?\\('data-value=\\\\\"all\\\\\"'\\).to_s; puts 'svgs: ' + html.scan\\('<svg'\\).size.to_s\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"html = UsersController.renderer.render\\(partial: 'users/gender_filter', locals: { selected: 'all' }\\); puts 'partial OK \\(' + html.length.to_s + ' bytes\\)'; puts 'botoes: ' + html.scan\\('gm-gender-filter__opt'\\).size.to_s; puts 'svgs: ' + html.scan\\('<svg'\\).size.to_s; puts 'all pressionado: ' + html.scan\\('aria-pressed=\\\\\"true\\\\\"'\\).size.to_s\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_gender_partial.rb\"; \"EXIT: $LASTEXITCODE\")",
+      "Bash(diff \"app/views/pages/landing.html.erb\" \"app/views/pages/landing.html copy.erb\")",
+      "Bash(wc -l \"app/views/pages/landing.html.erb\" \"app/views/pages/landing.html copy.erb\")",
+      "PowerShell(ruby bin/rails routes -g instalar; ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_testflight.rb\"; \"EXIT: $LASTEXITCODE\")",
+      "Bash(xxd app/assets/stylesheets/testflight_guide.css)",
+      "Bash(grep -iE \"landing|testflight|\\\\.css$\")",
+      "Bash(ruby bin/rails runner \"puts 'landing_page.css: ' + Rails.application.assets.load_path.find\\('landing_page.css'\\).inspect; puts 'testflight_guide.css: ' + Rails.application.assets.load_path.find\\('testflight_guide.css'\\).inspect\")",
+      "PowerShell(ruby bin/rails runner \"a = Rails.application.assets.load_path.find\\('testflight_guide.css'\\); puts 'testflight_guide.css -> ' + \\(a ? a.path.to_s : 'NAO ENCONTRADO'\\); b = Rails.application.assets.load_path.find\\('landing_page.css'\\); puts 'landing_page.css -> ' + \\(b ? b.path.to_s : 'NAO ENCONTRADO'\\)\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails assets:precompile; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_testflight.rb\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(yarn build; \"JS EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails assets:precompile 2>&1 | Select-String -Pattern \"EXIT|error\" ; \"EXIT: $LASTEXITCODE\")",
+      "Bash(grep -c 'viewBox=\\\\\\\\\"0 0 24 24\\\\\\\\\"\\\\|viewBox=\"0 0 24 24\"' app/assets/builds/map_3d.js)",
+      "PowerShell(yarn build; \"JS: $LASTEXITCODE\"; ruby bin/rails assets:precompile 2>&1 | Select-Object -Last 1; \"PRECOMPILE: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_turf.rb\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(yarn build; \"JS: $LASTEXITCODE\"; ruby bin/rails dartsass:build; \"CSS: $LASTEXITCODE\"; ruby bin/rails assets:precompile 2>&1 | Select-Object -Last 1; \"PRECOMPILE: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_gallery_invisible.rb\"; \"EXIT: $LASTEXITCODE\")",
+      "PowerShell(ruby bin/rails runner \"C:\\\\Users\\\\Brendo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Brendo-Documents-DEV-geomatch-ruby-geomatch\\\\15e2ec9e-1923-4dc9-a6af-ba4ead0a7229\\\\scratchpad\\\\test_lead_tiers.rb\"; \"EXIT: $LASTEXITCODE\")"
+    ]
+  }
+}

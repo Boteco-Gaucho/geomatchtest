@@ -1,0 +1,97 @@
+<%# GeoMatch — Guia de instalação via TestFlight
+   View:   app/views/pages/testflight_guide.html.erb
+   CSS:    app/assets/stylesheets/testflight_guide.css (importa/reaproveita landing_page.css)
+   Imagens: app/assets/images/geomatch/testflight-0X-*.png
+
+   Rota sugerida (config/routes.rb):
+     get "instalar", to: "pages#testflight_guide"
+%>
+
+<% content_for :head do %>
+  <%# testflight_guide.css depende das variáveis/classes do landing_page.css %>
+  <%= stylesheet_link_tag "landing_page", media: "all" %>
+  <%= stylesheet_link_tag "testflight_guide", media: "all" %>
+<% end %>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="<%= root_path rescue '#' %>">
+      <span class="logo-pin"><span>G</span></span>
+      <span><span class="wm-geo">Geo</span><span class="wm-match">Match</span></span>
+    </a>
+    <a class="btn btn--gold" href="https://testflight.apple.com/join/d2WGpc3D" target="_blank" rel="noopener">Entrar no beta</a>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="tf-hero" data-screen-label="Hero">
+  <div class="wrap">
+    <span class="kicker">Acesso antecipado</span>
+    <h1 class="display">Como instalar o <span class="hl">GeoMatch</span> pelo TestFlight</h1>
+    <p>O GeoMatch ainda está na versão beta. Para testar agora, você precisa instalar pelo <strong style="color:var(--gold-bright)">TestFlight</strong>, o app oficial da Apple para versões beta. Leva menos de 2 minutos.</p>
+    <div class="cta-row">
+      <a class="btn btn--gold" href="https://testflight.apple.com/join/d2WGpc3D" target="_blank" rel="noopener">
+        <span class="btn-ic">&#63743;</span>
+        <span class="btn-label"><span>Abrir link do beta</span><span class="btn-sub">testflight.apple.com</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PASSO A PASSO ============ -->
+<section class="tf-steps" data-screen-label="Passo a passo">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:0;">
+      <span class="kicker">Passo a passo</span>
+      <h2 class="display">5 passos e você está <span class="hl-ink">dentro.</span></h2>
+    </div>
+
+    <%
+      steps = [
+        { img: "geomatch/testflight-01-baixar.png",
+          alt: "Tela mostrando o card Baixar o TestFlight no Safari",
+          title: "Abra o link do beta",
+          body: "Toque no botão acima (ou no link que você recebeu) pelo <strong>iPhone</strong>. Se ainda não tiver o TestFlight instalado, vai aparecer um card pedindo para baixá-lo primeiro — toque em <strong>Visualizar na App Store</strong> e instale." },
+        { img: "geomatch/testflight-02-ver-beta.png",
+          alt: "Tela mostrando o card Ver a versão beta de Geomatch",
+          title: "Volte para o link do GeoMatch",
+          body: "Com o TestFlight instalado, abra o link do beta novamente. Agora vai aparecer o card <strong>Ver a versão beta de Geomatch</strong> — toque em <strong>Visualizar no TestFlight</strong>." },
+        { img: "geomatch/testflight-03-onboarding.jpg",
+          alt: "Tela de boas-vindas do app TestFlight",
+          title: "Primeira vez no TestFlight?",
+          body: "Se essa for a primeira versão beta que você testa, o app TestFlight mostra uma tela rápida de boas-vindas. Toque em <strong>Continuar</strong>." },
+        { img: "geomatch/testflight-04-instalar.jpg",
+          alt: "Página do app GeoMatch dentro do TestFlight, com botão Instalar",
+          title: "Toque em Instalar",
+          body: "Você chega na página do <strong>GeoMatch</strong> dentro do TestFlight, com a descrição do app. Toque em <strong>Instalar</strong> e aguarde o download." },
+        { img: "geomatch/testflight-05-abrir.png",
+          alt: "Página do app GeoMatch com botão Abrir, pronto para usar",
+          title: "Pronto! Toque em Abrir",
+          body: "Depois da instalação, o botão vira <strong>Abrir</strong>. É só tocar para começar a usar o GeoMatch. O app fica disponível por 90 dias e você recebe aviso de novas versões automaticamente." }
+      ]
+    %>
+
+    <% steps.each_with_index do |step, i| %>
+      <div class="tf-step">
+        <div class="tf-step-shot"><%= image_tag step[:img], alt: step[:alt] %></div>
+        <div class="tf-step-copy">
+          <span class="sticker-num"><%= format("%02d", i + 1) %></span>
+          <h3><%= step[:title] %></h3>
+          <p><%= raw step[:body] %></p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<!-- ============ FECHO ============ -->
+<section class="tf-closing" data-screen-label="Fecho">
+  <div class="wrap">
+    <h2 class="display">Qualquer dúvida na instalação?</h2>
+    <p>Fale com a gente ou consulte o suporte oficial da Apple para o TestFlight.</p>
+    <div class="cta-row">
+      <a class="btn btn--gold" href="https://testflight.apple.com/join/d2WGpc3D" target="_blank" rel="noopener">Abrir link do beta</a>
+      <a class="btn btn--dark" href="https://support.apple.com/pt-br/106114" target="_blank" rel="noopener">Ajuda da Apple</a>
+    </div>
+  </div>
+</section>

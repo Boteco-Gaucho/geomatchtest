@@ -1,0 +1,176 @@
+<div class="blog-container">
+  <div class="blog-header">
+    <h1>Blog GeoMatch</h1>
+    <% if @category %>
+      <h2><%= @category.name %></h2>
+      <p><%= @category.description %></p>
+    <% else %>
+      <p>Dicas, novidades e artigos sobre conexões reais, segurança e relacionamentos.</p>
+    <% end %>
+  </div>
+
+  <div class="blog-content">
+    <div class="posts-grid">
+      <% if @blog_posts.any? %>
+        <% @blog_posts.each do |post| %>
+          <article class="post-card">
+            <% if post.featured_image.present? %>
+              <%= link_to blog_post_path(post), class: "post-image" do %>
+                <%= image_tag post.featured_image, alt: post.title %>
+              <% end %>
+            <% end %>
+
+            <div class="post-content">
+              <div class="post-meta">
+                <span class="post-category"><%= post.blog_category.name %></span>
+                <span class="post-date"><%= l(post.published_at, format: :short) %></span>
+              </div>
+
+              <%= link_to blog_post_path(post), class: "post-title" do %>
+                <h3><%= post.title %></h3>
+              <% end %>
+
+              <p class="post-excerpt"><%= post.excerpt.present? ? post.excerpt : truncate(post.content, length: 160) %></p>
+
+              <%= link_to "Ler mais →", blog_post_path(post), class: "post-link" %>
+            </div>
+          </article>
+        <% end %>
+      <% else %>
+        <div class="empty-state">
+          <p>Nenhum artigo publicado ainda.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .blog-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .blog-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .blog-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .blog-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--color-primary);
+  }
+
+  .blog-header p {
+    font-size: 1.1rem;
+    color: var(--color-text-secondary);
+    opacity: 0.8;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+  }
+
+  .post-card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-section-light);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .post-image {
+    display: block;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+  }
+
+  .post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .post-card:hover .post-image img {
+    transform: scale(1.05);
+  }
+
+  .post-content {
+    padding: 20px;
+  }
+
+  .post-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+  }
+
+  .post-category {
+    background: var(--color-primary);
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .post-date {
+    color: var(--color-text-secondary);
+  }
+
+  .post-title {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .post-title h3 {
+    font-size: 1.3rem;
+    margin: 0 0 12px 0;
+    color: var(--color-text);
+  }
+
+  .post-title:hover h3 {
+    color: var(--color-primary);
+  }
+
+  .post-excerpt {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+  }
+
+  .post-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: gap 0.2s;
+  }
+
+  .post-link:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+  }
+</style>

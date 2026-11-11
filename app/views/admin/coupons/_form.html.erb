@@ -1,0 +1,86 @@
+<%= form_with(model: [:admin, coupon]) do |form| %>
+
+  <% if coupon.errors.any? %>
+    <div class="bg-red-950/60 border border-red-800 rounded-xl p-4 mb-6" id="error_explanation">
+      <h2 class="text-sm font-bold text-red-400 mb-2">
+        <%= pluralize(coupon.errors.count, "erro impediu", plural: "erros impediram") %> que este cupom fosse salvo:
+      </h2>
+      <ul class="list-disc list-inside text-sm text-red-300 space-y-1">
+        <% coupon.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+
+    <div>
+      <%= form.label :code, 'Código', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+      <%= form.text_field :code,
+            placeholder: "Ex: PRIMEIROACESSO",
+            class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 uppercase" %>
+      <p class="text-xs text-slate-500 mt-1">Salvo automaticamente em maiúsculas.</p>
+    </div>
+
+    <div>
+      <%= form.label :description, 'Descrição', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+      <%= form.text_area :description, rows: 3,
+            class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" %>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <%= form.label :discount_type, 'Tipo de Desconto', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+        <%= form.select :discount_type,
+              options_for_select([['Acesso Gratuito', 'free_access']], coupon.discount_type),
+              {},
+              class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" %>
+      </div>
+
+      <div>
+        <%= form.label :duration_days, 'Duração (dias)', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+        <%= form.number_field :duration_days, min: 1, placeholder: "Ex: 30",
+              class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" %>
+      </div>
+    </div>
+
+    <div>
+      <%= form.label :plan_codes, 'Códigos dos Planos', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+      <%= form.text_field :plan_codes, value: coupon.plan_codes.join(','), placeholder: "Ex: plus,gold",
+            class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" %>
+      <p class="text-xs text-slate-500 mt-1">Separados por vírgula. Serão concedidos os recursos destes planos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <%= form.label :usage_limit, 'Limite de Usos', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+        <%= form.number_field :usage_limit, min: 0, placeholder: "0 = ilimitado",
+              class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500" %>
+        <p class="text-xs text-slate-500 mt-1">0 ou vazio = ilimitado. Cada usuário só usa o cupom uma vez, independente deste limite.</p>
+      </div>
+
+      <div>
+        <%= form.label :expires_at, 'Expira em', class: "block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5" %>
+        <%= form.datetime_field :expires_at,
+              class: "w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" %>
+        <p class="text-xs text-slate-500 mt-1">Deixe em branco para nunca expirar.</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 pt-1">
+      <%= form.check_box :active, class: "w-4 h-4 rounded bg-slate-800 border-slate-700 accent-amber-500" %>
+      <%= form.label :active, 'Ativo', class: "text-sm font-medium text-slate-300" %>
+    </div>
+
+  </div>
+
+  <div class="flex items-center gap-3 mt-6">
+    <%= form.submit 'Salvar Cupom',
+          class: "px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 cursor-pointer transition-opacity hover:opacity-90",
+          style: "background:linear-gradient(135deg,#f59e0b,#d97706)" %>
+    <%= link_to 'Cancelar', admin_coupons_path,
+          class: "px-5 py-2.5 rounded-xl text-sm font-medium text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800/60 transition-colors" %>
+  </div>
+
+<% end %>

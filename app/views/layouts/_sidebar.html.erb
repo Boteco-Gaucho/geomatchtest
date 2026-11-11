@@ -1,0 +1,56 @@
+<% unless turbo_native_app? %>
+<aside id="mobile-web-menu-target" class="sidebar" data-hide-in-app>
+  <nav class="sidebar-nav">
+    <% if user_signed_in? %>
+
+      <%= link_to lead_path, class: "nav-item #{'active' if current_page?(lead_path)}", data: { turbo_native: "ignore" } do %>
+        <div class="icon-container">
+          <%= image_tag "geomatch-vazada.svg", class: "nav-icon", alt: "Início" %>
+        </div>
+        <span class="nav-text">Início</span>
+      <% end %>
+
+      <%= link_to discover_3d_path, class: "nav-item #{'active' if current_page?(discover_3d_path)}", data: { turbo_native: "ignore" } do %>
+        <div class="icon-container">
+          <%= image_tag "mapa-vazada.svg", class: "nav-icon", alt: "Encontrar" %>
+        </div>
+        <span class="nav-text">Encontrar</span>
+      <% end %>
+
+      <%= link_to notifications_path, class: "nav-item #{'active' if current_page?(notifications_path)}", data: { turbo_native: "ignore" } do %>
+        <div class="icon-container">
+          <%= image_tag "coracao-vazada.svg", class: "nav-icon", alt: "Curtidas" %>
+
+          <%# Badge de Contador (Ex: 20) %>
+          <% unread_count = current_user.notifications.unread.count %>
+          <% if unread_count > 0 %>
+            <span class="badge-counter"><%= unread_count > 99 ? '99+' : unread_count %></span>
+          <% end %>
+        </div>
+        <span class="nav-text">Curtidas</span>
+      <% end %>
+
+      <%= link_to matches_path, class: "nav-item #{'active' if current_page?(matches_path)}", data: { turbo_native: "ignore" } do %>
+        <div class="icon-container">
+          <%= image_tag "mensagem-vazada.svg", class: "nav-icon", alt: "Mensagens" %>
+
+          <%# Badge de Ponto Vermelho (Apenas avisa que tem msg) %>
+          <% if defined?(current_user.has_unread_messages?) && current_user.has_unread_messages? %>
+            <span class="badge-dot"></span>
+          <% end %>
+        </div>
+        <span class="nav-text">Mensagens</span>
+      <% end %>
+
+      <%= link_to my_profile_path, class: "nav-item #{'active' if current_page?(my_profile_path)}", data: { turbo_native: "ignore" } do %>
+        <div class="icon-container">
+          <%= image_tag "perfil-vazada.svg", class: "nav-icon", alt: "Perfil" %>
+        </div>
+        <span class="nav-text">Perfil</span>
+      <% end %>
+
+    <% end %>
+
+</nav>
+</aside>
+<% end %>

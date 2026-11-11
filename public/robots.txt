@@ -1,1 +1,37 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+# GeoMatch robots.txt — Política de rastreamento para bots
+# Última atualização: 2026-06-21
+
+# Bots que devem rastrear o site
+User-agent: *
+Allow: /
+Allow: /plans
+Allow: /safety_center
+Allow: /discover_3d
+Allow: /termos-de-uso
+Allow: /politica-de-privacidade
+Allow: /suporte
+
+# Desabilitar rastreamento de áreas internas/dinâmicas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /admin
+Disallow: /users/sign_in
+Disallow: /users/sign_up
+Disallow: /users/password
+Disallow: /*.json$
+
+# Específico para Googlebot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Específico para bots de IA (Claude, GPT, etc.) — permitir mas com delay
+User-agent: CCBot
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Crawl-delay: 1
+
+# Sitemaps (dinâmica com posts + estática)
+Sitemap: https://geomatchbr.com/sitemap.xml
+Sitemap: https://geomatchbr.com/public/sitemap.xml

@@ -1,0 +1,7 @@
+<div class="toast toast--<%= local_assigns[:type] || 'notice' %>"
+     data-controller="toast"
+     role="alert"
+     aria-live="polite">
+  <span class="toast__message"><%= message %></span>
+  <button class="toast__close" data-action="toast#close" aria-label="Fechar">✕</button>
+</div>

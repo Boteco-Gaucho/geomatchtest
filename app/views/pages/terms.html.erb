@@ -1,0 +1,85 @@
+<div class="legal-container">
+  <div class="legal-content">
+    <h1>Termos de Uso do Aplicativo GeoMatch</h1>
+    <p class="last-updated">Data da última atualização: <%= Time.current.strftime("%d/%m/%Y") %></p>
+
+    <p>Bem-vindo(a) ao <strong>GeoMatch</strong>! Estes Termos de Uso ("Termos") regem o acesso e o uso do nosso aplicativo e serviços relacionados. Ao criar uma conta, acessar ou usar o GeoMatch, você concorda em cumprir e estar vinculado(a) a estes Termos, bem como à nossa Política de Privacidade. Por favor, leia-os atentamente.</p>
+
+    <h2>1. Aceitação dos Termos</h2>
+    <p>Ao clicar em "Aceito" ou ao usar o aplicativo, você declara que leu, compreendeu e concordou com estes Termos de Uso, bem como com a Política de Privacidade do GeoMatch. Caso não concorde com qualquer parte destes Termos ou da Política de Privacidade, você não deve usar o aplicativo.</p>
+
+    <h2>2. Elegibilidade</h2>
+    <p>Para utilizar o GeoMatch, você deve:</p>
+    <ul>
+      <li>Ter pelo menos 18 (dezoito) anos de idade, ou a idade legal de maioridade em sua jurisdição, se for superior a 18 anos.</li>
+      <li>Ter plena capacidade legal para celebrar um contrato vinculativo conosco.</li>
+    </ul>
+    <p>Ao utilizar o aplicativo, você declara e garante que é maior de idade e que possui capacidade legal para aceitar estes Termos.</p>
+
+    <h2>3. Registro e Conta</h2>
+    <p>Para usar os recursos interativos do GeoMatch, você precisará criar uma conta, fornecendo informações precisas e completas, incluindo, mas não se limitando a, seu nome, data de nascimento, gênero e fotos de perfil. Você é o único(a) responsável por manter a confidencialidade de suas credenciais de login e por todas as atividades que ocorrem em sua conta.</p>
+
+    <h2>4. Uso do Aplicativo e Interações</h2>
+    <p>O GeoMatch é uma plataforma social e de encontros que utiliza a sua localização em tempo real para conectar você com outros usuários em um raio de até 300 metros.</p>
+    <ul>
+      <li><strong>Funcionalidade de GeoMatch:</strong> O aplicativo exibirá um mapa onde você poderá ver perfis de outros usuários que estejam fisicamente dentro de um raio de 300 metros da sua localização atual.</li>
+      <li><strong>Interação em Tempo Real:</strong> Você poderá interagir e enviar mensagens para usuários visíveis no mapa em tempo real.</li>
+      <li><strong>Responsabilidade do Usuário:</strong> Você é o(a) único(a) responsável por suas interações com outros usuários do aplicativo, tanto online quanto offline. O GeoMatch não faz verificações de antecedentes criminais ou de histórico dos usuários e não se responsabiliza por suas condutas. Use o bom senso e tome precauções ao interagir com outras pessoas.</li>
+    </ul>
+
+    <h2>5. Conteúdo do Usuário</h2>
+    <p>Você é o(a) único(a) responsável por todo o conteúdo que publica ou exibe no aplicativo, incluindo textos, fotos, vídeos e outros materiais ("Conteúdo do Usuário"). Você concede ao GeoMatch uma licença global, não exclusiva, livre de royalties, sublicenciável e transferível para usar, reproduzir, distribuir, criar obras derivadas, exibir e executar o Conteúdo do Usuário em conexão com a operação do aplicativo e a promoção dos nossos serviços.</p>
+    <p>Você concorda em não publicar Conteúdo do Usuário que:</p>
+    <ul>
+      <li>Seja difamatório, obsceno, abusivo, sexualmente explícito, ameaçador, assediador, ofensivo, preconceituoso ou incite ódio.</li>
+      <li>Viole direitos de propriedade intelectual, privacidade ou publicidade de terceiros.</li>
+      <li>Contenha spam, vírus ou qualquer outro código malicioso.</li>
+      <li>Promova atividades ilegais.</li>
+    </ul>
+    <p>O GeoMatch reserva-se o direito de remover qualquer Conteúdo do Usuário que viole estes Termos, a nosso exclusivo critério, sem aviso prévio.</p>
+
+    <h2>6. Conduta Proibida</h2>
+    <p>Você concorda em não:</p>
+    <ul>
+      <li>Usar o aplicativo para qualquer finalidade ilegal ou não autorizada.</li>
+      <li>Assediar, perseguir, intimidar ou difamar outros usuários.</li>
+      <li>Solicitar senhas ou informações de identificação pessoal de outros usuários.</li>
+      <li>Usar o aplicativo para fins comerciais ou spam.</li>
+      <li>Interferir ou interromper a integridade ou o desempenho do aplicativo ou dos dados nele contidos.</li>
+      <li>Tentar obter acesso não autorizado ao aplicativo, sistemas ou redes.</li>
+    </ul>
+
+    <h2>7. Direitos de Propriedade Intelectual</h2>
+    <p>Todo o conteúdo e materiais disponíveis no GeoMatch, exceto o Conteúdo do Usuário, incluindo, mas não se limitando a, texto, gráficos, logotipos, ícones, imagens, software e design, são de propriedade do GeoMatch ou de seus licenciadores e são protegidos por leis de propriedade intelectual.</p>
+
+    <div class="legal-footer">
+      <%= link_to "Voltar para o Cadastro", new_user_registration_path, class: "btn-back" %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .legal-container {
+    padding: 40px 20px;
+    background-color: var(--color-background);
+    min-height: 100vh;
+    color: var(--color-text);
+  }
+  .legal-content {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--color-section-light);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  .legal-content h1 { font-size: 2rem; margin-bottom: 10px; color: var(--color-primary); }
+  .legal-content h2 { font-size: 1.4rem; margin-top: 30px; margin-bottom: 15px; color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 5px;}
+  .legal-content p, .legal-content li { line-height: 1.6; color: var(--color-text-secondary); margin-bottom: 15px; }
+  .legal-content ul { padding-left: 20px; margin-bottom: 20px; }
+  .legal-content li { margin-bottom: 8px; }
+  .last-updated { font-style: italic; font-size: 0.9rem; color: #888; }
+  .legal-footer { margin-top: 40px; text-align: center; }
+  .btn-back { background: var(--color-primary); color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; }
+  .btn-back:hover { opacity: 0.9; }
+</style>

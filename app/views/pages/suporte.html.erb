@@ -1,0 +1,234 @@
+<!-- FAQ Schema para SEO -->
+<script type="application/ld+json">
+<%= {
+  "@context": "https://schema.org/",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Como excluir minha conta?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Acesse seu perfil → Configurações → Excluir conta. Se precisar de ajuda, envie um e-mail com o assunto 'Excluir conta'."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como cancelar minha assinatura?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cancele diretamente pela App Store (iOS) ou pelo app em Perfil → Assinatura. Para reembolsos, entre em contato pelo e-mail acima."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Como reportar um usuário?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No perfil do usuário, toque em 'Reportar'. Nossa equipe de moderação analisa todos os relatos em até 24 horas."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Problemas com notificações?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Verifique se as notificações estão habilitadas em Ajustes → GeoMatch → Notificações no seu dispositivo."
+      }
+    }
+  ]
+}.to_json %>
+</script>
+
+<div class="support-page">
+  <div class="support-container">
+    <div class="support-logo">
+      <h1 class="support-brand">GeoMatch</h1>
+    </div>
+
+    <div class="support-card">
+      <h2>Central de Suporte</h2>
+      <p class="support-tagline">Precisa de ajuda com o GeoMatch? Estamos aqui para você.</p>
+
+      <div class="support-section">
+        <h3>Fale Conosco</h3>
+        <p>Nossa equipe responde em até 48 horas úteis.</p>
+        <a href="mailto:suporte@geomatchbr.com" class="support-email-btn">
+          ✉ suporte@geomatchbr.com
+        </a>
+      </div>
+
+      <div class="support-section">
+        <h3>Perguntas Frequentes</h3>
+        <div class="faq-item">
+          <strong>Como excluir minha conta?</strong>
+          <p>Acesse seu perfil → Configurações → Excluir conta. Se precisar de ajuda, envie um e-mail com o assunto "Excluir conta".</p>
+        </div>
+        <div class="faq-item">
+          <strong>Como cancelar minha assinatura?</strong>
+          <p>Cancele diretamente pela App Store (iOS) ou pelo app em Perfil → Assinatura. Para reembolsos, entre em contato pelo e-mail acima.</p>
+        </div>
+        <div class="faq-item">
+          <strong>Como reportar um usuário?</strong>
+          <p>No perfil do usuário, toque em "Reportar". Nossa equipe de moderação analisa todos os relatos em até 24 horas.</p>
+        </div>
+        <div class="faq-item">
+          <strong>Problemas com notificações?</strong>
+          <p>Verifique se as notificações estão habilitadas em Ajustes → GeoMatch → Notificações no seu dispositivo.</p>
+        </div>
+      </div>
+
+      <div class="support-section support-footer-note">
+        <p>Ao entrar em contato, informe seu nome de usuário e descreva o problema com o máximo de detalhes possível para agilizarmos o atendimento.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .support-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+
+  .support-container {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .support-logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .support-brand {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #e94560, #f5a623);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  .support-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 36px 32px;
+    color: #f0f0f0;
+    backdrop-filter: blur(10px);
+  }
+
+  .support-card h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: #ffffff;
+  }
+
+  .support-tagline {
+    color: #a0aec0;
+    font-size: 1rem;
+    margin: 0 0 32px 0;
+    line-height: 1.5;
+  }
+
+  .support-section {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .support-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .support-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e94560;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 12px 0;
+  }
+
+  .support-section > p {
+    color: #a0aec0;
+    font-size: 0.95rem;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+  }
+
+  .support-email-btn {
+    display: inline-block;
+    background: linear-gradient(90deg, #e94560, #f5a623);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: opacity 0.2s;
+  }
+
+  .support-email-btn:hover {
+    opacity: 0.85;
+    color: #ffffff;
+  }
+
+  .faq-item {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    border-left: 3px solid #e94560;
+  }
+
+  .faq-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .faq-item strong {
+    display: block;
+    color: #ffffff;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+
+  .faq-item p {
+    color: #a0aec0;
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .support-footer-note p {
+    color: #718096;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin: 0;
+    font-style: italic;
+  }
+
+  @media (max-width: 480px) {
+    .support-card {
+      padding: 24px 20px;
+    }
+
+    .support-brand {
+      font-size: 2rem;
+    }
+
+    .support-card h2 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

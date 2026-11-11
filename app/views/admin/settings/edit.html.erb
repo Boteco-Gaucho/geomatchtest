@@ -1,0 +1,42 @@
+<% content_for :page_title, "Configurações do Sistema" %>
+
+<%= turbo_frame_tag "setting_#{@setting.id}" do %>
+  <div class="bg-slate-900 border rounded-2xl p-5 transition-all" style="border-color:rgba(245,158,11,.35)">
+
+    <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+      <%= @meta[:label] %>
+    </p>
+
+    <%= form_with url: admin_setting_path(@setting), method: :patch do |f| %>
+      <div class="flex items-center gap-3 flex-wrap">
+
+        <div class="flex items-center bg-slate-800 border border-slate-700 rounded-xl overflow-hidden
+                    focus-within:border-amber-500 transition-colors">
+          <% if @meta[:type] == :price %>
+            <span class="px-3 py-2.5 text-slate-400 text-sm font-semibold border-r border-slate-700
+                         bg-slate-900/60 select-none">R$</span>
+          <% end %>
+          <%= f.text_field :value,
+                value: @meta[:type] == :price \
+                         ? format('%.2f', @setting.value / 100.0).tr('.', ',') \
+                         : @setting.value,
+                class: "bg-transparent px-3 py-2.5 text-white text-sm outline-none w-28",
+                placeholder: @meta[:type] == :price ? "1,99" : "Valor",
+                autocomplete: "off",
+                inputmode: @meta[:type] == :price ? "decimal" : "numeric",
+                autofocus: true %>
+        </div>
+
+        <%= f.submit "💾 Salvar",
+              class: "px-4 py-2.5 rounded-xl text-sm font-bold text-slate-900 transition-opacity
+                      hover:opacity-90 cursor-pointer",
+              style: "background:#f59e0b" %>
+
+        <%= link_to "Cancelar", admin_settings_path,
+              class: "px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white
+                      hover:bg-slate-800 transition-colors" %>
+      </div>
+    <% end %>
+
+  </div>
+<% end %>

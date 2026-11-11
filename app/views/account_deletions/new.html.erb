@@ -1,0 +1,171 @@
+<div class="gm-del-page">
+  <div class="gm-del-card">
+
+    <h1 class="gm-del-brand">GeoMatch</h1>
+
+    <h2 class="gm-del-title">GeoMatch - Exclusão de Dados</h2>
+
+    <p class="gm-del-intro">
+      Esta é a página oficial de solicitação de <strong>exclusão de conta e dados</strong> do
+      aplicativo <strong>GeoMatch</strong>. Preencha o formulário abaixo e nossa equipe processará
+      a remoção permanente da sua conta.
+    </p>
+
+    <div class="gm-del-info">
+      <p><strong>O que será excluído:</strong> perfil, fotos, matches, mensagens, curtidas e histórico de localização.</p>
+      <p><strong>Prazo:</strong> a exclusão é processada em até 30 dias após a confirmação. Dados de pagamento podem ser retidos pelo período exigido por lei.</p>
+    </div>
+
+    <%= form_with url: account_deletion_path, method: :post, class: "gm-del-form" do |form| %>
+
+      <%# Honeypot anti-spam — invisível para humanos %>
+      <div class="gm-del-hp" aria-hidden="true">
+        <%= form.text_field :website, tabindex: -1, autocomplete: "off" %>
+      </div>
+
+      <div class="ob-field-group">
+        <label class="ob-label" for="deletion_name">
+          Nome Completo <span class="ob-required">*</span>
+        </label>
+        <%= form.text_field :name,
+              id: "deletion_name",
+              class: "ob-input",
+              placeholder: "Seu nome completo",
+              required: true %>
+      </div>
+
+      <div class="ob-field-group">
+        <label class="ob-label" for="deletion_email">
+          Email da Conta <span class="ob-required">*</span>
+        </label>
+        <%= form.email_field :email,
+              id: "deletion_email",
+              class: "ob-input",
+              placeholder: "email@cadastrado-no-app.com",
+              required: true %>
+        <span class="ob-hint">Use o mesmo email cadastrado no aplicativo.</span>
+      </div>
+
+      <div class="ob-field-group">
+        <label class="ob-label" for="deletion_reason">
+          Motivo (opcional)
+        </label>
+        <%= form.text_area :reason,
+              id: "deletion_reason",
+              class: "ob-input",
+              rows: 4,
+              placeholder: "Conte-nos por que está saindo — isso nos ajuda a melhorar." %>
+      </div>
+
+      <div class="ob-actions">
+        <%= form.submit "Solicitar Exclusão da Conta", class: "ob-btn-submit" %>
+      </div>
+
+    <% end %>
+
+    <p class="gm-del-footer-note">
+      Dúvidas? Fale com a gente em
+      <a href="mailto:suporte@geomatchbr.com">suporte@geomatchbr.com</a>
+      ou acesse a <%= link_to "Central de Suporte", suporte_path %>.
+    </p>
+
+    <%# Declaração exigida pelo Google Play Console — entidade proprietária do app %>
+    <p class="gm-del-footer-note">
+      Este portal é o canal oficial para solicitação de exclusão de conta e dados do aplicativo GeoMatch.
+      Operado por GeoMatch Tecnologia LTDA – CNPJ 64.653.020/0001-44.
+    </p>
+
+  </div>
+</div>
+
+<style>
+  /* Página de Exclusão de Conta — usa as variáveis de tema do GeoMatch
+     (herda light/dark automaticamente, tipografia Poppins do body) */
+  .gm-del-page {
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px 60px;
+    background: var(--color-background);
+  }
+
+  .gm-del-card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--color-section-light);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius, 20px);
+    box-shadow: var(--shadow-sm);
+    padding: 2.5rem 2rem;
+  }
+
+  .gm-del-brand {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+  }
+
+  .gm-del-title {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 18px;
+  }
+
+  .gm-del-intro {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .gm-del-info {
+    background: var(--color-section-gray);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+
+  }
+
+  .gm-del-info p {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0 0 8px;
+  }
+
+  .gm-del-info p:last-child { margin-bottom: 0; }
+
+  .gm-del-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .gm-del-form textarea.ob-input { resize: vertical; }
+
+  .gm-del-hp {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .gm-del-footer-note {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+  }
+
+  .gm-del-footer-note a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

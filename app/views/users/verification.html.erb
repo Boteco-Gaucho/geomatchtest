@@ -1,0 +1,325 @@
+<div class="verification-container">
+  <div class="verification-card">
+
+    <div class="verification-icon">
+      <%= image_tag "icone-verificar.png", class: "verify-badge-lg" %>
+    </div>
+
+    <h2>Verificação de Identidade</h2>
+    <p class="verification-desc">
+      Para garantir a segurança da comunidade, precisamos validar sua identidade.
+      Envie as <strong>três fotos</strong> abaixo com boa iluminação e nitidez.
+    </p>
+
+    <%= form_with url: send_verification_path, method: :patch, local: true, multipart: true, data: { turbo: false }, class: "verification-form" do |f| %>
+
+      <%# --- Etapa 1 --- %>
+      <div class="kyc-step">
+        <div class="kyc-step-header">
+          <span class="kyc-step-number">1</span>
+          <div>
+            <strong class="kyc-step-title">Frente do Documento</strong>
+            <p class="kyc-step-desc">Foto da frente do seu RG ou CNH. O nome deve estar legível.</p>
+          </div>
+        </div>
+        <label class="upload-box" for="document_front" id="box-front">
+          <span class="upload-label" id="label-front">
+            <i class="fas fa-id-card"></i>
+            <span>Toque para selecionar</span>
+          </span>
+          <input type="file"
+                 name="document_front"
+                 id="document_front"
+                 accept="image/jpeg, image/png, image/jpg"
+                 capture="environment"
+                 class="file-input-hidden"
+                 onclick="this.value=null"
+                 onchange="previewKyc(this,'preview-front','label-front','box-front')">
+          <img id="preview-front" class="kyc-preview hidden" src="#" alt="Preview frente">
+        </label>
+      </div>
+
+      <%# --- Etapa 2 --- %>
+      <div class="kyc-step">
+        <div class="kyc-step-header">
+          <span class="kyc-step-number">2</span>
+          <div>
+            <strong class="kyc-step-title">Verso do Documento</strong>
+            <p class="kyc-step-desc">Foto do verso do mesmo documento enviado acima.</p>
+          </div>
+        </div>
+        <label class="upload-box" for="document_back" id="box-back">
+          <span class="upload-label" id="label-back">
+            <i class="fas fa-id-card"></i>
+            <span>Toque para selecionar</span>
+          </span>
+          <input type="file"
+                 name="document_back"
+                 id="document_back"
+                 accept="image/jpeg, image/png, image/jpg"
+                 capture="environment"
+                 class="file-input-hidden"
+                 onclick="this.value=null"
+                 onchange="previewKyc(this,'preview-back','label-back','box-back')">
+          <img id="preview-back" class="kyc-preview hidden" src="#" alt="Preview verso">
+        </label>
+      </div>
+
+      <%# --- Etapa 3 --- %>
+      <div class="kyc-step">
+        <div class="kyc-step-header">
+          <span class="kyc-step-number">3</span>
+          <div>
+            <strong class="kyc-step-title">Selfie com o Documento</strong>
+            <p class="kyc-step-desc">Segure o documento ao lado do rosto. Ambos devem estar visíveis e nítidos.</p>
+          </div>
+        </div>
+        <label class="upload-box" for="selfie_with_document" id="box-selfie">
+          <span class="upload-label" id="label-selfie">
+            <i class="fas fa-camera"></i>
+            <span>Toque para selecionar</span>
+          </span>
+          <input type="file"
+                 name="selfie_with_document"
+                 id="selfie_with_document"
+                 accept="image/jpeg, image/png, image/jpg"
+                 capture="user"
+                 class="file-input-hidden"
+                 onclick="this.value=null"
+                 onchange="previewKyc(this,'preview-selfie','label-selfie','box-selfie')">
+          <img id="preview-selfie" class="kyc-preview hidden" src="#" alt="Preview selfie">
+        </label>
+      </div>
+
+      <div class="kyc-notice">
+        <i class="fas fa-lock"></i>
+        Seus documentos são usados exclusivamente para verificar sua identidade e não são compartilhados.
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Enviar para Análise", class: "btn-submit-gold", id: "btn-submit-kyc" %>
+        <%= link_to "Cancelar", my_profile_path, class: "btn-cancel-link" %>
+      </div>
+
+    <% end %>
+
+  </div>
+</div>
+
+<script>
+  function previewKyc(input, previewId, labelId, boxId) {
+    if (!input.files || !input.files[0]) return;
+
+    const preview = document.getElementById(previewId);
+    const label   = document.getElementById(labelId);
+    const box     = document.getElementById(boxId);
+    const reader  = new FileReader();
+
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+      label.style.display = 'none';
+      if (box) box.classList.add('has-preview');
+    };
+
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  document.querySelector('.verification-form').addEventListener('submit', function(e) {
+    var fields  = ['document_front', 'document_back', 'selfie_with_document'];
+    var missing = fields.filter(function(id) {
+      var el = document.getElementById(id);
+      return !el || !el.files || !el.files.length;
+    });
+    if (missing.length) {
+      e.preventDefault();
+      alert('Por favor, selecione as três fotos antes de enviar.');
+    }
+  });
+</script>
+
+<style>
+  .verification-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 28px 16px 48px;
+    background-color: var(--color-background);
+  }
+
+  .verification-card {
+    background: var(--color-section-light);
+    width: 100%;
+    max-width: 440px;
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  .verification-icon { margin-bottom: 1rem; }
+  .verify-badge-lg   { width: 64px; height: 64px; }
+
+  h2 {
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.375rem;
+  }
+
+  .verification-desc {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.75rem;
+  }
+
+  /* Etapas KYC */
+  .kyc-step {
+    text-align: left;
+    margin-bottom: 1.25rem;
+  }
+
+  .kyc-step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .kyc-step-number {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .kyc-step-title {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    margin-bottom: 2px;
+  }
+
+  .kyc-step-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Upload box — agora é um <label> para máxima compatibilidade com iOS/Safari */
+  .upload-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s;
+    min-height: 110px;
+    overflow: hidden;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .upload-box:hover,
+  .upload-box:focus-within {
+    border-color: var(--color-primary);
+    background: rgba(212, 175, 55, 0.05);
+  }
+
+  .upload-box.has-preview {
+    border-style: solid;
+    border-color: var(--color-primary);
+    padding: 8px;
+  }
+
+  /* Input oculto via display:none — <label for> garante o clique no iOS */
+  .file-input-hidden {
+    display: none;
+  }
+
+  .upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-primary);
+    font-size: 0.8125rem;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .upload-label i { font-size: 1.75rem; }
+
+  .kyc-preview {
+    max-width: 100%;
+    max-height: 160px;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+
+  .kyc-preview.hidden { display: none; }
+
+  /* Aviso de privacidade */
+  .kyc-notice {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+
+  .kyc-notice i { color: var(--color-primary); flex-shrink: 0; margin-top: 2px; }
+
+  /* Botões */
+  .btn-submit-gold {
+    width: 100%;
+    padding: 14px;
+    background: var(--color-primary);
+    color: #000;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .btn-submit-gold:hover {
+    transform: scale(1.02);
+    filter: brightness(1.08);
+  }
+
+  .btn-cancel-link {
+    display: block;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+
+  .btn-cancel-link:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+</style>

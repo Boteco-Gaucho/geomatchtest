@@ -1,0 +1,91 @@
+<div class="geomatch-screen-wrapper" data-controller="lead-swipe filters">
+  
+  <%# --- 1. HEADER (Fixo) --- %>
+  <div class="geomatch-header">
+    <div class="header-left">
+      <%= image_tag "logo-geomatch-dourada.png", class: "header-logo", alt: "GeoMatch" %>
+    </div>
+    <div class="header-right">
+      <button class="header-btn" data-action="click->filters#open">
+        <%= image_tag "filtro-dourado.svg", alt: "Filtros" %>
+      </button>
+     <button class="header-btn" 
+        data-controller="theme" 
+        data-action="click->theme#toggle"
+        data-theme-sol-icon="<%= asset_path('sol-dourado.svg') %>"
+        data-theme-lua-icon="<%= asset_path('lua-dourado.svg') %>">
+  <%= image_tag "sol-dourado.svg", alt: "Tema", data: { theme_target: "icon" } %>
+</button>
+    </div>
+  </div>
+
+  <%# --- 3. ÁREA PRINCIPAL (Cards) — alvo do Turbo Stream de rewind --- %>
+  <div class="geomatch-main-area" id="swipe-area">
+    <%= render "users/swipe_area", next_user: @next_user, distance: @distance %>
+  </div>
+
+  <%# --- 5. MODAL DE FILTROS --- %>
+  <div class="filter-modal hidden" data-filters-target="modal">
+    <div class="filter-backdrop" data-action="click->filters#close"></div>
+
+    <div class="filter-content">
+      <%= form_tag lead_path, method: :get, data: { filters_target: "form" } do %>
+
+        <div class="filter-header">
+          <h2 class="filter-title">Filtros</h2>
+          <button type="button" class="filter-close-btn" data-action="click->filters#close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <%# --- Card: Distância --- %>
+        <div class="filter-card">
+          <div class="filter-card-top">
+            <span class="filter-card-label">Distância máxima</span>
+            <span class="filter-card-value">
+              <span data-filters-target="distanceValue"><%= @filter_distance %></span> km de você
+            </span>
+          </div>
+          <input type="range" name="distance" min="5" max="500" step="5"
+                 value="<%= @filter_distance %>"
+                 class="gm-range"
+                 data-filters-target="distanceInput"
+                 data-action="input->filters#updateDistanceVisual">
+          <div class="filter-card-toggle-row">
+            <p>Ver pessoas um pouco mais distantes se acabar</p>
+            <label class="gm-switch">
+              <input type="checkbox" checked>
+              <span class="gm-switch-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <%# --- Card: Faixa Etária --- %>
+        <div class="filter-card">
+          <div class="filter-card-top">
+            <span class="filter-card-label">Faixa etária</span>
+            <span class="filter-card-value">
+              <span data-filters-target="ageDisplay"><%= @filter_min_age %> - <%= @filter_max_age %></span> anos
+            </span>
+          </div>
+          <span class="filter-range-sub">Mínima</span>
+          <input type="range" name="min_age" min="18" max="100"
+                 value="<%= @filter_min_age %>"
+                 class="gm-range"
+                 data-filters-target="minAgeInput"
+                 data-action="input->filters#updateAgeVisual">
+          <span class="filter-range-sub" style="margin-top: 14px;">Máxima</span>
+          <input type="range" name="max_age" min="18" max="100"
+                 value="<%= @filter_max_age %>"
+                 class="gm-range"
+                 data-filters-target="maxAgeInput"
+                 data-action="input->filters#updateAgeVisual">
+        </div>
+
+        <button type="submit" class="btn-apply-gold">Aplicar Filtros</button>
+
+      <% end %>
+    </div>
+  </div>
+<div id="upgrade-modal-container" style="position: relative; z-index: 99999;"></div>
+</div>

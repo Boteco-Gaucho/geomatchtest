@@ -1,43 +1,146 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<div class="devise-container">
+  <div class="devise-form-card">
+    <h2>Editar Perfil</h2>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
+      <%# --- 1. Dados Pessoais --- %>
+      <div class="field">
+        <%= f.label :username, "Nome Completo" %>
+        <%= f.text_field :username, placeholder: "Seu nome completo", class: "form-input" %>
+      </div>
 
-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
-  <% end %>
+      <div class="field">
+        <%= f.label :birthdate, "Data de Nascimento" %>
+        <%= f.date_field :birthdate, class: "form-input" %>
+      </div>
 
-  <div class="field">
-    <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-    <% if @minimum_password_length %>
-      <br />
-      <em><%= @minimum_password_length %> characters minimum</em>
+      <%# --- 2. Escolaridade --- %>
+      <div class="field">
+        <%= f.label :education_level, "Escolaridade" %>
+        <%= f.select :education_level,
+              options_for_select([
+                ['Ensino Médio', 'high_school'],
+                ['Ensino Superior Incompleto', 'college_incomplete'],
+                ['Ensino Superior Completo', 'college_complete']
+              ], resource.education_level),
+              { prompt: "Selecione sua escolaridade" },
+              { class: "form-input" }
+        %>
+      </div>
+
+      <%# --- 3. Endereço via CEP (Stimulus: address) --- %>
+      <div data-controller="address">
+        <div class="field">
+          <%= f.label :zip_code, "CEP" %>
+          <%= f.text_field :zip_code,
+                placeholder: "00000-000",
+                class: "form-input",
+                maxlength: 9,
+                data: {
+                  address_target: "zipCode",
+                  action: "blur->address#lookup"
+                }
+          %>
+          <span class="field-hint" data-address-target="feedback" style="color: #e74c3c; font-size: 0.85rem;"></span>
+        </div>
+
+        <div class="field">
+          <%= f.label :street, "Rua / Logradouro" %>
+          <%= f.text_field :street,
+                placeholder: "Preenchido automaticamente",
+                class: "form-input",
+                readonly: true,
+                data: { address_target: "street" }
+          %>
+        </div>
+
+        <div class="field">
+          <%= f.label :neighborhood, "Bairro" %>
+          <%= f.text_field :neighborhood,
+                placeholder: "Preenchido automaticamente",
+                class: "form-input",
+                readonly: true,
+                data: { address_target: "neighborhood" }
+          %>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <div class="field" style="flex: 1;">
+            <%= f.label :city, "Cidade" %>
+            <%= f.text_field :city,
+                  placeholder: "Preenchido automaticamente",
+                  class: "form-input",
+                  readonly: true,
+                  data: { address_target: "city" }
+            %>
+          </div>
+
+          <div class="field" style="flex: 0 0 80px;">
+            <%= f.label :state, "UF" %>
+            <%= f.text_field :state,
+                  placeholder: "UF",
+                  class: "form-input",
+                  readonly: true,
+                  maxlength: 2,
+                  data: { address_target: "state" }
+            %>
+          </div>
+        </div>
+      </div>
+
+      <%# --- 4. Telefone --- %>
+      <div class="field">
+        <%= f.label :phone, "Telefone / WhatsApp" %>
+        <%= f.telephone_field :phone, placeholder: "(XX) 99999-9999", class: "form-input" %>
+      </div>
+
+      <%# --- 5. Dados de Acesso --- %>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autocomplete: "email", class: "form-input" %>
+      </div>
+
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <div class="alert alert-info">Aguardando confirmação para: <%= resource.unconfirmed_email %></div>
+      <% end %>
+
+      <div class="field">
+        <%= f.label :password, "Nova Senha" %>
+        <i style="font-size: 0.8rem; color: #888;">(deixe em branco se não quiser alterar)</i>
+        <%= f.password_field :password, autocomplete: "new-password", placeholder: "••••••••", class: "form-input" %>
+        <% if @minimum_password_length %>
+          <em class="password-hint"><%= @minimum_password_length %> caracteres no mínimo</em>
+        <% end %>
+      </div>
+
+      <div class="field">
+        <%= f.label :password_confirmation, "Confirmar Nova Senha" %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "••••••••", class: "form-input" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :current_password, "Senha Atual" %>
+        <i style="font-size: 0.8rem; color: #888;">(necessário para salvar as alterações)</i>
+        <%= f.password_field :current_password, autocomplete: "current-password", placeholder: "••••••••", class: "form-input" %>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Atualizar", class: "btn btn-primary" %>
+      </div>
     <% end %>
+
+    <hr style="margin: 30px 0; border-color: #eee;">
+
+    <h3>Cancelar conta</h3>
+    <div style="margin-bottom: 20px;">
+      <p>Não está satisfeito?</p>
+      <%= button_to "Cancelar minha conta", registration_path(resource_name), data: { confirm: "Tem certeza?", turbo_confirm: "Tem certeza que deseja apagar sua conta?" }, method: :delete, class: "btn-delete-account" %>
+    </div>
+
+    <div class="devise-links">
+      <%= link_to "Voltar", :back %>
+    </div>
   </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i><br />
-    <%= f.password_field :current_password, autocomplete: "current-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
-<% end %>
-
-<h3>Cancel my account</h3>
-
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
-
-<%= link_to "Back", :back %>
+</div>

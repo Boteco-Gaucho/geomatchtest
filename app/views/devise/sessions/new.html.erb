@@ -1,16 +1,31 @@
+<meta name="turbo-cache-control" content="no-cache">
+<script>
+  window.addEventListener("pageshow", function(event) {
+    if (event.persisted) { window.location.reload(); }
+  });
+</script>
+
 <div class="devise-container">
   <div class="devise-form-card">
     <h2>Entrar no GeoMatch</h2>
 
     <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+
       <div class="field">
         <%= f.label :email %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "seu.email@exemplo.com" %>
+        <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              placeholder: "seu.email@exemplo.com",
+              class: "form-input" %>
       </div>
 
       <div class="field">
         <%= f.label :password %>
-        <%= f.password_field :password, autocomplete: "current-password", placeholder: "••••••••" %>
+        <%= f.password_field :password,
+              autocomplete: "current-password",
+              placeholder: "••••••••",
+              class: "form-input" %>
       </div>
 
       <% if devise_mapping.rememberable? %>

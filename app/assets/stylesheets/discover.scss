@@ -1,14 +1,1055 @@
-/* app/assets/stylesheets/discover.css */
-@use "sass:color";
+// =========================================================
+// LAYOUT DE MAPA - DISCOVER (DARK PREMIUM) - FINAL V8
+// =========================================================
 
-.discover-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
+// MarkerCluster CSS é carregado via CDN no layout (application.html.erb).
+
+// 1. CONTAINER & SPOTLIGHT
+.discover-fullscreen-container {
+  /* Cobre toda a tela: top/left/right/bottom é mais robusto que width/height em fixed */
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100dvh;
+  background: var(--color-background); overflow: hidden;
+  pointer-events: none; // Importante: deixa o clique passar para o mapa
+
+  // --- VARIÁVEIS DINÂMICAS ---
+  --radar-radius: 150px; // Raio inicial
+  --radar-x: 50%;        // Posição X inicial (centro)
+  --radar-y: 50%;        // Posição Y inicial (centro)
+
+  /* EFEITO SPOTLIGHT (MÁSCARA) */
+  &::after {
+    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 80;
+    
+    // O gradiente agora segue as coordenadas X e Y do usuário
+    background: radial-gradient(circle at var(--radar-x) var(--radar-y), transparent 0px, transparent var(--radar-radius), var(--map-spotlight-color) calc(var(--radar-radius) + 1px));
+  }
+
+  /* Círculo Dourado (Borda) */
+  &::before {
+    content: ""; position: absolute;
+    left: var(--radar-x);
+    top: var(--radar-y);
+    transform: translate(-50%, -50%);
+    width: calc(var(--radar-radius) * 2);
+    height: calc(var(--radar-radius) * 2);
+    transition: width 0.1s linear, height 0.1s linear;
+    border-radius: 50%; border: 3px solid rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+    z-index: 81; pointer-events: none;
+  }
 }
 
-.like-btn:hover {
-  background: #2563eb;
-  transform: scale(1.05);
-  transition: 0.2s;
+.map-fullscreen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+// 2. HEADER FLUTUANTE
+.discover-header-floating {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top));
+  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  pointer-events: none;
+}
+.header-logo-img { height: 28px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); pointer-events: auto; }
+// Filtro de gênero segmentado (pílula de vidro) — 4 opções com estado ativo dourado.
+// pointer-events: auto é obrigatório: o .discover-header-floating tem pointer-events: none.
+.gm-gender-filter {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 100%);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.16) inset,
+    0 1px 2px rgba(0,0,0,0.25) inset,
+    0 10px 26px rgba(0,0,0,0.4);
+  pointer-events: auto;
+}
+
+.gm-gender-filter__opt {
+  position: relative;
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: rgba(255,255,255,0.72);
+  transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.gm-gender-filter__opt svg { width: 16px; height: 16px; }
+.gm-gender-filter__opt:active { transform: scale(0.92); }
+
+.gm-gender-filter__opt[aria-pressed="true"] {
+  background: linear-gradient(135deg, #F4DFC4 0%, #E8C99B 45%, #C9A079 100%);
+  color: #1A1108;
+  box-shadow:
+    0 0 0 1px rgba(244,223,196,0.5) inset,
+    0 4px 12px rgba(201,160,121,0.45);
+}
+
+.gm-gender-filter__opt::after { content: ""; position: absolute; inset: -5px; }
+
+// 3. CONTROLE DE RADAR
+.radar-control-floating {
+  position: absolute; left: 15px; top: 280px; z-index: 500;
+  display: flex; flex-direction: column; align-items: center; gap: 0px;
+  pointer-events: auto;
+  // Sem cursor:grab e sem touch-action:none — o container é fixo,
+  // só o input interno deve capturar interações de slide.
+  cursor: default;
+  user-select: none;
+}
+.radar-badge-box {
+  position: relative; width: 50px; height: auto;
+  display: flex; justify-content: center; align-items: center;
+  margin-bottom: -8px; z-index: 3; pointer-events: none;
+}
+.radar-badge-img { width: 100%; height: auto; object-fit: contain; }
+.dynamic-value-text {
+  position: absolute; font-size: 0.7rem; font-weight: 800; color: #3e2723;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.slider-track-container { position: relative; width: 40px; height: 160px; display: flex; justify-content: center; align-items: center; }
+.slider-track-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: 0; pointer-events: none; }
+.range-slider-custom {
+  -webkit-appearance: none; appearance: none;
+  width: 160px; height: 40px; 
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg); transform-origin: center;
+  background: transparent; margin: 0; padding: 0; z-index: 2; cursor: pointer; accent-color: transparent;
+  background-image: linear-gradient(to right, #f4e4bc 0%, #f4e4bc 0%, transparent 0%, transparent 100%);
+  background-repeat: no-repeat; background-position: center; background-size: 100% 4px;
+  &::-webkit-slider-runnable-track { background: transparent; border: none; height: 100%; }
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: #f4e4bc; border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.4); margin-top: 9px;
+  }
+}
+
+// 4. FAB ACTIONS
+.map-fab-container { position: absolute; right: 20px; bottom: 240px; z-index: 500; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
+.fab-button {
+  width: 50px; height: 50px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  &:active { transform: scale(0.95); }
+  &.fab-visibility { background: #0fd118; color: #fff; }
+  &.fab-visibility.active { background-color: #ff4d4d; color: white; }
+  &[title="Centralizar no meu local"] { background: #b1a57f; color: #000; }
+  svg { width: 22px; height: 22px; }
+}
+
+// 5. BOTTOM SHEET
+.users-bottom-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 25vh; min-height: 120px; max-height: 85vh;
+  z-index: 600; background: var(--color-section-light);
+  border-top-left-radius: 25px; border-top-right-radius: 25px;
+  box-shadow: 0 -5px 30px rgba(0,0,0,0.8);
+  display: flex; flex-direction: column;
+  border-top: 1px solid var(--color-border);
+  pointer-events: auto;
+  transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  &.dragging { transition: none; }
+}
+
+.bottom-sheet-handle {
+  display: flex; justify-content: center; padding: 15px;
+  cursor: grab; touch-action: none;
+  .handle-bar { width: 40px; height: 5px; background: var(--color-border); border-radius: 3px; }
+}
+
+.bottom-sheet-content {
+  padding: 0 20px 20px 20px; display: flex; flex-direction: column; flex: 1; overflow: hidden;
+}
+
+.bottom-sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-users-title { display: flex; align-items: center; gap: 8px; }
+.icon-users-header { height: 22px; width: auto; }
+.text-users-header { height: 14px; width: auto; } 
+.nearby-count {
+  background: var(--color-section-gray); color: #dbc88a; width: 28px; height: 28px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; border: 1px solid var(--color-border);
+}
+
+.users-list-fullscreen {
+  
+  list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+  .user-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+
+    // ... restante das regras ...
+  }
+}
+
+// Garante que o marcador do Leaflet seja sempre um quadrado perfeito
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-frame-wrapper {
+    position: relative;
+    width: 56px !important;
+    height: 56px !important;
+    aspect-ratio: 1 / 1; // Força a proporção 1:1
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    
+    // Se o círculo estiver oval, é provável que o overflow ou o flex do pai esteja afetando
+    border-radius: 50%; 
+}
+
+.avatar-user-img {
+    width: 86% !important;
+    height: 86% !important;
+    border-radius: 50%;
+    object-fit: cover;
+    z-index: 1;
+    display: block;
+}
+
+.avatar-frame-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.user-list-info { display: flex; flex-direction: column; gap: 2px; }
+.user-list-name { color: var(--color-text); font-weight: 700; font-size: 1.1rem; }
+.user-list-distance { color: var(--color-text-secondary); font-size: 0.85rem; }
+.loading-text { text-align: center; color: var(--color-text-secondary); padding: 20px; }
+
+// 6. POPUP (AJUSTADO E UNIFICADO)
+// 6. POPUP (UNIFIED AND CORRECTED)
+.user-popup-fullscreen { 
+  position: fixed; 
+  top: 0; left: 0; right: 0; bottom: 0; 
+  z-index: 99999 !important; 
+  display: flex; 
+  align-items: flex-end; /* Aligns popup to bottom */
+  justify-content: center;
+  
+  /* CRITICAL: Allow clicks to pass through the background, but catch them on children */
+  pointer-events: none; 
+  
+  &.hidden { display: none !important; } 
+  
+  &.show { 
+    pointer-events: auto !important; /* Re-enable clicks when shown */
+  } 
+}
+
+.popup-overlay { 
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+  background: rgba(0,0,0,0.6); 
+  backdrop-filter: blur(4px); 
+  z-index: -1; 
+  pointer-events: auto; /* Ensures clicking background closes it */
+}
+
+.popup-content-fullscreen {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-section-light);
+
+  /* Initial State (Compact) */
+  height: 450px;
+  max-height: 85vh;
+
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+  border: 1px solid var(--color-border); 
+  
+  display: flex;
+  flex-direction: column;
+  transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: auto !important;
+
+  /* Expanded State */
+  &.expanded {
+    height: 92vh; 
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+/* --- DRAG HANDLE (Fixed Z-Index) --- */
+.popup-drag-handle-area {
+  width: 100%;
+  height: 40px; /* Increased height for easier grabbing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent; /* Transparent so image shows behind */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20; /* Lower than Close Button */
+  cursor: grab;
+}
+
+.popup-handle-bar {
+  width: 40px;
+  height: 5px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* --- CLOSE BUTTON (Fixed Z-Index) --- */
+.close-popup-btn { 
+  position: absolute; 
+  top: 15px; 
+  right: 15px; 
+  background: rgba(0,0,0,0.6); 
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 35px; height: 35px; 
+  border-radius: 50%; 
+  color: #fff; 
+  cursor: pointer; 
+  
+  z-index: 30; /* Higher than drag handle */
+  
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto !important;
+}
+
+/* =========================================================
+   6. POPUP UNIFICADO (CORREÇÃO DE RESOLUÇÃO E SCROLL)
+   ========================================================= */
+
+.user-popup-fullscreen { 
+  position: fixed; 
+  top: 0; left: 0; right: 0; bottom: 0; 
+  z-index: 99999 !important; 
+  display: flex; 
+  align-items: flex-end; /* Alinha o modal no fundo */
+  justify-content: center;
+  pointer-events: none; /* Deixa clicar no mapa atrás quando invisível */
+  
+  &.hidden { display: none !important; } 
+  
+  &.show { 
+    pointer-events: auto !important; /* Reativa cliques */
+  } 
+}
+
+.popup-overlay { 
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+  background: rgba(0,0,0,0.6); 
+  backdrop-filter: blur(4px); 
+  z-index: -1; 
+  pointer-events: auto; /* Garante que clicar no fundo fecha */
+}
+
+.popup-content-fullscreen {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  background: var(--color-section-light);
+
+  /* --- CORREÇÃO DE ALTURA --- */
+  height: 45vh;
+  min-height: 400px;
+  max-height: 85vh;
+
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+  border: 1px solid var(--color-border); 
+  
+  display: flex;
+  flex-direction: column;
+  transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: auto !important;
+
+  /* Estado Expandido */
+  &.expanded {
+    height: 92vh; /* Quase tela cheia */
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+/* --- ALÇA DE ARRASTAR --- */
+.popup-drag-handle-area {
+  width: 100%;
+  height: 50px; /* Área de toque maior */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20; /* Menor que o botão fechar */
+  cursor: grab;
+}
+
+.popup-handle-bar {
+  width: 40px;
+  height: 5px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* --- BOTÃO FECHAR (CORRIGIDO) --- */
+.close-popup-btn { 
+  position: absolute; 
+  top: 15px; 
+  right: 15px; 
+  background: rgba(0,0,0,0.6); 
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 35px; height: 35px; 
+  border-radius: 50%; 
+  color: #fff; 
+  cursor: pointer; 
+  z-index: 50; /* Z-INDEX ALTO PARA FUNCIONAR O CLIQUE */
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto !important;
+}
+
+/* --- IMAGEM DE CAPA --- */
+.popup-image-carousel { 
+  width: 100%; 
+  height: 300px; /* Altura fixa da imagem */
+  flex-shrink: 0; /* Impede que a imagem encolha */
+  position: relative;
+  
+  .popup-image { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+  } 
+}
+
+.popup-gradient-overlay {
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 60%;
+  background: linear-gradient(to top, var(--color-section-light) 10%, transparent 100%);
+  pointer-events: none;
+}
+
+/* --- INFOS FLUTUANTES --- */
+.popup-user-info-floating {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 20px;
+  z-index: 10;
+  padding-bottom: 50px; /* Espaço para não cobrir com botões */
+}
+
+/* --- BOTÕES DE AÇÃO --- */
+.action-buttons-container {
+  position: relative;
+  z-index: 25;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 20px;
+  margin-top: -35px; /* Puxa para cima da borda */
+  margin-bottom: 10px;
+}
+
+/* --- CONTEÚDO SCROLLÁVEL (PERFIL COMPLETO) --- */
+.popup-details-container {
+  flex: 1;
+  background: var(--color-section-light);
+  overflow-y: auto;
+  padding: 20px;
+  padding-top: 10px;
+
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+}
+
+/* Quando expandido, mostra o conteúdo */
+.popup-content-fullscreen.expanded .popup-details-container {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* =========================================================
+   DISCOVER POPUP - ESTILO IMERSIVO FULLSCREEN [dsc-] 
+   ========================================================= */
+
+// Container principal do popup
+.user-popup-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 99999 !important;
+  display: flex;
+  align-items: flex-end; // Alinha o conteúdo ao fundo
+  pointer-events: none;
+
+  &.show { pointer-events: auto; }
+  &.hidden { display: none !important; }
+}
+
+// Overlay de fundo (Blur)
+.popup-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: -1;
+}
+
+// Folha do conteúdo (Sheet)
+.dsc-sheet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: none;
+}
+
+// Área de Scroll
+.dsc-scroll-content {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* 1. FOTO IMERSIVA */
+.dsc-cover-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 40%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 20px 70px 20px;
+  pointer-events: none;
+
+  .dsc-cover-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dsc-cover-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px 0;
+    text-align: left;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    line-height: 1.2;
+
+    span { color: #fff; }
+  }
+
+  .dsc-cover-age {
+    font-weight: 400;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .dsc-cover-distance {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.85);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+
+    i { font-size: 0.8rem; }
+    span { color: rgba(255,255,255,0.85); }
+  }
+}
+
+/* 2. BOTÕES DE AÇÃO (ESTILO CIRCULAR PREMIUM) */
+.dsc-action-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: -40px; // Flutua sobre a transição da foto
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
+  background: transparent;
+}
+
+.dsc-action-btn {
+  background-color: var(--color-section-light); // Fundo do círculo
+  border: 2px solid #d4be91; // Borda dourada
+  border-radius: 50% !important;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+  transition: all 0.2s ease;
+
+  img {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+  }
+
+  &:active { transform: scale(0.85); background-color: var(--color-section-gray); }
+
+  // Botão de Chat (centro) levemente menor para harmonia visual
+  &.btn-chat {
+    width: 60px;
+    height: 60px;
+    img { width: 28px; }
+  }
+}
+
+/* 3. CONTEÚDO DO PERFIL (CARDS) */
+.dsc-body-container {
+  padding: 10px 20px;
+  background-color: var(--color-background);
+}
+
+.dsc-info-card {
+  background-color: var(--color-section-light);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 15px;
+  border: 1px solid var(--color-border);
+
+  .dsc-card-header {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--color-text);
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .dsc-bio-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}
+
+.dsc-basic-list {
+  .dsc-basic-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border);
+    &:last-child { border-bottom: none; }
+
+    .dsc-basic-icon { color: #d4be91; font-size: 1.2rem; width: 25px; text-align: center; }
+    .dsc-basic-text { color: var(--color-text); font-size: 1.1rem; }
+  }
+}
+
+/* 4. CONTROLES DO MODAL (FECHAR/ALÇA) */
+.dsc-close-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 15px);
+  right: 20px;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 45px; height: 45px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.dsc-drag-handle-area {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  display: flex; justify-content: center; align-items: center;
+  z-index: 101;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+  
+  .dsc-handle-bar { 
+    width: 50px; height: 5px; 
+    background: rgba(255,255,255,0.4); 
+    border-radius: 10px; 
+  }
+}
+
+.dsc-bottom-spacer { height: 150px; }
+
+/* SEGURANÇA */
+.dsc-safety-area {
+  margin-top: 30px;
+  text-align: center;
+  .dsc-btn-safety {
+    background: none; border: none; color: var(--color-text-secondary);
+    font-weight: 700; text-transform: uppercase;
+    font-size: 0.8rem; letter-spacing: 2px;
+    padding: 15px; width: 100%;
+    &:hover { color: var(--color-text); }
+  }
+  .dsc-safety-divider { height: 1px; background: var(--color-border); margin: 10px 20%; }
+}
+
+/* CARROSSEL DSC — swipe nativo CSS scroll-snap */
+.dsc-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  max-height: 70vh;
+  overflow: hidden;
+  background: #000;
+
+  // Trilho de fotos: scroll horizontal nativo sem barra visível
+  .dsc-main-carousel {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  // Cada slide ocupa exatamente a largura do container
+  .dsc-carousel-slide {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    scroll-snap-align: start;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
+
+  // Zonas de toque: tap esquerdo = foto anterior, tap direito = próxima
+  .dsc-tap-zone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 40%;
+    z-index: 20;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    &.dsc-tap-prev { left: 0; }
+    &.dsc-tap-next { right: 0; }
+  }
+
+  // Barras indicadoras no topo (estilo Stories)
+  .dsc-carousel-indicators {
+    position: absolute;
+    top: 10px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 25;
+    pointer-events: none;
+
+    .dsc-dot {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 2px;
+      transition: background 0.2s ease;
+
+      &.active {
+        background: rgba(255,255,255,0.95);
+      }
+    }
+  }
+}
+
+// Oculta scrollbar em qualquer elemento com .no-scrollbar
+.no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.dot-online {
+  color: #2ecc71; /* Verde */
+  text-shadow: 0 0 5px rgba(46, 204, 113, 0.4);
+}
+
+.dot-offline {
+  color: #888; /* Cinza */
+}
+
+.header-status {
+  color: #888;
+  font-weight: normal;
+}
+
+
+/* Feedback visual quando o rastreamento contínuo está ativado */
+#fab-live-tracking.active-tracking {
+  background-color: #b6a87a; /* Cor dourada do seu tema */
+  color: #1a1a1a; /* Cor escura para contrastar */
+  border: 2px solid #fff;
+  animation: pulse-tracking 0.85s ease-out infinite;
+}
+
+@keyframes pulse-tracking {
+  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.9), 0 0 10px rgba(212, 175, 55, 0.6); }
+  60%  { box-shadow: 0 0 0 14px rgba(212, 175, 55, 0), 0 0 10px rgba(212, 175, 55, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0),  0 0 0 rgba(212, 175, 55, 0); }
+}
+
+/* Estilo do Popup de Aviso de Rastreamento */
+    #tracking-toast {
+      position: fixed;
+      bottom: 120px; /* Fica acima do Bottom Sheet e dos botões */
+      left: 50%;
+      transform: translateX(-50%); /* Centraliza na tela */
+      background-color: rgba(26, 26, 26, 0.95); /* Fundo escuro levemente transparente */
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid #d4af37; /* Bordinha dourada combinando com o tema */
+      font-size: 14px;
+      line-height: 1.4;
+      text-align: center;
+      width: 90%;
+      max-width: 350px;
+      z-index: 999999;
+      
+      /* Animação suave */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Classe que faz o toast aparecer */
+    #tracking-toast.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+// =========================================================
+// MINI CARD CINEMATOGRÁFICO (GLASSMORPHISM)
+// =========================================================
+
+// Enquanto o mapa gira, congela transições CSS do popup para evitar tremor
+body.cinematic-mode .mapboxgl-popup {
+  transition: none !important;
+}
+
+// Cinematic mode: remove visual noise from the marker
+body.cinematic-mode .premium-marker {
+  box-shadow: none !important;
+  animation-play-state: paused !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.cinematic-popup {
+  .mapboxgl-popup-tip { display: none !important; }
+  will-change: transform;
+
+  .mapboxgl-popup-content {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    padding: 0;
+    overflow: hidden;
+    min-width: 180px;
+    max-width: 210px;
+  }
+}
+
+.cp-mini-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.cp-avatar-rect {
+  width: 100%;
+  height: 145px;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+.cp-info {
+  text-align: center;
+  line-height: 1.4;
+  padding: 10px 14px 6px;
+}
+
+.cp-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.cp-distance {
+  font-size: 0.78rem;
+  color: #555;
+  margin: 3px 0 0;
+}
+
+.cp-btn {
+  background: linear-gradient(135deg, #d4be91 0%, #b8975a 100%);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: calc(100% - 24px);
+  margin: 0 12px 12px;
+  letter-spacing: 0.3px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 3px 10px rgba(180, 140, 70, 0.35);
+  &:active { transform: scale(0.96); box-shadow: none; }
+}
+
+// =========================================================
+// GENDER HUD TOAST — hologram, sem caixa
+// =========================================================
+
+@keyframes gm-hud-in {
+  from { opacity: 0; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+
+@keyframes gm-hud-out {
+  from { opacity: 1; transform: scale(1);    }
+  to   { opacity: 0; transform: scale(0.94); }
+}
+
+.gender-hud {
+  // Fullscreen overlay — apenas para centralizar
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 99998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  pointer-events: none;
+
+  // Sem fundo sólido — vinheta radial difusa só para legibilidade
+  background: radial-gradient(ellipse 190px 140px at center, rgba(0,0,0,0.22) 0%, transparent 70%);
+
+  // Invisível por padrão; animações controlam completamente a opacidade
+  opacity: 0;
+
+  &.show {
+    animation: gm-hud-in 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  &.fade-out {
+    animation: gm-hud-out 0.5s ease forwards;
+  }
+
+  &__icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+
+    svg {
+      width: 62px;
+      height: 62px;
+      // Sombra escura para contraste no mapa claro + halo dourado
+      filter:
+        drop-shadow(0 2px 12px rgba(0, 0, 0, 0.92))
+        drop-shadow(0 0 20px rgba(244, 223, 196, 0.45));
+    }
+
+    // Três ícones lado a lado (estado "Todos")
+    &[data-count="3"] svg {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  &__label {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin: 0;
+    background: linear-gradient(to right, #F4DFC4, #C9A079);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    // Sombra escura para contraste sem fundo
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.95));
+  }
 }

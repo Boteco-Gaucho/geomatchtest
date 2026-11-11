@@ -1,0 +1,5 @@
+<%= turbo_stream.replace "favorite-btn-#{@favorite.favorited_user_id}" do %>
+  <div id="<%= "favorite-btn-#{@favorite.favorited_user_id}" %>">
+    <%= render "favorites/favorite_button", user: @favorite.favorited_user, favorite_id: nil %>
+  </div>
+<% end %>

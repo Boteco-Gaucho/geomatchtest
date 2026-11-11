@@ -1,0 +1,124 @@
+<div class="v-view-sheet">
+
+  <%# Botão Fechar Exclusivo %>
+  <button class="v-view-close-btn" onclick="history.back()">
+    <i class="fas fa-arrow-down"></i>
+  </button>
+
+  <div class="v-view-scroll-content">
+
+    <%# --- TOPO: CARROSSEL IMERSIVO --- %>
+    <div class="v-view-carousel-wrapper">
+      <%= render "shared/profile_carousel", user: @user, show_gradient: false %>
+
+      <%# Overlay de Informações %>
+      <div class="v-view-cover-overlay">
+        <div class="v-view-cover-info">
+          <h2 class="v-view-cover-name" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <%= @user.display_name %>, <span class="v-view-cover-age"><%= @user.age %></span>
+            <% if @user&.verified? %>
+              <%= image_tag "icone-verificar.png", style: "width: 20px; height: 20px;", title: "Perfil Verificado" %>
+            <% end %>
+          </h2>
+          <p class="v-view-cover-distance">
+            <i class="fas fa-location-arrow"></i> a <%= @distance || 2.0 %> km de distância
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="v-view-body-container">
+
+      <%# --- BARRA DE AÇÕES --- %>
+      <% if @user != current_user %>
+        <div class="v-view-action-bar">
+          <%= button_to reject_user_path(user_id: @user.id), method: :post,
+              class: "dsc-action-btn btn-reject",
+              form: { class: "dsc-action-form" } do %>
+            <%= image_tag "botao-rejeitar.svg", alt: "Rejeitar" %>
+          <% end %>
+
+          <%= button_to start_chat_path(user_id: @user.id), method: :post,
+              class: "dsc-action-btn btn-chat",
+              form: { class: "dsc-action-form" } do %>
+            <%= image_tag "mensagem-prata.svg", alt: "Chat" %>
+          <% end %>
+
+          <%= button_to likes_path(user_id: @user.id), method: :post,
+              class: "dsc-action-btn btn-like",
+              form: { class: "dsc-action-form" } do %>
+            <div class="dsc-heart-icon-wrapper">
+              <%= image_tag "coracao-chapada.png", alt: "Curtir" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# --- CARD: SOBRE MIM --- %>
+      <div class="v-view-info-card">
+        <h3 class="v-view-card-header">SOBRE MIM</h3>
+        <p class="v-view-bio-text">
+          <%= @user.bio.present? ? @user.bio : "Sem biografia." %>
+        </p>
+      </div>
+
+      <%# --- CARD: INFORMAÇÕES BÁSICAS (PILLS) --- %>
+      <div class="v-view-info-card">
+        <h3 class="v-view-card-header">INFORMAÇÕES BÁSICAS</h3>
+        <div class="info-pills-container">
+          <% if @user.gender.present? %>
+            <span class="info-pill">
+              <i class="fas fa-venus-mars"></i> <%= @user.gender.capitalize %>
+            </span>
+          <% end %>
+          <% if @user.interested_in.present? %>
+            <span class="info-pill">
+              <i class="fas fa-search"></i> Busca: <%= @user.interested_in.capitalize %>
+            </span>
+          <% end %>
+          <% if @user.city.present? %>
+            <span class="info-pill">
+              <i class="fas fa-map-marker-alt"></i> <%= @user.city %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+
+      <%# --- CARD: INTERESSES --- %>
+      <% if @user.respond_to?(:hobbies_list) && @user.hobbies_list.any? %>
+        <div class="v-view-info-card">
+          <h3 class="v-view-card-header">INTERESSES</h3>
+          <div class="tags-container">
+            <% @user.hobbies_list.each do |hobby| %>
+              <span class="tag-pill"><%= hobby %></span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# --- SEGURANÇA --- %>
+      <% if @user != current_user %>
+        <div class="v-view-safety-area">
+          <div class="v-view-safety-divider"></div>
+
+          <%= button_to report_incident_path(user_id: @user.id), method: :get,
+              class: "v-view-btn-safety" do %>
+            DENUNCIAR <%= @user.display_name.upcase %>
+          <% end %>
+
+          <div class="v-view-safety-separator"></div>
+
+          <button type="button"
+                  class="v-view-btn-safety"
+                  onclick="openBlockConfirm('<%= j @user.display_name %>', '<%= block_user_path(@user) %>')">
+            BLOQUEAR <%= @user.display_name.upcase %>
+          </button>
+
+          <div class="v-view-safety-divider"></div>
+        </div>
+      <% end %>
+
+      <div class="v-view-bottom-spacer"></div>
+    </div>
+  </div>
+</div>

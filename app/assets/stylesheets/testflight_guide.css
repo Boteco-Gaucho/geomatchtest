@@ -1,0 +1,85 @@
+/* ============================================================
+   GeoMatch — Guia de instalação via TestFlight
+   app/assets/stylesheets/testflight_guide.css
+
+   Depende de landing_page.css já estar carregado (usa as
+   variáveis de cor/fonte e classes .btn, .kicker, .display,
+   .hl, .hl-ink, .sec-head, .topbar, .wordmark etc.)
+   ============================================================ */
+
+.tf-hero {
+  background: linear-gradient(180deg, #0D0A07 0%, #0A0805 100%);
+  color: var(--cream);
+  padding: 90px 0 70px;
+  text-align: center;
+}
+.tf-hero .kicker { justify-content: center; color: var(--gold); margin-bottom: 20px; }
+.tf-hero h1 { font-size: clamp(34px, 5vw, 58px); margin-bottom: 18px; }
+.tf-hero p { font-size: clamp(16px, 1.6vw, 19px); opacity: 0.78; max-width: 56ch; margin: 0 auto 34px; text-wrap: pretty; }
+.tf-hero .cta-row { justify-content: center; }
+
+.tf-steps { padding: 100px 0; background: var(--cream); }
+
+.tf-step {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 56px;
+  align-items: center;
+  padding: 56px 0;
+}
+.tf-step:not(:last-child) { border-bottom: 1px solid var(--paper-line); }
+.tf-step:nth-child(even) { grid-template-columns: 1fr 260px; }
+.tf-step:nth-child(even) .tf-step-shot { order: 2; }
+
+.tf-step-shot {
+  justify-self: center;
+  width: 240px;
+  border-radius: 32px;
+  border: 6px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--gold);
+  overflow: hidden;
+  line-height: 0;
+}
+.tf-step-shot img { width: 100%; display: block; }
+
+.tf-step-copy .sticker-num {
+  font-family: var(--display);
+  font-size: 20px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--gold-bright);
+  display: grid; place-items: center;
+  margin-bottom: 18px;
+}
+.tf-step-copy h3 {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(24px, 2.6vw, 32px);
+  letter-spacing: 0.01em;
+  margin-bottom: 12px;
+  line-height: 1.08;
+}
+.tf-step-copy p { font-size: 16.5px; line-height: 1.62; color: var(--ink-soft); text-wrap: pretty; }
+.tf-step-copy strong { color: var(--gold-deep); }
+
+.tf-closing {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 80px 0;
+  text-align: center;
+}
+.tf-closing h2 { font-size: clamp(28px, 3.6vw, 44px); margin-bottom: 18px; }
+.tf-closing p { opacity: 0.75; margin-bottom: 30px; font-size: 16px; }
+.tf-closing .cta-row { justify-content: center; }
+.tf-closing a { color: var(--gold-bright); }
+.tf-closing a:hover { color: var(--gold); }
+
+@media (max-width: 760px) {
+  .tf-step, .tf-step:nth-child(even) {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .tf-step:nth-child(even) .tf-step-shot { order: 0; }
+  .tf-step-copy .sticker-num { margin-left: auto; margin-right: auto; }
+}

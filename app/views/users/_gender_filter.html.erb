@@ -1,0 +1,28 @@
+<%
+  selected = local_assigns.fetch(:selected, "all")
+  options = [
+    { value: "all",        label: "Todos" },
+    { value: "men",        label: "Homens" },
+    { value: "women",      label: "Mulheres" },
+    { value: "non_binary", label: "Não-binário" }
+  ]
+%>
+
+<div class="gm-gender-filter"
+     data-controller="gender-filter"
+     data-gender-filter-selected-value="<%= selected %>"
+     role="group"
+     aria-label="Filtrar por gênero">
+  <% options.each do |opt| %>
+    <button type="button"
+            class="gm-gender-filter__opt"
+            data-gender-filter-target="option"
+            data-value="<%= opt[:value] %>"
+            data-label="<%= opt[:label] %>"
+            data-action="gender-filter#select"
+            aria-pressed="<%= opt[:value] == selected %>"
+            title="<%= opt[:label] %>">
+      <%= render "gender_filter_icon", value: opt[:value] %>
+    </button>
+  <% end %>
+</div>

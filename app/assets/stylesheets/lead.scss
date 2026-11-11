@@ -1,0 +1,651 @@
+// --------------------------------------------------
+// GEOMATCH - LEAD PREMIUM STYLE (FINAL)
+// --------------------------------------------------
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+:root {
+  --gold-primary: #b4a77a;
+  --gold-dark: #c7b268;
+  --bg-dark: var(--color-background);
+  --card-bg: var(--color-section-light);
+  --sheet-bg: var(--color-background);
+  --card-inner-bg: var(--color-section-light);
+  --text-white: #ffffff;
+  --text-gray: var(--color-text-secondary);
+  --header-height: 60px;
+}
+
+.geomatch-screen-wrapper {
+  background-color: var(--bg-dark);
+  // Subtraímos safe-area-top (status bar) E safe-area-bottom (tab bar + home indicator
+  // no Turbo Native), para que o wrapper não se estenda sob a UITabBar nativa.
+  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+}
+
+// =========================================
+// 1. HEADER (TOPO)
+// =========================================
+.geomatch-header {
+  // Safe area já aplicada pelo .authenticated-layout — apenas altura fixa aqui
+  height: var(--header-height);
+  padding-top: 0;
+  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  z-index: 50;
+  background-color: var(--bg-dark);
+
+  .header-left { display: flex; align-items: center; }
+  .header-logo { height: 28px; width: auto; object-fit: contain; display: block; }
+  .header-right {
+    display: flex; gap: 15px;
+    .header-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; img { width: 24px; height: 24px; } }
+    // Sol: 30px. Lua é forma sólida e aparece maior, por isso fica em 22px.
+    .header-btn:last-child img { width: 30px; height: 30px; }
+  }
+}
+
+// =========================================
+// 2. MAIN AREA (SWIPE CARD)
+// =========================================
+.geomatch-main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px 0 15px;
+  /* Valor fixo — o wrapper já subtrai env(safe-area-inset-bottom) na altura */
+  padding-bottom: 100px;
+  
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.gold-card-frame {
+  flex: 1; 
+  position: relative;
+  border: 2px solid var(--gold-primary);
+  border-radius: 25px;
+  border-bottom-left-radius: 40px; 
+  border-bottom-right-radius: 40px;
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  margin-bottom: 0;
+
+  &:active { cursor: grabbing; }
+
+  // Impede drag nativo de imagens e seleção de texto
+  img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+}
+
+// --- Galeria Interna do Card ---
+.card-gallery { width: 100%; height: 100%; position: relative; }
+.slides-container { width: 100%; height: 100%; }
+
+// --- Overlays de Swipe — ícone puro centralizado ---
+.swipe-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity;
+
+  i {
+    // ~40% da largura do card
+    font-size: clamp(140px, 42vw, 220px);
+    line-height: 1;
+  }
+}
+
+.swipe-like {
+  i {
+    color: var(--gold-primary);
+    filter: drop-shadow(0 0 40px rgba(180, 167, 122, 0.95));
+  }
+}
+
+.swipe-nope {
+  i {
+    color: #ff4b4b;
+    filter: drop-shadow(0 0 40px rgba(255, 75, 75, 0.95));
+  }
+}
+
+.slide-item {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0; transition: opacity 0.2s ease;
+  &.active { opacity: 1; }
+  .slide-img { width: 100%; height: 100%; object-fit: cover; }
+  .slide-gradient { 
+    position: absolute; bottom: 0; left: 0; right: 0; 
+    height: 60%; 
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 100%); 
+  }
+}
+
+.progress-bar-container {
+  position: absolute; top: 15px; left: 15px; right: 15px; display: flex; gap: 5px; z-index: 10;
+  .progress-step { flex: 1; height: 3px; background: rgba(255, 255, 255, 0.3); border-radius: 2px; &.active { background: var(--text-white); } }
+}
+
+.tap-nav-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 75%; display: flex; z-index: 9;
+  .tap-left, .tap-right { flex: 1; }
+}
+
+// --- Informações no Card (Resumo) ---
+.card-user-info {
+  position: absolute; bottom: 110px; left: 20px; right: 20px; z-index: 20;
+  color: var(--text-white); text-align: left;
+  
+  /* CRUCIAL: Permite clicar para abrir o perfil */
+  pointer-events: auto; 
+  cursor: pointer;
+
+  .location-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(30, 144, 120, 0.9); padding: 5px 12px; border-radius: 15px;
+    font-size: 0.75rem; font-weight: 600; margin-bottom: 10px; backdrop-filter: blur(4px);
+  }
+
+  .user-title {
+    font-size: 2rem; font-weight: 700; margin: 0;
+    display: flex; align-items: baseline; gap: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8); line-height: 1.2;
+    .age { font-size: 1.5rem; font-weight: 400; }
+    .verified-icon { height: 20px; width: auto; }
+  }
+
+  .user-distance {
+    font-size: 0.95rem; margin-top: 5px; opacity: 0.9;
+    display: flex; align-items: center; gap: 6px; font-weight: 500;
+  }
+  
+  .info-up-indicator {
+      color: #fff; animation: bounceUp 1.5s infinite; font-size: 1.2rem;
+      position: absolute; right: 0; bottom: 30px; /* Posiciona a seta */
+  }
+}
+
+@keyframes bounceUp {
+    0%, 100% { transform: translateY(0); opacity: 0.6; }
+    50% { transform: translateY(-5px); opacity: 1; }
+}
+
+// =========================================
+// 3. BOTÕES DE AÇÃO (FLUTUANTES)
+// =========================================
+.action-buttons-container {
+  position: absolute;
+  bottom: calc(120px + env(safe-area-inset-bottom)); 
+  left: 0; right: 0;
+  display: flex; justify-content: center; align-items: center; gap: 25px;
+  z-index: 2001; height: 0; 
+}
+
+.btn-form { margin: 0; padding: 0; display: flex; }
+
+.action-btn {
+  background: var(--color-section-light);
+  border: 2px solid var(--gold-primary);
+  border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  // Transição suave para o destaque dinâmico
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease,
+              border-color 0.2s ease,
+              border-width 0.2s ease,
+              background-color 0.2s ease;
+  img { width: 50%; height: 50%; object-fit: contain; }
+  &:active:not(.btn-highlight) { transform: scale(0.95); }
+}
+
+.btn-rewind {
+  width: 58px; height: 58px;
+  border: 2px solid #d4a832;
+  color: #d4a832;
+  svg {
+    width: 24px; height: 24px;
+    stroke: #d4a832;
+  }
+  &:active { transform: scale(0.93) rotate(-30deg); }
+}
+
+.rewind-flash-container {
+  position: absolute;
+  bottom: calc(185px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
+  z-index: 2002;
+  pointer-events: none;
+  .rewind-empty-msg {
+    background: rgba(20,20,20,0.88);
+    color: #d4a832;
+    border: 1px solid #d4a832;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: gmFadeIn 0.2s ease, gmFadeOut 0.3s ease 2s forwards;
+  }
+}
+
+.btn-reject {
+  width: 78px; height: 78px;
+  border: 2px solid var(--gold-primary);
+  img { width: 32px; }
+}
+.btn-chat {
+  width: 62px; height: 62px;
+  border-color: #998c61;
+  background: rgba(20, 20, 20, 0.95);
+  img { width: 26px; }
+}
+.btn-like {
+  width: 78px; height: 78px;
+  border: 2px solid var(--gold-primary);
+  .heart-icon-wrapper {
+    width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    img { width: 38px; }
+  }
+}
+
+// Destaque dinâmico durante o swipe
+.btn-reject.btn-highlight {
+  border: 3px solid #ff4b4b !important;
+  background-color: rgba(255, 75, 75, 0.18) !important;
+  box-shadow: 0 0 28px rgba(255, 75, 75, 0.75), 0 5px 15px rgba(0,0,0,0.6) !important;
+  transform: scale(1.22) !important;
+}
+
+.btn-like.btn-highlight {
+  border: 3px solid var(--gold-primary) !important;
+  background-color: rgba(180, 167, 122, 0.18) !important;
+  box-shadow: 0 0 28px rgba(180, 167, 122, 0.75), 0 5px 15px rgba(0,0,0,0.6) !important;
+  transform: scale(1.22) !important;
+}
+
+// Estado Vazio
+.empty-state {
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  height: 100%; color: var(--gold-primary); text-align: center;
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .btn-gold-outline { margin-top: 20px; padding: 10px 24px; border: 1px solid var(--gold-primary); color: var(--gold-primary); text-decoration: none; border-radius: 25px; font-weight: 600; }
+}
+
+// =========================================
+// 4. PERFIL COMPLETO (PREMIUM STYLE)
+// =========================================
+
+.full-profile-sheet {
+  position: fixed;
+  top: 100%; left: 0; width: 100%;
+  
+  /* Tela cheia para o estilo premium */
+  height: 100%; 
+  
+  background: var(--sheet-bg); 
+  z-index: 10000; /* Acima de tudo */
+  
+  transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  
+  &.open { top: 0; }
+}
+
+/* Botão Fechar (Círculo Flutuante) */
+.close-profile-btn {
+  position: absolute;
+  top: calc(20px + env(safe-area-inset-top));
+  right: 20px;
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #b9ae88, #aa9f76);
+  border: none; border-radius: 50%;
+  color: #000; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  cursor: pointer;
+  &:active { transform: scale(0.9); }
+}
+
+.profile-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--sheet-bg);
+  padding-bottom: 50px; 
+}
+
+/* --- Capa Imersiva --- */
+.profile-cover-section {
+  position: relative; width: 100%; height: 65vh;
+  .profile-cover-img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-cover-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0, 1) 98%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 20px;
+  }
+  .cover-info {
+    margin-bottom: 10px;
+    .cover-name {
+      font-size: 2.2rem; font-weight: 700; color: #fff; margin: 0;
+      display: flex; align-items: center; gap: 8px;
+      .cover-age { font-weight: 400; font-size: 1.8rem; }
+      .cover-verified { width: 22px; height: 22px; }
+    }
+    .cover-job { color: #fff; font-size: 0.95rem; margin: 5px 0; display: flex; align-items: center; gap: 8px; }
+    .cover-distance { color: #ccc; font-size: 0.9rem; margin: 0; display: flex; align-items: center; gap: 8px; }
+  }
+}
+
+/* --- Container dos Cards --- */
+.profile-body-container {
+  padding: 0 16px;
+  margin-top: -15px; /* Sobrepõe levemente a capa */
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Card Genérico (Cinza Escuro) */
+.profile-info-card {
+  background: var(--card-inner-bg);
+  border-radius: 12px; padding: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  
+  .card-header {
+    font-size: 1rem; font-weight: 600; color: var(--color-text);
+    margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+}
+
+/* Tipografia e Listas */
+.profile-bio-text { color: var(--color-text-secondary); font-size: 1rem; line-height: 1.5; white-space: pre-wrap; }
+
+// --- Pills (shared: public profile page + swipe modal) ---
+.info-pills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-section-gray, rgba(255,255,255,0.06));
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+  font-weight: 500;
+
+  i {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+  }
+}
+
+.tags-container {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  .tag-pill {
+    background: transparent; border: 1px solid var(--color-border); color: var(--color-text);
+    padding: 6px 14px; border-radius: 20px; font-size: 0.85rem;
+  }
+}
+
+/* Galeria Grid */
+.profile-gallery-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;
+  .gallery-item {
+    aspect-ratio: 3/4; border-radius: 8px; overflow: hidden; background: var(--color-section-gray);
+    .gallery-img { width: 100%; height: 100%; object-fit: cover; }
+  }
+}
+
+/* Botões de Segurança (Rodapé) */
+.profile-safety-actions {
+  display: flex; flex-direction: column; align-items: center;
+  margin-top: 30px; padding: 20px 0;
+  
+  .safety-divider { width: 100%; height: 1px; background: var(--color-border); margin: 15px 0; }
+  .btn-safety-block {
+    background: transparent; border: none; color: var(--color-text-secondary);
+    font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    padding: 15px; width: 100%; cursor: pointer; transition: color 0.2s;
+    &:hover { color: #ff4b4b; background: rgba(255, 75, 75, 0.05); }
+  }
+  .safety-separator { width: 80%; height: 1px; background: var(--color-border); margin: 0 auto; }
+}
+
+.bottom-spacer { height: 80px; }
+
+// =========================================
+// 5. FILTROS MODAL
+// =========================================
+
+$gold-grad: linear-gradient(to right, #F4DFC4, #C9A079);
+
+.filter-modal {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+  display: flex; align-items: flex-end; transition: opacity 0.3s ease;
+  &.hidden { pointer-events: none; opacity: 0; .filter-content { transform: translateY(100%); } }
+}
+
+.filter-backdrop {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+}
+
+.filter-content {
+  position: relative; width: 100%;
+  background: var(--color-background);
+  border-top-left-radius: 28px; border-top-right-radius: 28px;
+  padding: 24px 20px; padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.55);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+// Header
+.filter-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 4px;
+}
+
+.filter-title {
+  font-size: 1.3rem; font-weight: 700; color: var(--color-text); margin: 0;
+}
+
+.filter-close-btn {
+  background: var(--color-section-light); border: none;
+  width: 36px; height: 36px; border-radius: 50%;
+  color: var(--color-text-secondary); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  &:active { transform: scale(0.9); }
+}
+
+// Cards
+.filter-card {
+  background: var(--color-section-light);
+  border-radius: 20px;
+  padding: 18px 18px 6px 18px;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--color-border);
+}
+
+.filter-card-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.filter-card-label {
+  font-size: 1rem; font-weight: 700; color: var(--color-text);
+}
+
+.filter-card-value {
+  font-size: 0.95rem; font-weight: 600;
+  background: $gold-grad;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// Range sliders
+.gm-range {
+  -webkit-appearance: none;
+  width: 100%; height: 8px; border-radius: 999px;
+  outline: none; cursor: pointer;
+  margin-bottom: 14px;
+  background: var(--color-section-gray);
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: $gold-grad;
+    border: 3px solid var(--color-background);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  }
+
+  &::-moz-range-thumb {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: $gold-grad;
+    border: 3px solid var(--color-background);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  }
+}
+
+.filter-range-sub {
+  display: block;
+  font-size: 0.72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+// Toggle row at bottom of card
+.filter-card-toggle-row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 2px; padding: 14px 0 10px 0;
+
+  p { font-size: 0.82rem; color: var(--color-text-secondary); margin: 0; line-height: 1.45; flex: 1; }
+}
+
+// Switch / Toggle
+.gm-switch {
+  position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0;
+
+  input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+  .gm-switch-track {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--color-section-gray);
+    border-radius: 34px; transition: background 0.3s;
+
+    &:before {
+      position: absolute; content: "";
+      width: 22px; height: 22px; left: 3px; bottom: 3px;
+      background: #888; border-radius: 50%;
+      transition: transform 0.3s, background 0.3s;
+    }
+  }
+
+  input:checked + .gm-switch-track {
+    background: $gold-grad;
+    &:before { transform: translateX(20px); background: #fff; }
+  }
+}
+
+// Apply button
+.btn-apply-gold {
+  width: 100%; padding: 17px 0; margin-top: 4px;
+  background: $gold-grad;
+  color: #1a120a; font-weight: 800; font-size: 1.05rem;
+  border: none; border-radius: 999px; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(201, 160, 121, 0.35);
+  letter-spacing: 0.3px;
+  &:active { transform: scale(0.98); }
+}
+
+// =========================================
+// 6. iOS SAFARI VIEWPORT FIX
+// =========================================
+// O .site-content do layout tem padding-bottom: calc(90px + safe-area-inset-bottom).
+// Somado à altura do .geomatch-screen-wrapper (100dvh - safe-area-inset-top),
+// o total ultrapassa 100dvh no iPhone, fazendo o iOS Safari reduzir o dvh e
+// encolher o card. Zeramos esse padding apenas nesta rota.
+.site-content:has(.geomatch-screen-wrapper) {
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+// =========================================
+// 7. TURBO NATIVE iOS — OVERRIDES
+// =========================================
+// No app nativo (Turbo Native), env(safe-area-inset-bottom) inclui a UITabBar
+// nativa (~49px) + home indicator (~34px) ≈ 83px total. O padding-bottom e o
+// posicionamento dos botões precisam ignorar essa safe area, pois o wrapper já
+// a subtrai da altura. O card deve preencher todo o espaço até a UITabBar.
+body.turbo-native {
+  .geomatch-main-area {
+    padding-bottom: 0 !important;
+  }
+
+  .action-buttons-container {
+    // 70px from card bottom → buttons center ≈ 37px above card bottom
+    // user-info está em bottom: 110px, então ~7px de espaço entre eles
+    bottom: 70px;
+  }
+}
+
+// =========================================
+// 8. TEMA — TAMANHO ÍCONES HEADER
+// =========================================
+// Sol (luz) tem raios finos com muito espaço negativo → 30px.
+// Lua (escuro) é forma sólida e aparece visualmente maior → 22px.
+// Os dois ficam com peso visual equivalente.
+html.dark-mode .geomatch-header .header-btn:last-child img {
+  width: 22px;
+  height: 22px;
+}
+

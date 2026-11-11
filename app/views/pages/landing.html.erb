@@ -1,0 +1,508 @@
+<%# GeoMatch — Landing Page
+   View completa: app/views/pages/landing.html.erb
+   CSS:           app/assets/stylesheets/landing_page.css
+   Stimulus:      app/javascript/controllers/landing_controller.js
+   Imagens:       app/assets/images/geomatch/ (app-mapa.png, app-perfil.png, app-chat.png)
+%>
+
+<!-- Breadcrumb Schema para navegação estruturada -->
+<script type="application/ld+json">
+<%= {
+  "@context": "https://schema.org/",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://geomatchbr.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Planos",
+      "item": "https://geomatchbr.com/plans"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Central de Segurança",
+      "item": "https://geomatchbr.com/safety_center"
+    }
+  ]
+}.to_json %>
+</script>
+
+<% content_for :head do %>
+  <%= stylesheet_link_tag "landing_page", media: "all" %>
+<% end %>
+
+<div data-controller="landing">
+<!-- ============ TOPBAR ============ -->
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="#">
+      <%= image_tag "logo-geomatch.svg", alt: "GeoMatch", class: "wordmark-logo" %>
+      <span><span class="wm-geo">Geo</span><span class="wm-match">Match</span></span>
+    </a>
+    <a class="btn btn--dark" href="#baixar">Baixar agora</a>
+  </div>
+</header>
+
+<!-- ============ 1 · HERO ============ -->
+<section class="hero" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="hero-badge"><span class="dot"></span> Pessoas reais perto de você</span>
+      <h1 class="display">Veja quem está <span class="hl">aqui agora.</span></h1>
+      <p class="hero-sub">GeoMatch mostra pessoas reais a até <strong>300 metros</strong> de você — em tempo real.</p>
+      <p class="hero-support">Conecte-se, converse e marque algo. Sem perfis falsos. Sem swipe infinito. Só conexões reais.</p>
+      <div class="cta-row">
+        <a class="btn btn--gold" href="<%= testflight_guide_path %>"><span class="btn-ic">&#63743;</span><span class="btn-label"><span>Baixar para iPhone</span><span class="btn-sub">App Store</span></span></a>
+        <a class="btn btn--dark" href="https://play.google.com/store/apps/details?id=com.geomatch.app&hl=pt_BR" target="_blank" rel="noopener noreferrer"><span class="btn-ic">▶</span><span class="btn-label"><span>Baixar para Android</span><span class="btn-sub">Google Play</span></span></a>
+      </div>
+      <p class="hero-proof">🇧🇷 Feito no Brasil <span class="sep">•</span> Disponível agora <span class="sep">•</span> 100% gratuito para começar</p>
+    </div>
+    <div class="hero-phone">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><%= image_tag "geomatch/app-mapa.png", alt: "Tela do mapa do GeoMatch com pessoas próximas" %></div>
+      </div>
+      <div class="float-chip float-chip--a"><span class="chip-av">L</span><span>Luana<small>a 120 m de você</small></span></div>
+      <div class="float-chip float-chip--b"><span class="chip-av">F</span><span>Felipe<small>online agora</small></span></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track"><span>300 metros</span><span>Tempo real</span><span>Sem swipe infinito</span><span>Sem perfis falsos</span><span>100% brasileiro</span><span>Conexões reais</span></div>
+</div>
+
+<!-- ============ 2 · COMO FUNCIONA ============ -->
+<section class="sec sec--cream" data-screen-label="Como funciona">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Como funciona</span>
+      <h2 class="display">Simples <span class="hl-ink">assim.</span></h2>
+      <p>Em menos de 1 minuto você já está no mapa.</p>
+    </div>
+    <div class="steps">
+      <article class="step-card rv">
+        <span class="sticker-num">01</span>
+        <h3>Abra o mapa</h3>
+        <p>Você aparece no mapa automaticamente. O GeoMatch mostra os perfis de pessoas que estão a até 300 metros de você agora.</p>
+      </article>
+      <article class="step-card rv rv-d1">
+        <span class="sticker-num">02</span>
+        <h3>Encontre alguém interessante</h3>
+        <p>Veja os perfis próximos no mapa. Toque em um perfil para ver mais. Não precisa esperar um “match” — você já pode mandar mensagem.</p>
+      </article>
+      <article class="step-card rv rv-d2">
+        <span class="sticker-num">03</span>
+        <h3>Conecte de verdade</h3>
+        <p>Converse, marque algo, faça uma amizade. Ou só desligue o mapa quando quiser parar — o controle é sempre seu.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · ONDE USAR ============ -->
+<section class="sec sec--cream-2" data-screen-label="Onde usar">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Onde você pode usar</span>
+      <h2 class="display">Em qualquer lugar, com <span class="hl-ink">qualquer pessoa.</span></h2>
+      <p>O GeoMatch funciona onde você está. Veja alguns exemplos:</p>
+    </div>
+    <div class="use-grid">
+      <article class="use-card rv"><span class="use-emoji">🎉</span><h3>Na festa ou balada</h3><p>Tá numa festa e quer conhecer alguém sem precisar ir até todo mundo? Abre o mapa e vê quem está lá.</p></article>
+      <article class="use-card rv rv-d1"><span class="use-emoji">🎵</span><h3>No show ou festival</h3><p>Curtindo um show? Tem gente interessante do seu lado que você nem imagina. O mapa mostra quem está ali.</p></article>
+      <article class="use-card rv rv-d2"><span class="use-emoji">🎓</span><h3>Na faculdade</h3><p>Primeiro semestre? Novo na cidade? Conecte-se com quem está no mesmo campus agora.</p></article>
+      <article class="use-card rv"><span class="use-emoji">✈️</span><h3>Viajando</h3><p>Chegou numa cidade nova? Abre o filtro, vê quem mora lá e já começa a conversar antes mesmo de desembarcar.</p></article>
+      <article class="use-card rv rv-d1"><span class="use-emoji">💪</span><h3>Na academia</h3><p>Treinar é melhor com companhia. Veja quem está na sua academia agora e troque uma ideia.</p></article>
+      <article class="use-card rv rv-d2"><span class="use-emoji">🤝</span><h3>Em eventos e feiras</h3><p>Conferência, feira de negócios, evento corporativo — conecte-se com quem tem os mesmos interesses.</p></article>
+    </div>
+    <div class="sec-closing rv"><span>Se tem pessoas ao seu redor, o GeoMatch está funcionando.</span></div>
+  </div>
+</section>
+
+<div class="marquee marquee--dark" aria-hidden="true">
+  <div class="marquee-track"><span>Abra o mapa</span><span>Veja quem está perto</span><span>Mande mensagem</span><span>Sem esperar match</span><span>Conexão real</span></div>
+</div>
+
+<!-- ============ 4 · CONHEÇA O APP ============ -->
+<section class="sec sec--dark" data-screen-label="Conheça o app">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Conheça o app</span>
+      <h2 class="display">Um app pensado em <span class="hl">cada detalhe.</span></h2>
+      <p>Conheça as telas que fazem o GeoMatch diferente.</p>
+    </div>
+
+    <div class="feature-row rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen"><%= image_tag "geomatch/app-mapa.png", alt: "Mapa em tempo real do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">O mapa em tempo real</span>
+        <span class="feat-ic">🗺️</span>
+        <h3>O mapa que conecta de verdade</h3>
+        <p>Veja em tempo real quem está a até <strong>300 metros</strong> de você. Cada pin é uma pessoa real, disponível para conversar agora.</p>
+        <p>Toque em qualquer perfil e mande mensagem direto — <strong>sem precisar esperar um match.</strong></p>
+      </div>
+    </div>
+
+    <div class="feature-row feature-row--flip rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+          <%# Substituir por app-chat.png quando disponível (720×1346, sem barra do sistema) %>
+          <%= image_tag "geomatch/app-perfil.png", alt: "Tela de chat do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">Chat instantâneo</span>
+        <span class="feat-ic">💬</span>
+        <h3>Sem match. Sem espera.</h3>
+        <p>Viu alguém interessante no mapa? Mande mensagem na hora. No GeoMatch, a conversa começa quando você quiser — <strong>sem precisar que a outra pessoa te “aceite” primeiro.</strong></p>
+        <p>Conexão real começa com uma mensagem real.</p>
+      </div>
+    </div>
+
+    <div class="feature-row rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen"><%= image_tag "geomatch/app-bloqueado.jpg", alt: "Tela de bloqueio do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">Bloqueio e controle</span>
+        <span class="feat-ic">🚫</span>
+        <h3>O controle é sempre seu.</h3>
+        <p>A conexão não deu certo? Bloqueie com um toque. A pessoa some do seu mapa e do filtro por cidade — <strong>para sempre.</strong></p>
+        <p>Você define com quem quer se conectar. Sempre.</p>
+      </div>
+    </div>
+
+    <div class="feature-row feature-row--flip rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen"><%= image_tag "geomatch/app-discover_3d-gallery.png", alt: "Galeria de perfis do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">Galeria de perfis</span>
+        <span class="feat-ic">🖼️</span>
+        <h3>Veja quem está ao redor, de um jeito diferente.</h3>
+        <p>Além do mapa, explore os perfis das pessoas próximas em uma galeria visual. Fotos, bio e distância — tudo em uma tela só.</p>
+        <p>Encontre quem você quer conhecer <strong>antes mesmo de abrir o mapa.</strong></p>
+      </div>
+    </div>
+
+    <div class="feature-row rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen"><%= image_tag "geomatch/app-perfil-verificado.jpg", alt: "Perfil verificado do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">Perfil verificado</span>
+        <span class="feat-ic">✅</span>
+        <h3>Pessoas reais. Perfis verificados.</h3>
+        <p>O GeoMatch verifica a identidade dos usuários com análise de documentos e selfie. O <strong>selo de verificado</strong> garante que você está falando com uma pessoa real.</p>
+        <p>Sem perfis falsos. Sem bots. Só gente de verdade.</p>
+      </div>
+    </div>
+
+    <div class="feature-row feature-row--flip rv">
+      <div class="feature-media">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen"><%= image_tag "geomatch/app-central-seguranca.jpg", alt: "Central de Segurança do GeoMatch" %></div>
+        </div>
+      </div>
+      <div class="feature-copy">
+        <span class="feature-tag">Central de Segurança</span>
+        <span class="feat-ic">🛡️</span>
+        <h3>Segurança a um toque de distância.</h3>
+        <p>Modo Pânico, compartilhamento de localização, denúncia rápida e ligação direta para a polícia — tudo dentro do app, disponível a qualquer momento.</p>
+        <p>Porque conexão real só acontece quando você <strong>se sente seguro.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · SEGURANÇA ============ -->
+<section class="sec sec--black sec--seg" data-screen-label="Segurança">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">O mapa mais seguro do Brasil</span>
+      <h2 class="display">Pensamos em sua <span class="hl">segurança</span> antes de qualquer outra coisa.</h2>
+      <p>Enquanto outros apps lançaram mapas e foram criticados por expor seus usuários, o GeoMatch foi construído com segurança desde o primeiro dia. Veja o que nos diferencia:</p>
+    </div>
+
+    <div class="seg-grid">
+      <article class="seg-card rv"><span class="seg-ic">🔵</span><div><h3>Só quem está perto te vê</h3><p>Você aparece no mapa apenas para pessoas que estão a até 300 metros de você agora. Quem está longe não te vê — nem pode te monitorar.</p></div></article>
+      <article class="seg-card rv rv-d1"><span class="seg-ic">📍</span><div><h3>Localização aproximada e oscilante</h3><p>Sua posição no mapa nunca é exata. O GeoMatch oscila sua localização automaticamente — e a cada 5 minutos ela muda. Ninguém consegue rastrear seu caminho.</p></div></article>
+      <article class="seg-card rv"><span class="seg-ic">⚡</span><div><h3>Desligue na hora</h3><p>O botão para sair do mapa está sempre visível, dentro do próprio mapa. Sentiu desconforto? Um toque e você sai — sem precisar fechar o app.</p></div></article>
+      <article class="seg-card rv rv-d1"><span class="seg-ic">🚫</span><div><h3>Bloqueio total e definitivo</h3><p>Bloqueou alguém? Essa pessoa desaparece do seu mapa, do filtro por cidade e de qualquer parte do app. Sem exceção.</p></div></article>
+    </div>
+
+    <div class="seg-central rv">
+      <div class="seg-central-title">
+        <h3>Central de Segurança</h3>
+        <p>Ferramentas de proteção a um toque, dentro do app.</p>
+      </div>
+      <div class="seg-quick-grid">
+        <div class="seg-quick-card seg-quick--pink">
+          <div class="seg-quick-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+          </div>
+          <strong>Ações Rápidas</strong>
+          <span>Ligar 190</span>
+        </div>
+        <div class="seg-quick-card seg-quick--blue">
+          <div class="seg-quick-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+          </div>
+          <strong>Denúncias Rápidas</strong>
+          <span>Reportar Incidência</span>
+        </div>
+        <div class="seg-quick-card seg-quick--purple">
+          <div class="seg-quick-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </div>
+          <strong>Compartilhar Local</strong>
+          <span>Enviar localização atual</span>
+        </div>
+        <div class="seg-quick-card seg-quick--pink-light">
+          <div class="seg-quick-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg>
+          </div>
+          <strong>Modo Pânico</strong>
+          <span>Enviar alerta de emergência</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="seg-closing rv">No GeoMatch, você se conecta. <span class="hl">A segurança fica com a gente.</span></p>
+  </div>
+</section>
+
+<!-- ============ 6 · FILTRO POR CIDADE ============ -->
+<section class="sec sec--cream" data-screen-label="Filtro por cidade">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Filtro por cidade e estado</span>
+      <h2 class="display">Conheça <span class="hl-ink">antes de chegar.</span></h2>
+      <p>O GeoMatch deixa você ver e conversar com pessoas de qualquer cidade ou estado — antes mesmo de estar lá.</p>
+    </div>
+
+    <p class="filter-how rv">Na tela de filtro, escolha qualquer cidade ou estado do Brasil. Os perfis daquela região aparecem para você. Mande mensagem, converse e programe algo — depois é só chegar e aproveitar.</p>
+
+    <div class="filter-grid">
+      <article class="filter-card rv"><span class="use-emoji">✈️</span><h3>Viajando para o Rio amanhã?</h3><p>Você está em São Paulo hoje. Abre o filtro, escolhe o Rio de Janeiro, vê os perfis de quem mora lá e já começa a conversar. Quando chegar, já tem alguém para te mostrar a cidade.</p></article>
+      <article class="filter-card rv rv-d1"><span class="use-emoji">🎓</span><h3>Indo estudar em outra cidade?</h3><p>Antes de se mudar, use o filtro para conhecer estudantes da cidade nova. Chegue com amizades já feitas — e o primeiro semestre fica muito mais fácil.</p></article>
+      <article class="filter-card rv"><span class="use-emoji">🎵</span><h3>Vai num festival em outro estado?</h3><p>Filtre pela cidade do evento, ache quem também vai, combine transporte, hospedagem ou só um grupo para curtir junto. Tudo antes de sair de casa.</p></article>
+      <article class="filter-card rv rv-d1"><span class="use-emoji">💼</span><h3>Viagem de negócios?</h3><p>Filtre pela cidade destino, conecte-se com profissionais da área, marque um café ou reunião. Networking antes de pousar.</p></article>
+    </div>
+
+    <div class="sec-closing rv"><span>O Brasil inteiro ao alcance de um filtro.</span></div>
+  </div>
+</section>
+
+<!-- ============ 7 · GOLD ============ -->
+<section class="sec sec--black sec--gold-mode" data-screen-label="GeoMatch Gold">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="gold-badge">★ Gold ★</span>
+      <h2 class="display">GeoMatch <span class="hl">Gold.</span></h2>
+      <p>Para quem quer uma experiência completa — e uma camada extra de privacidade.</p>
+    </div>
+
+    <div class="gold-features">
+      <div class="gold-invisible rv">
+        <span class="feat-ic">👁️</span>
+        <h3>Você vê. <span class="hl">Ninguém te vê.</span></h3>
+        <p>O Modo Gold permite que você navegue no mapa completamente invisível. Você vê todos os perfis ao redor — mas ninguém consegue te ver. Perfeito para quem é mais reservado, ou para figuras públicas que querem interagir com discrição.</p>
+      </div>
+      <div class="gold-invisible rv rv-d1">
+        <span class="feat-ic">⚡</span>
+        <h3>Interação <span class="hl">ilimitada.</span></h3>
+        <p>Curta, converse e conecte sem limites. No Gold, não há teto de curtidas nem de mensagens — você interage com quem quiser, quantas vezes quiser.</p>
+      </div>
+      <div class="gold-invisible rv rv-d2">
+        <span class="feat-ic">🎂</span>
+        <h3>Sua idade, <span class="hl">em sigilo.</span></h3>
+        <p>Oculte sua idade no perfil com um toque. Conecte-se por quem você é — não por quando nasceu.</p>
+      </div>
+    </div>
+    <div class="gold-panel rv">
+      <ul>
+        <li>Interação no mapa ilimitada</li>
+        <li>Mensagens ilimitadas</li>
+        <li>Lista de quem curtiu você</li>
+        <li>Lista de quem você curtiu</li>
+        <li>Modo oculto — interaja sem aparecer no mapa</li>
+        <li>Não exibe sua idade no perfil</li>
+        <li>Voltar perfil não curtido</li>
+        <li>Sem anúncios — experiência limpa e premium</li>
+        <li>Badge Gold exclusivo no perfil</li>
+      </ul>
+      <div class="gold-price">
+        <p class="price-label">A partir de</p>
+        <p class="price-value">R$ 47,90<span style="font-size: 22px;">/mês</span></p>
+        <p class="price-period">Cancele quando quiser</p>
+        <%= link_to "Seja Gold — Assine agora", plans_path, class: "btn btn--gold" %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 · DEPOIMENTOS ============ -->
+<section class="sec sec--cream-2" data-screen-label="Depoimentos">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Conexões reais</span>
+      <h2 class="display">O que dizem quem <span class="hl-ink">já se conectou.</span></h2>
+      <p>Amizades, romances, encontros e histórias que começaram a 300 metros de distância.</p>
+    </div>
+
+    <div class="testi-grid">
+      <article class="testi-card rv">
+        <span class="testi-badge">🤝 Amizade</span>
+        <blockquote>Tava num show sozinha e resolvi abrir o GeoMatch por curiosidade. Encontrei duas meninas a 80 metros de mim. A gente se encontrou na hora e ficamos juntas o show todo. Hoje somos amigas de verdade.</blockquote>
+        <div class="testi-who"><span class="testi-av">C</span><div><strong>Camila R., 24 anos</strong><small>Salvador, BA</small></div></div>
+      </article>
+      <article class="testi-card rv rv-d1">
+        <span class="testi-badge">❤️ Relacionamento</span>
+        <blockquote>Conheci meu namorado num domingo no parque. Ele apareceu no mapa a 120 metros. A gente trocou mensagem, se encontrou 20 minutos depois no mesmo banco. Hoje faz 8 meses juntos.</blockquote>
+        <div class="testi-who"><span class="testi-av">L</span><div><strong>Luana M., 27 anos</strong><small>São Paulo, SP</small></div></div>
+      </article>
+      <article class="testi-card rv rv-d2">
+        <span class="testi-badge">💼 Networking</span>
+        <blockquote>Antes de uma viagem a trabalho, abri o filtro por cidade e fui olhando as bios. Encontrei dois perfis que mencionavam tecnologia e startups. Mandei mensagem, a conversa fluiu e quando cheguei já tinha encontro marcado.</blockquote>
+        <div class="testi-who"><span class="testi-av">R</span><div><strong>Rafael S., 31 anos</strong><small>Belo Horizonte, MG</small></div></div>
+      </article>
+      <article class="testi-card rv">
+        <span class="testi-badge">✈️ Viagem</span>
+        <blockquote>Viajei sozinho para o Nordeste pela primeira vez. Antes de embarcar, abri o filtro por cidade, encontrei um cara de Fortaleza que me deu dicas, me levou nos melhores lugares e ainda virou meu parceiro de trilha.</blockquote>
+        <div class="testi-who"><span class="testi-av">D</span><div><strong>Diego P., 29 anos</strong><small>Curitiba, PR</small></div></div>
+      </article>
+      <article class="testi-card rv rv-d1">
+        <span class="testi-badge">🏳️‍🌈 Comunidade</span>
+        <blockquote>Como pessoa trans, sempre tive medo de apps de relacionamento. No GeoMatch me senti segura desde o primeiro uso. O controle é seu o tempo todo. Fiz amizades incríveis e hoje sou embaixadora do app na minha cidade.</blockquote>
+        <div class="testi-who"><span class="testi-av">I</span><div><strong>Isabela T., 23 anos</strong><small>Porto Alegre, RS</small></div></div>
+      </article>
+      <article class="testi-card rv rv-d2">
+        <span class="testi-badge">🎉 Evento</span>
+        <blockquote>Fui no carnaval de Recife sem conhecer ninguém. Abri o mapa no primeiro bloco e tinha 40 perfis ao redor. Saí com um grupo que se formou ali mesmo. O melhor carnaval da minha vida começou a 200 metros de onde eu estava.</blockquote>
+        <div class="testi-who"><span class="testi-av">T</span><div><strong>Thiago A., 26 anos</strong><small>Rio de Janeiro, RJ</small></div></div>
+      </article>
+    </div>
+
+    <div class="testi-wide">
+      <article class="testi-card rv">
+        <span class="testi-badge">🌎 Conexão pelo Brasil</span>
+        <blockquote>Moro numa cidade pequena no interior e sempre achei que apps assim eram só para São Paulo e Rio. O GeoMatch me provou o contrário. Tem gente aqui, tem conexão aqui, tem história acontecendo aqui. Finalmente um app que lembrou que o Brasil é enorme.</blockquote>
+        <div class="testi-who"><span class="testi-av">F</span><div><strong>Fernanda G., 32 anos</strong><small>Uberlândia, MG</small></div></div>
+      </article>
+      <article class="testi-card rv rv-d1">
+        <span class="testi-badge">⭐ Modo Gold</span>
+        <blockquote>Usei o Modo Gold num evento que fui como palestrante. Quis ver quem estava na plateia sem aparecer. Identifiquei pessoas da minha área, escolhi com quem queria me conectar e fui até elas na hora certa. Foi a abordagem mais estratégica que já fiz na vida.</blockquote>
+        <div class="testi-who"><span class="testi-av">M</span><div><strong>Marcelo V., 38 anos</strong><small>São Paulo, SP</small></div></div>
+      </article>
+    </div>
+
+    <p class="testi-closing rv">Cada conexão começa com uma distância.<br>A sua pode estar a <span class="hl-ink">300 metros agora.</span></p>
+  </div>
+</section>
+
+<!-- ============ 10 · NOSSA HISTÓRIA ============ -->
+<section class="sec sec--dark" data-screen-label="Nossa história">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Quem somos</span>
+      <h2 class="display">Nascemos no Brasil para <span class="hl">conectar o Brasil.</span></h2>
+    </div>
+
+    <div class="story-cols rv">
+      <p>O GeoMatch nasceu de uma observação simples: o mundo ficou mais conectado digitalmente, mas as <strong>conexões humanas reais ficaram mais raras.</strong> Vimos pessoas cercadas de outras pessoas interessantes — nos parques, nos shows, nos cafés, nas universidades — sem nunca se falar. Vimos oportunidades se perderem toda vez que alguém passou pelo lado de outra pessoa e simplesmente foi embora.</p>
+      <p>Criamos o GeoMatch para mudar isso. Um app construído do zero no Brasil, para o brasileiro — com a energia, a espontaneidade e o calor que só a gente tem. Nossa tecnologia de mapa em tempo real transforma o mundo físico em um espaço de descoberta social. <strong>A rua, o evento, a viagem: tudo vira uma oportunidade de conexão real.</strong></p>
+      <p>Somos uma empresa brasileira de tecnologia com foco em inovação social. Investimos em segurança, em design e em uma experiência que respeita cada usuário. Lançamos recentemente — mas chegamos para ficar. Nossa missão é clara: ser a maior plataforma de conexões humanas espontâneas do Brasil, e levar essa experiência para o mundo.</p>
+    </div>
+
+    <blockquote class="story-quote rv">
+      “Não construímos um app. <span class="hl">Construímos pontes</span> entre pessoas.”
+      <footer>GeoMatch</footer>
+    </blockquote>
+
+    <div class="story-stats">
+      <article class="stat-card rv"><div class="stat-emoji">🇧🇷</div><h3>100% Brasileiro</h3><p>Nascido e desenvolvido no Brasil</p></article>
+      <article class="stat-card rv rv-d1"><div class="stat-emoji">📍</div><h3>300 Metros</h3><p>O raio que muda tudo</p></article>
+      <article class="stat-card rv rv-d2"><div class="stat-emoji">🛡️</div><h3>Segurança Primeiro</h3><p>Construída desde o primeiro código</p></article>
+      <article class="stat-card rv rv-d3"><div class="stat-emoji">🌎</div><h3>Visão Global</h3><p>Começa no Brasil. Vai para o mundo.</p></article>
+    </div>
+
+    <div class="mvv-grid">
+      <article class="mvv-card rv"><h3>🎯 Nossa Missão</h3><p>Facilitar conexões humanas reais, espontâneas e seguras em qualquer lugar do Brasil.</p></article>
+      <article class="mvv-card rv rv-d1"><h3>🔭 Nossa Visão</h3><p>Ser a maior plataforma de conexão social baseada em localização do Brasil e referência global em inovação humana.</p></article>
+      <article class="mvv-card rv rv-d2"><h3>💛 Nossos Valores</h3><p>Autenticidade. Segurança. Inclusão. Inovação. E muito orgulho de ser brasileiro.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8 · CTA FINAL ============ -->
+<section class="sec sec--final" id="baixar" data-screen-label="CTA Final">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Para todo mundo</span>
+      <h2 class="display">Feito para <span class="hl-ink">todo brasileiro.</span></h2>
+      <p>Não importa quem você é, onde você está ou com quem você quer se conectar. O GeoMatch é pra você.</p>
+    </div>
+
+    <p class="final-incl rv">O GeoMatch é um espaço seguro e acolhedor para todos — pessoas hetero, LGBTQIA+, de qualquer região do Brasil, de qualquer idade e qualquer perfil social. Do interior ao litoral, do rolê no parque à festa de gala: onde tem pessoas, tem GeoMatch.</p>
+
+    <div class="final-card rv">
+      <h3>Baixe agora e comece a <span class="hl">se conectar.</span></h3>
+      <p>Gratuito. Sem complicação. Só conexões reais.</p>
+      <div class="cta-row center">
+        <a class="btn btn--gold" href="<%= testflight_guide_path %>"><span class="btn-ic">&#63743;</span><span class="btn-label"><span>Baixar para iPhone</span><span class="btn-sub">App Store — Grátis</span></span></a>
+        <a class="btn btn--dark" href="https://play.google.com/store/apps/details?id=com.geomatch.app&hl=pt_BR" target="_blank" rel="noopener noreferrer"><span class="btn-ic">▶</span><span class="btn-label"><span>Baixar para Android</span><span class="btn-sub">Google Play — Grátis</span></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <a class="wordmark" href="#">
+      <%= image_tag "logo-geomatch.svg", alt: "GeoMatch", class: "wordmark-logo" %>
+      <span><span class="wm-geo">Geo</span><span class="wm-match">Match</span></span>
+    </a>
+    <p class="footer-tag">Conexões reais, agora. • 🇧🇷 Feito no Brasil</p>
+    <div class="footer-contact"><span>suporte@geomatchbr.com</span><span>geomatchbr.com</span><a href="https://www.instagram.com/geomatchbr/" target="_blank" rel="noopener noreferrer">@geomatchbr</a></div>
+    <div class="footer-links">
+      <%= link_to "Termos de Uso", terms_of_use_path %>
+      <%= link_to "Política de Privacidade", privacy_policy_path %>
+      <%= link_to "Central de Ajuda", suporte_path %>
+    </div>
+    <p class="footer-fine">© 2026 GeoMatch. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<!-- ============ CTA FIXO MOBILE ============ -->
+<div class="mobile-cta" id="mobile-cta" aria-hidden="true">
+  <span class="mobile-cta-brand"><%= image_tag "logo-geomatch.svg", alt: "GeoMatch", class: "wordmark-logo" %></span>
+  <div class="mobile-cta-text"><strong>GeoMatch</strong><small>Grátis • iPhone e Android</small></div>
+  <a class="btn btn--gold" href="#baixar">Baixar agora</a>
+</div>
+</div>

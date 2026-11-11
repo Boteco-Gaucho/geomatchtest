@@ -1,0 +1,56 @@
+<% photo_url = user.avatar_url %>
+<% location_text = [user.city, user.state].compact_blank.join(", ").presence || user.country.presence || "Localização oculta" %>
+<% _parts = user.display_name.to_s.split; short_name = _parts.size > 1 ? "#{_parts.first} #{_parts.last}" : _parts.first.to_s %>
+
+<article class="profile-card">
+  <%= link_to user_path(user), class: "profile-card-link", aria: { label: "Ver perfil de #{user.display_name}" } do %>
+    <%= image_tag photo_url, class: "profile-card-img", alt: user.display_name, loading: "lazy" %>
+  <% end %>
+
+  <div class="profile-card-overlay"></div>
+
+  <% if user.plan&.name && %w[Plus Gold].include?(user.plan.name) %>
+    <span class="profile-card-badge"><%= user.plan.name %></span>
+  <% end %>
+
+  <div class="profile-card-actions">
+    <%# Curtir %>
+    <%= button_to likes_path(user_id: user.id),
+          method: :post,
+          class: "card-action-btn card-action-fav",
+          form: { class: "card-action-form" },
+          title: "Curtir #{user.display_name}",
+          aria: { label: "Curtir" } do %>
+      <%= hidden_field_tag :source, "gallery" %>
+      <%= image_tag "coracao-vazada.svg", alt: "" %>
+    <% end %>
+
+    <%# Mensagem %>
+    <%= button_to start_chat_path(user_id: user.id),
+          method: :post,
+          class: "card-action-btn card-action-chat",
+          form: { class: "card-action-form" },
+          title: "Conversar com #{user.display_name}",
+          aria: { label: "Enviar mensagem" } do %>
+      <%= image_tag "mensagem-vazada.svg", alt: "" %>
+    <% end %>
+
+    <%# Favoritar — Turbo Stream substitui apenas este wrapper %>
+    <div id="<%= "favorite-btn-#{user.id}" %>">
+      <%= render "favorites/favorite_button", user: user, favorite_id: (favorites_map || {})[user.id] %>
+    </div>
+  </div>
+
+  <div class="profile-card-info">
+    <div class="name-row">
+      <span><%= short_name %><% if user.age %>, <%= user.age %><% end %></span>
+      <% if user.respond_to?(:verified?) && user.verified? %>
+        <%= image_tag "icone-verificar.png", class: "verified-badge", alt: "Verificado" %>
+      <% end %>
+    </div>
+    <div class="location-row">
+      <i class="fas fa-map-marker-alt"></i>
+      <span><%= location_text %></span>
+    </div>
+  </div>
+</article>

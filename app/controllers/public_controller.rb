@@ -1,6 +1,6 @@
 class PublicController < ApplicationController
   def landing
-      redirect_to discover_path if user_signed_in?
+      redirect_to discover_3d_path if user_signed_in?
   end
 
   def terms

@@ -1,50 +1,128 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>GeoMatch</title>
+    <title><%= @seo_tags[:title] if @seo_tags %></title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <!-- SEO: Metatags dinâmicas -->
+    <%= render_page_meta_tags(@seo_tags) if @seo_tags %>
+
+    <% if user_signed_in? %>
+      <meta name="current-user-id" content="<%= current_user.id %>">
+      <meta name="user-logged-in" content="true">
+      <%# Token JWT de curta duração para o app nativo iOS fazer requisições diretas
+          em background (sem depender do evaluateJavaScript do WKWebView).
+          Lido por live_location.js e enviado ao Swift via locationHandler bridge. %>
+      <meta name="api-token" content="<%= JwtService.encode(sub: current_user.id, exp: 7.days.from_now.to_i) %>">
+    <% end %>
+
+    <% if devise_controller? %>
+      <meta name="turbo-cache-control" content="no-cache">
+    <% end %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="<%= asset_path('logo-geomatch.svg') %>" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="<%= asset_path('logo-geomatch.svg') %>">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Geomatch">
+<meta name="color-scheme" content="light dark">
+
+<meta name="mapbox-token" content="<%= ENV['MAPBOX_TOKEN'] %>">
+
+<link rel="apple-touch-icon" href="/icon.png">
+
+<%# Ícone para iPhone/iPad %>
+<link rel="apple-touch-icon" href="/icon-iphone.png">
+
+<%# Opcional: Se quiser um ícone específico para telas Retina de alta resolução %>
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-iphone.png">
+
+<%= tag.link rel: "manifest", href: pwa_manifest_path %>
+
     <!-- Meta responsivo -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="csrf-token" content="<%= form_authenticity_token %>">
 
-    <!-- Fonte: Poppins -->
+    <!-- Fonte: Poppins + Anton + Outfit (otimizado para LCP) -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;700;800&family=Outfit:wght@400;600&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@300;400;600;700;800&family=Nunito:wght@900&family=Outfit:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
 
-    <!-- CSS principal -->
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet CSS (propshaft não serve node_modules; CDN garante o caminho correto) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+
+    <!-- Mapbox GL (carregado no HEAD para que modules ES6 possam acessar globalmente) -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <%# turf é carregado UMA vez (v7, mais abaixo). A carga dupla v6+v7 causava
+        corrida entre CDNs — se uma falhasse, turf.circle quebrava o radar. %>
+
+    <!-- CSS principal (preload para LCP) -->
+    <link rel="preload" href="<%= asset_path("application.css") %>" as="style">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <!-- SEO: JSON-LD Schema.org -->
+    <%= render_schema_json %>
+
+  <meta name="vapid-public-key" content="<%= ENV["VAPID_PUBLIC_KEY"] %>">
+
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+
+  <% if request.user_agent.to_s.match?(/Turbo Native/) %>
+  <style>[data-hide-in-app] { display: none !important; }</style>
+  <% end %>
+
+  <%= yield :head if content_for?(:head) %>
   </head>
 
-  <body>
-    <header class="site-header">
-      <div class="container header-inner">
-        <%= link_to root_path, class: "brand" do %>
-          <img src="<%= asset_path('logo-geomatch.svg') %>" alt="GeoMatch" class="brand-logo" />
+  <body id="body" class='<%= 'turbo-native' if turbo_native_app? %>' data-turbo-native='<%= turbo_native_app? %>'>
+    <div id="toast-container" class="toast-container">
+      <%= render 'shared/flash' %>
+    </div>
+    <% if user_signed_in? %>
+      <!-- Estrutura principal com Sidebar e Conteúdo para usuários autenticados -->
+      <div class="authenticated-layout">
+        <% unless turbo_native_app? || @hide_sidebar %>
+          <%= render 'layouts/sidebar' %>
         <% end %>
-
-        <nav class="nav">
-          <% if user_signed_in? %>
-            <%= link_to "Descobrir", discover_path, class: "btn btn-link" %>
-            <%= link_to "Matches", matches_path, class: "btn btn-link" %>
-            <%= link_to "Meu Perfil", edit_profile_path, class: "btn btn-outline" %>
-            <%= button_to "Sair", destroy_user_session_path, method: :delete, class: "btn btn-primary", data: { turbo_confirm: "Deseja realmente sair?" } %>
-          <% else %>
-            <%= link_to "Entrar", new_user_session_path, class: "btn btn-outline" %>
-            <%= link_to "Cadastrar", new_user_registration_path, class: "btn btn-primary" %>
-          <% end %>
-        </nav>
+        <main class="site-content">
+          <%= yield %>
+        </main>
       </div>
-    </header>
+    <% else %>
+      <!-- Estrutura para usuários não autenticados (com header e footer ) -->
+      <% unless turbo_native_app? %>
+        <header class="site-header">
+          <div class="container header-inner">
+            <%= link_to root_path, class: "brand" do %>
+              <img src="<%= asset_path('logo-geomatch.svg') %>" alt="GeoMatch" class="brand-logo" />
+            <% end %>
 
-    <main class="site-content">
-      <%= yield %>
-    </main>
+            <nav class="nav">
+              <%= link_to "Entrar", new_user_session_path, class: "btn btn-outline" %>
+              <%= link_to "Cadastrar", new_user_registration_path, class: "btn btn-primary" %>
+            </nav>
+          </div>
+        </header>
+      <% end %>
 
-    <footer class="site-footer">
+      <main class="site-content">
+        <%= yield %>
+      </main>
+    <% end %>
+
+    <% unless user_signed_in? || turbo_native_app? || @hide_layout_footer %>
+      <!-- O Footer só é renderizado para usuários não autenticados -->
+       <footer class="site-footer">
       <div class="container footer-inner">
         <div class="footer-top">
           <p>O GeoMatch faz parte da GeoMatch Inc.</p>
@@ -64,7 +142,7 @@
           <div class="footer-column">
             <h4>Ajuda</h4>
             <ul>
-              <li><%= link_to "Central de Ajuda", "#" %></li>
+              <li><%= link_to "Central de Suporte", "/suporte" %></li>
               <li><%= link_to "Centro de Segurança", "#" %></li>
               <li><%= link_to "Relatório de Confiança", "#" %></li>
               <li><%= link_to "Contato", "#" %></li>
@@ -95,23 +173,58 @@
           <div class="app-links">
             <p>Baixe o app:</p>
             <%= link_to image_tag("appstore.png", alt: "Baixe no App Store"), "#" %>
-            <%= link_to image_tag("googleplay.png", alt: "Baixe no Google Play"), "#" %>
+            <%= link_to image_tag("googleplay.png", alt: "Baixe no Google Play"), "https://play.google.com/store/apps/details?id=com.geomatch.app", target: "_blank", rel: "noopener" %>
           </div>
 
           <p class="copyright">
-            © 2006 – <%= Time.current.year %> GeoMatch. Todos os direitos reservados.
+            © <%= Time.current.year %> GeoMatch. Todos os direitos reservados.
           </p>
         </div>
       </div>
     </footer>
+    <% end %>
 
     <!-- JS principal -->
     <%= javascript_include_tag "application", type: "module", "data-turbo-track": "reload" %>
 
-    <!-- Leaflet JS (precisa estar antes do map.js) -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Presença global: mantém o usuário visível no mapa ao trocar de aba -->
+    <% if user_signed_in? %>
+      <%= javascript_include_tag "presence", type: "module" %>
+    <% end %>
 
-    <!-- Script do mapa (carregado depois do Leaflet) -->
-    <%= javascript_include_tag "map", type: "module" %>
+    <%= javascript_include_tag "chat_logic", type: "module" %>
+
+   <script>
+  (function() {
+    const stored = localStorage.getItem('theme-preference');
+    const html = document.documentElement;
+    if (stored === 'dark') {
+      html.classList.add('dark-mode');
+      html.classList.remove('light-mode');
+    } else if (stored === 'light') {
+      html.classList.remove('dark-mode');
+      html.classList.add('light-mode');
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      html.classList.add('dark-mode');
+    }
+  })();
+</script>
+
+    <script>
+      document.addEventListener("turbo:load", function() {
+        if (navigator.userAgent.includes("Turbo Native") || window.TurboNativeBridge) {
+          document.querySelectorAll('[data-hide-in-app]').forEach(function(el) {
+            el.style.setProperty('display', 'none', 'important');
+          });
+          var main = document.querySelector('.site-content');
+          if (main) main.style.setProperty('padding-bottom', '0', 'important');
+        }
+      });
+    </script>
+
+    <%# Modal de bloqueio — último elemento do DOM para garantir z-index máximo %>
+    <% if user_signed_in? %>
+      <%= render "shared/block_confirm_modal" %>
+    <% end %>
   </body>
 </html>

@@ -1,8 +1,200 @@
-<div class="terms-page">
-  <h1>Termos de Uso</h1>
-  <p>
-    Ao usar o GeoMatch, você concorda com os seguintes termos. Respeitamos sua
-    privacidade e segurança, mas utilizamos dados de geolocalização para fornecer
-    a melhor experiência. Leia nossas políticas detalhadas abaixo.
-  </p>
+<div class="legal-container">
+  <div class="legal-content">
+
+    <h1>Termos de Uso — GeoMatch</h1>
+    <p class="last-updated">Última atualização: junho de 2026</p>
+
+    <p>Bem-vindo ao GeoMatch. Ao criar uma conta e usar o aplicativo, você concorda com estes Termos. Leia com atenção.</p>
+
+    <h2>1. Elegibilidade</h2>
+    <p>O GeoMatch é permitido apenas para pessoas com <strong>18 anos ou mais</strong>. Ao criar uma conta, você declara que atende a esse requisito. Contas de menores serão encerradas sem aviso prévio.</p>
+
+    <h2>2. Sua conta</h2>
+    <ul>
+      <li>Você é responsável por manter a confidencialidade das suas credenciais.</li>
+      <li>Seu perfil deve conter informações verdadeiras. Não é permitido criar perfis falsos ou se passar por outra pessoa.</li>
+      <li>Uma pessoa pode manter apenas uma conta ativa.</li>
+    </ul>
+
+    <h2>3. Uso aceitável</h2>
+    <p>O GeoMatch é uma plataforma de conexão humana de proximidade. Você concorda em usá-la de forma respeitosa e legal.</p>
+
+    <h2>4. Condutas proibidas</h2>
+    <p>É expressamente proibido:</p>
+    <ul>
+      <li>Assediar, ameaçar ou intimidar outros usuários.</li>
+      <li>Enviar conteúdo sexual explícito, violento ou ilegal.</li>
+      <li>Usar o app para fins comerciais, publicidade ou spam sem autorização.</li>
+      <li>Criar perfis falsos, bots ou usar o app de forma automatizada.</li>
+      <li>Coletar dados de outros usuários sem consentimento.</li>
+      <li>Tentar burlar sistemas de segurança, localização ou moderação do app.</li>
+      <li>Usar o app para qualquer atividade ilegal, incluindo tráfico, exploração ou discriminação.</li>
+    </ul>
+
+    <h2>5. Conteúdo do usuário</h2>
+    <p>Você mantém os direitos sobre o conteúdo que publica. Ao publicar no GeoMatch, nos concede licença não exclusiva para exibir esse conteúdo dentro da plataforma. Não publicamos seu conteúdo fora do app sem sua autorização.</p>
+
+    <h2>6. Moderação e denúncias</h2>
+    <p>Levamos segurança a sério. Você pode denunciar qualquer usuário ou conteúdo pelo botão de denúncia dentro do app. Investigamos todas as denúncias. Reservamo-nos o direito de remover conteúdo ou encerrar contas que violem estes termos, sem aviso prévio em casos graves.</p>
+
+    <h2>7. Encerramento de conta</h2>
+    <p>Você pode excluir sua conta a qualquer momento nas configurações do app. Podemos encerrar sua conta se você violar estes Termos. Em caso de encerramento por violação, não serão concedidos reembolsos de assinaturas ativas.</p>
+
+    <h2>8. Limitação de responsabilidade</h2>
+    <p>O GeoMatch é uma plataforma que facilita conexões entre pessoas. Não somos responsáveis por:</p>
+    <ul>
+      <li>Condutas de usuários fora do app.</li>
+      <li>Encontros ou interações que ocorram no mundo físico.</li>
+      <li>Veracidade das informações fornecidas por usuários.</li>
+      <li>Falhas de conexão, interrupções de serviço ou perda de dados causadas por fatores fora do nosso controle.</li>
+    </ul>
+
+    <h2>9. Propriedade intelectual</h2>
+    <p>O nome GeoMatch, logotipo, design e código do aplicativo são de propriedade exclusiva da GeoMatch. É proibido copiar, reproduzir ou distribuir qualquer parte do app sem autorização por escrito.</p>
+
+    <h2>10. Lei aplicável</h2>
+    <p>Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro da comarca de Itabuna-Bahia para dirimir eventuais conflitos.</p>
+
+    <h2>11. Alterações</h2>
+    <p>Podemos atualizar estes Termos periodicamente. Notificaremos os usuários por e-mail ou notificação no app com 15 dias de antecedência.</p>
+
+    <h2>12. Contato</h2>
+    <p>
+      GeoMatch —
+      <a href="mailto:suporte@geomatchbr.com" class="legal-link">suporte@geomatchbr.com</a>
+      &nbsp;|&nbsp;
+      <a href="https://www.geomatchbr.com" target="_blank" rel="noopener" class="legal-link">www.geomatchbr.com</a>
+    </p>
+
+    <div class="legal-footer">
+      <%= link_to "← Voltar", :back, class: "btn-back" %>
+    </div>
+
+  </div>
 </div>
+
+<style>
+  .legal-container {
+    padding: 48px 20px 64px;
+    background-color: var(--color-background);
+    min-height: 100vh;
+    color: var(--color-text);
+  }
+
+  .legal-content {
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--color-section-light);
+    padding: 48px 48px 56px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+  }
+
+  .legal-content h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .last-updated {
+    font-size: 0.875rem;
+    font-style: italic;
+    color: var(--color-text-secondary);
+    margin-bottom: 28px;
+    display: block;
+  }
+
+  .legal-content > p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .legal-content h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-top: 40px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .legal-content ul {
+    padding-left: 0;
+    margin-bottom: 20px;
+    list-style: none;
+  }
+
+  .legal-content ul li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 12px;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+  }
+
+  .legal-content ul li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .legal-content p {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .legal-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .legal-link:hover {
+    text-decoration: underline;
+  }
+
+  .legal-footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+  }
+
+  .btn-back {
+    display: inline-block;
+    background: var(--color-primary);
+    color: #000;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn-back:hover {
+    opacity: 0.88;
+    transform: scale(1.02);
+  }
+
+  @media (max-width: 600px) {
+    .legal-content {
+      padding: 28px 20px 36px;
+    }
+
+    .legal-content h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

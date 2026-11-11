@@ -1,0 +1,191 @@
+<div class="onboarding-wrapper" data-controller="address">
+
+  <%# ---- HEADER ---- %>
+  <div class="onboarding-header">
+    <%= image_tag "logo-geomatch-dourada.png", alt: "GeoMatch", class: "onboarding-logo" %>
+  </div>
+
+  <%# ---- HERO ---- %>
+  <div class="onboarding-hero">
+    <div class="onboarding-step-badge">Quase lá!</div>
+    <h1 class="onboarding-title">Complete seu perfil</h1>
+    <p class="onboarding-subtitle">
+      Precisamos de mais algumas informações para encontrar as melhores conexões para você.
+    </p>
+  </div>
+
+  <%# ---- PROGRESSO ---- %>
+  <div class="onboarding-progress">
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+    <span class="progress-label">Etapa 2 de 2</span>
+  </div>
+
+  <%# ---- ALERTAS (apenas via @errors, sem duplicar o flash do layout) ---- %>
+  <% if @errors.present? %>
+    <div class="onboarding-alert">
+      <i class="fas fa-exclamation-circle"></i>
+      <%= @errors.join(" · ") %>
+    </div>
+  <% end %>
+
+  <%# ---- FORMULÁRIO — model: current_user garante user[campo] em todos os fields ---- %>
+  <%= form_with model: current_user, url: onboarding_path, method: :patch, class: "onboarding-form" do |f| %>
+
+    <%# --- Gênero --- %>
+    <div class="ob-field-group">
+      <label class="ob-label">
+        Gênero <span class="ob-required">*</span>
+      </label>
+      <div class="ob-radio-group" data-radio-group="gender">
+        <% [['Homem','👨'],['Mulher','👩'],['Não Binário','🏳️‍🌈']].each do |valor, emoji| %>
+          <label class="ob-gender-btn <%= 'selected' if current_user.gender == valor %>">
+            <input type="radio" name="user[gender]" value="<%= valor %>"
+                   <%= 'checked' if current_user.gender == valor %>>
+            <span class="gender-emoji"><%= emoji %></span>
+            <span><%= valor %></span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <%# --- Quero conhecer --- %>
+    <div class="ob-field-group">
+      <label class="ob-label">
+        Quero conhecer <span class="ob-required">*</span>
+      </label>
+      <div class="ob-radio-group" data-radio-group="interested_in">
+        <% [['Mulheres','👩','Mulher'],['Homens','👨','Homem'],['Todos','💛','Todos']].each do |label, emoji, valor| %>
+          <label class="ob-gender-btn <%= 'selected' if current_user.interested_in == valor %>">
+            <input type="radio" name="user[interested_in]" value="<%= valor %>"
+                   <%= 'checked' if current_user.interested_in == valor %>>
+            <span class="gender-emoji"><%= emoji %></span>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <%# --- Escolaridade --- %>
+    <div class="ob-field-group">
+      <label class="ob-label" for="user_education_level">
+        Escolaridade <span class="ob-required">*</span>
+      </label>
+      <%= f.select :education_level,
+            options_for_select([
+              ['Ensino Médio', 'high_school'],
+              ['Ensino Superior Incompleto', 'college_incomplete'],
+              ['Ensino Superior Completo', 'college_complete']
+            ], current_user.education_level),
+            { prompt: "Selecione sua escolaridade" },
+            { id: "user_education_level", class: "ob-input" } %>
+    </div>
+
+    <%# --- Data de Nascimento --- %>
+    <div class="ob-field-group">
+      <label class="ob-label" for="user_birthdate">
+        Data de Nascimento <span class="ob-required">*</span>
+      </label>
+      <%= f.date_field :birthdate,
+            id: "user_birthdate",
+            class: "ob-input",
+            max: Date.today - 18.years %>
+      <span class="ob-hint">Você deve ter ao menos 18 anos.</span>
+    </div>
+
+    <%# --- Telefone --- %>
+    <div class="ob-field-group">
+      <label class="ob-label" for="user_phone">
+        Telefone / WhatsApp <span class="ob-required">*</span>
+      </label>
+      <%= f.telephone_field :phone,
+            id: "user_phone",
+            class: "ob-input",
+            placeholder: "(XX) 99999-9999" %>
+    </div>
+
+    <%# --- Localização via CEP --- %>
+    <div class="ob-field-group">
+      <label class="ob-label" for="user_zip_code">
+        CEP <span class="ob-required">*</span>
+      </label>
+      <%= f.text_field :zip_code,
+            id: "user_zip_code",
+            class: "ob-input",
+            placeholder: "00000-000",
+            maxlength: 9,
+            data: {
+              address_target: "zipCode",
+              action: "blur->address#lookup"
+            } %>
+      <span class="ob-hint" data-address-target="feedback" style="color: #e74c3c; font-size: 0.85rem;"></span>
+    </div>
+
+    <%# Campos preenchidos automaticamente pelo Stimulus address %>
+    <div class="ob-address-details">
+      <div class="ob-field-group">
+        <label class="ob-label">Cidade</label>
+        <%= f.text_field :city,
+              class: "ob-input ob-input-readonly",
+              placeholder: "Preenchida automaticamente",
+              readonly: true,
+              data: { address_target: "city" } %>
+      </div>
+      <div class="ob-address-row">
+        <div class="ob-field-group ob-field-grow">
+          <label class="ob-label">Bairro</label>
+          <%= f.text_field :neighborhood,
+                class: "ob-input ob-input-readonly",
+                placeholder: "Automático",
+                readonly: true,
+                data: { address_target: "neighborhood" } %>
+        </div>
+        <div class="ob-field-group ob-field-fixed">
+          <label class="ob-label">UF</label>
+          <%= f.text_field :state,
+                class: "ob-input ob-input-readonly",
+                placeholder: "UF",
+                readonly: true,
+                maxlength: 2,
+                data: { address_target: "state" } %>
+        </div>
+      </div>
+      <%= f.hidden_field :street, data: { address_target: "street" } %>
+    </div>
+
+    <%# --- Campo de Cupom (Opcional) --- %>
+    <div class="ob-field-group">
+      <label class="ob-label" for="user_coupon_code">
+        Código do Cupom (opcional)
+      </label>
+      <%= f.text_field :coupon_code,
+            id: "user_coupon_code",
+            class: "ob-input",
+            placeholder: "Ex: PRIMEIROACESSO",
+            autocomplete: "off",
+            style: "text-transform: uppercase;" %>
+      <span class="ob-hint">Se você tiver um código de cupom, insira-o aqui.</span>
+    </div>
+
+    <%# --- Botão Enviar --- %>
+    <div class="ob-actions">
+      <%= f.submit "Entrar no GeoMatch →", class: "ob-btn-submit" %>
+    </div>
+
+  <% end %>
+
+</div>
+
+<script>
+  document.querySelectorAll('.ob-radio-group').forEach(function(group) {
+    group.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        group.querySelectorAll('.ob-gender-btn').forEach(function(btn) {
+          btn.classList.remove('selected');
+        });
+        this.closest('.ob-gender-btn').classList.add('selected');
+      });
+    });
+  });
+</script>

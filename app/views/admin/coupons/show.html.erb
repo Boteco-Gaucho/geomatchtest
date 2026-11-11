@@ -1,0 +1,80 @@
+<% content_for :page_title, "Cupom: #{@coupon.code}" %>
+
+<div class="max-w-3xl">
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-lg font-bold text-white">
+        Cupom <span class="text-amber-500"><%= @coupon.code %></span>
+      </h2>
+      <p class="text-sm text-slate-500 mt-0.5">Criado em <%= @coupon.created_at.strftime('%d/%m/%Y %H:%M') %></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to 'Editar', edit_admin_coupon_path(@coupon),
+            class: "px-4 py-2 rounded-xl text-sm font-bold text-slate-900 transition-opacity hover:opacity-90",
+            style: "background:linear-gradient(135deg,#f59e0b,#d97706)" %>
+      <%= link_to 'Voltar', admin_coupons_path,
+            class: "px-4 py-2 rounded-xl text-sm font-medium text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800/60 transition-colors" %>
+    </div>
+  </div>
+
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl divide-y divide-slate-800/70">
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</span>
+      <% if @coupon.available? %>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold text-emerald-950 bg-emerald-400">Disponível</span>
+      <% elsif @coupon.active? %>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold text-amber-950 bg-amber-400">Ativo, mas esgotado/expirado</span>
+      <% else %>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold text-slate-300 bg-slate-700">Inativo</span>
+      <% end %>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between gap-6">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide flex-shrink-0">Descrição</span>
+      <span class="text-sm text-slate-200 text-right"><%= @coupon.description.presence || "—" %></span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Tipo de Desconto</span>
+      <span class="text-sm text-slate-200"><%= @coupon.discount_type %></span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Duração</span>
+      <span class="text-sm text-slate-200"><%= @coupon.duration_days ? "#{@coupon.duration_days} dias" : "—" %></span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Planos Afetados</span>
+      <span class="text-sm text-slate-200"><%= @coupon.plan_codes.join(', ').presence || "—" %></span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Usos</span>
+      <span class="text-sm text-slate-200">
+        <%= @coupon.used_count %>
+        de <%= @coupon.usage_limit.to_i.zero? ? "ilimitado" : @coupon.usage_limit %>
+      </span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Expira em</span>
+      <span class="text-sm text-slate-200"><%= @coupon.expires_at&.strftime('%d/%m/%Y %H:%M') || "Nunca" %></span>
+    </div>
+
+    <div class="px-5 py-4 flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Usuários que resgataram</span>
+      <span class="text-sm text-slate-200"><%= @coupon.user_coupons.count %></span>
+    </div>
+
+  </div>
+
+  <div class="mt-6">
+    <%= button_to 'Excluir Cupom', admin_coupon_path(@coupon), method: :delete,
+          data: { turbo_confirm: "Excluir o cupom #{@coupon.code}? Os registros de uso também serão removidos." },
+          class: "px-4 py-2 rounded-xl text-sm font-semibold text-red-400 border border-red-500/40 hover:bg-red-500/10 transition-colors cursor-pointer" %>
+  </div>
+
+</div>

@@ -1,0 +1,24 @@
+<h2>Solicitação de Exclusão de Conta — GeoMatch</h2>
+
+<p>Uma nova solicitação de exclusão de conta e dados foi enviada pela página pública <strong>/exclusao-de-conta</strong>.</p>
+
+<table cellpadding="6" style="border-collapse: collapse;">
+  <tr>
+    <td><strong>Nome:</strong></td>
+    <td><%= @name %></td>
+  </tr>
+  <tr>
+    <td><strong>Email da conta:</strong></td>
+    <td><%= @email %></td>
+  </tr>
+  <tr>
+    <td><strong>Motivo:</strong></td>
+    <td><%= @reason %></td>
+  </tr>
+  <tr>
+    <td><strong>Data da solicitação:</strong></td>
+    <td><%= Time.current.strftime('%d/%m/%Y %H:%M') %> (horário do servidor)</td>
+  </tr>
+</table>
+
+<p>Ação necessária: localizar a conta pelo email informado e processar a exclusão conforme a política de privacidade.</p>

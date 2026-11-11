@@ -2,25 +2,71 @@
   <div class="devise-form-card">
     <h2>Cadastre-se no GeoMatch</h2>
 
+    <%#
+      data: { turbo: false } no form_for é obrigatório com Devise + Turbo/Rails 8.
+      Sem isso o Turbo trata o redirect do Devise como um fetch e quebra o fluxo.
+    %>
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
       <%= render "devise/shared/error_messages", resource: resource %>
 
+      <%# --- 1. Nome Completo --- %>
       <div class="field">
-        <%= f.label :email %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "seu.email@exemplo.com" %>
+        <%= f.label :username, "Nome Completo" %>
+        <%= f.text_field :username,
+              autofocus: true,
+              placeholder: "Ex: João Silva",
+              required: true,
+              class: "form-input" %>
       </div>
 
+      <%# --- 2. E-mail --- %>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email,
+              autocomplete: "email",
+              placeholder: "seu.email@exemplo.com",
+              required: true,
+              class: "form-input" %>
+      </div>
+
+      <%# --- 3. Senha --- %>
       <div class="field">
         <%= f.label :password %>
         <% if @minimum_password_length %>
-        <em class="password-hint">(<%= @minimum_password_length %> caracteres no mínimo)</em>
+          <em class="password-hint">(<%= @minimum_password_length %> caracteres no mínimo)</em>
         <% end %>
-        <%= f.password_field :password, autocomplete: "new-password", placeholder: "••••••••" %>
+        <%= f.password_field :password,
+              autocomplete: "new-password",
+              placeholder: "••••••••",
+              required: true,
+              class: "form-input" %>
       </div>
 
+      <%# --- 4. Confirmação de Senha --- %>
       <div class="field">
         <%= f.label :password_confirmation, "Confirmação de Senha" %>
-        <%= f.password_field :password_confirmation, autocomplete: "new-password", placeholder: "••••••••" %>
+        <%= f.password_field :password_confirmation,
+              autocomplete: "new-password",
+              placeholder: "••••••••",
+              required: true,
+              class: "form-input" %>
+      </div>
+
+      <%# --- 5. Termos e Políticas --- %>
+      <div class="terms-container">
+        <div class="checkbox-field">
+          <%= f.check_box :terms_of_use, id: "terms-check" %>
+          <label for="terms-check">
+            Li e aceito os <%= link_to "Termos de Uso", terms_path, target: "_blank" %>
+          </label>
+        </div>
+
+        <div class="checkbox-field">
+          <%= f.check_box :data_policy, id: "policy-check" %>
+          <label for="policy-check">
+            Aceito a <%= link_to "Política de Uso de Dados", privacy_path, target: "_blank" %>
+          </label>
+        </div>
       </div>
 
       <div class="actions">

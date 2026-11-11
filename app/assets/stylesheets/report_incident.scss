@@ -1,0 +1,196 @@
+// =========================================================
+// TELA DE DENÚNCIA RÁPIDA (CORRIGIDA - BOTÃO MAIS ALTO)
+// =========================================================
+
+html, body {
+  height: auto;
+  overflow-y: auto; /* Garante que o scroll do navegador funcione */
+}
+
+.report-wrapper {
+  background-color: #050507; 
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Garante que o fundo preto cubra tudo, mesmo no scroll */
+  position: relative; 
+}
+
+/* --- 1. HEADER --- */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  padding-top: calc(20px + env(safe-area-inset-top));
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon-arrow {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.header-title-container {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  padding: 0 15px;
+}
+
+.title-img-report {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+}
+
+.icon-shield-gray {
+  width: 28px;
+  height: 28px;
+  opacity: 0.8;
+}
+
+/* --- 2. BODY --- */
+.report-body {
+  flex: 1 0 auto; /* Permite que o corpo cresça e empurre o footer */
+  padding: 10px 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+/* Área de Texto */
+.form-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.section-sublabel {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.report-textarea {
+  width: 100%;
+  height: 120px;
+  background-color: #1a1a1d;
+  border: 1px solid #444;
+  border-radius: 12px;
+  color: #fff;
+  padding: 15px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: none;
+  box-sizing: border-box;
+  outline: none;
+  
+  &:focus {
+    border-color: #d4af37;
+  }
+}
+
+/* Área de Fotos */
+.photos-section-container {
+  border: 1px solid #d4af37;
+  border-radius: 15px;
+  padding: 15px;
+  background-color: #0a0a0c;
+}
+
+.photos-header-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.camera-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #2a2a2d;
+  border: 1px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-camera-png {
+  width: 22px;
+  height: auto;
+  display: block;
+}
+
+.photos-text {
+  display: flex;
+  flex-direction: column;
+  
+  strong { font-size: 0.95rem; font-weight: 700; }
+  span { font-size: 0.7rem; color: #aaa; }
+}
+
+.report-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.photo-placeholder-box {
+  aspect-ratio: 3 / 4;
+  background-color: #1a1a1d;
+  border: 1px dashed #444;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  .plus-sign {
+    color: #555;
+    font-size: 1.5rem;
+    font-weight: 300;
+  }
+}
+
+/* --- 3. FOOTER (CORREÇÃO DE POSIÇÃO) --- */
+.report-footer {
+  flex-shrink: 0; /* Impede o botão de amassar */
+  padding: 20px 25px 80px 25px; /* O padding de 80px evita que o botão fique atrás do menu inferior */
+  display: flex;
+  justify-content: center;
+  background-color: #050507; /* Garante que não apareça branco aqui */
+}
+
+.btn-submit-report {
+  background-color: #e61919;
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  max-width: 300px; /* Controla a largura máxima */
+  box-shadow: 0 4px 10px rgba(230, 25, 25, 0.3);
+  transition: transform 0.2s;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,0 +1,112 @@
+<div class="pp-edit-profile-wrapper">
+
+  <%# --- 1. HEADER (Igual ao Edit) --- %>
+  <div class="edit-header">
+    <%= link_to my_profile_path, class: "header-btn-left" do %>
+      <span>Cancelar</span>
+    <% end %>
+
+    <div class="header-title">
+      <%= image_tag "texto-editar-perfil.png", class: "title-img" %>
+    </div>
+
+    <%= link_to my_profile_path, class: "header-btn-right" do %>
+      <div class="check-circle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+    <% end %>
+  </div>
+
+  <%# --- 2. ABAS (Visualizar Ativo) --- %>
+  <div class="edit-tabs">
+    <%= link_to "Editar", edit_profile_path, class: "tab inactive" %>
+    <div class="tab active">Visualizar</div>
+  </div>
+
+  <%# --- 3. CONTEÚDO DA PRÉ-VISUALIZAÇÃO (CARTÃO) --- %>
+  <div class="preview-container">
+    <div class="gold-card-frame">
+      
+      <%# Galeria de Fotos %>
+      <div class="card-gallery">
+        <%# Barra de Progresso %>
+        <div class="progress-bar-container">
+          <div class="progress-step active"></div>
+          <% @user.album_photos.count.times do %>
+            <div class="progress-step"></div>
+          <% end %>
+        </div>
+
+        <%# Foto Principal + Outras Fotos do Álbum %>
+        <%# ADICIONADO: id="preview-slider" para o JS funcionar %>
+        <div class="pp-slides-container" id="preview-slider">
+          <div class="pp-slide-item active">
+            <%= image_tag @user.avatar_or_default, class: "slide-img" %>
+            <div class="slide-gradient"></div>
+          </div>
+
+          <%# ADICIONADO: Loop para renderizar as outras fotos %>
+          <% @user.album_photos.each do |photo| %>
+            <div class="pp-slide-item">
+              <%= image_tag photo, class: "slide-img" %>
+              <div class="slide-gradient"></div>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Informações do Usuário %>
+        <div class="card-user-info" style="bottom: 40px;">
+          <div class="location-badge">
+            <i class="fas fa-map-marker-alt"></i> Perto de mim
+          </div>
+
+          <h2 class="user-title">
+            <%= @user.display_name.split.first %> <span class="age"><%= @user.age %></span>
+            <% if @user.respond_to?(:verified) && @user.verified %>
+               <%= image_tag "icone-verificar.png", class: "verified-icon", style: "width: 20px; height: 20px;" %>
+            <% end %>
+          </h2>
+          
+          <p class="user-distance">
+            <i class="fas fa-location-arrow"></i> a 1 km de distância
+          </p>
+        </div>
+        
+        <div class="preview-actions-right">
+          <div class="pp-preview-actions-right">
+            <%= link_to user_path(@user), class: "pp-link-wrapper" do %>
+              <div class="pp-icon-circle-glass">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("turbo:load", () => {
+      const slider = document.getElementById("preview-slider");
+      if (!slider) return;
+
+      slider.addEventListener("click", (e) => {
+        const rect = slider.getBoundingClientRect();
+        const clickX = e.clientX - rect.left; 
+        const width = rect.width;
+
+        if (clickX > width / 2) {
+          slider.scrollBy({ left: width, behavior: 'smooth' });
+        } else {
+          slider.scrollBy({ left: -width, behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+
+</div>

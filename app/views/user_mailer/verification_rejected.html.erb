@@ -1,0 +1,36 @@
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #333;">
+  <div style="text-align: center; margin-bottom: 32px;">
+    <h1 style="color: #e53e3e; font-size: 22px; margin: 0;">Foto de verificação não aprovada</h1>
+  </div>
+
+  <p>Olá, <strong><%= @user.display_name %></strong>!</p>
+
+  <p>Infelizmente sua foto de verificação não pôde ser aprovada automaticamente pelo nosso sistema.</p>
+
+  <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 16px; margin: 24px 0; border-radius: 4px;">
+    <p style="margin: 0; font-weight: bold; color: #c53030;">Motivo da recusa:</p>
+    <p style="margin: 8px 0 0;"><%= @rejection_reason %></p>
+  </div>
+
+  <p>Você pode enviar uma nova foto a qualquer momento acessando a página de verificação do seu perfil.</p>
+
+  <p><strong>Dicas para uma foto aprovada:</strong></p>
+  <ul>
+    <li>Segure um papel com seu nome completo escrito de forma legível</li>
+    <li>Certifique-se de que seu rosto esteja bem iluminado e visível</li>
+    <li>Use uma foto recente, sem óculos escuros ou objetos cobrindo o rosto</li>
+    <li>Evite imagens com conteúdo inapropriado</li>
+  </ul>
+
+  <div style="text-align: center; margin: 32px 0;">
+    <a href="<%= verification_url %>"
+       style="background: #4f46e5; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+      Enviar nova foto
+    </a>
+  </div>
+
+  <p style="color: #718096; font-size: 13px;">
+    Se tiver dúvidas, entre em contato com o nosso suporte respondendo este e-mail.<br>
+    Equipe GeoMatch
+  </p>
+</div>

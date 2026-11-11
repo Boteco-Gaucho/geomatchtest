@@ -1,0 +1,138 @@
+<%# app/views/plans/modal.html.erb %>
+
+<div class="upgrade-modal-backdrop">
+  <div class="upgrade-modal-content">
+    
+    <%# Botão Fechar %>
+    <button class="close-modal-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <%# Conteúdo Dinâmico Baseado no Tipo %>
+    <div class="modal-icon-area">
+      <% if @feature_type == 'invisible' %>
+        <div class="icon-circle">👻</div>
+      <% else %>
+        <div class="icon-circle">💎</div>
+      <% end %>
+    </div>
+
+    <h2 class="modal-title">
+      <% if @feature_type == 'invisible' %>
+        Fique Invisível com Gold
+      <% else %>
+        Desbloqueie o GeoMatch Gold
+      <% end %>
+    </h2>
+
+    <p class="modal-description">
+      <% if @feature_type == 'invisible' %>
+        Navegue pelo mapa sem ser visto por ninguém. Ative o modo fantasma e controle sua privacidade.
+      <% else %>
+        Tenha acesso ilimitado a todas as funcionalidades exclusivas.
+      <% end %>
+    </p>
+
+    <%# Lista de Benefícios Resumida %>
+    <ul class="modal-benefits">
+      <li><span class="check">✔</span> Modo Invisível</li>
+      <li><span class="check">✔</span> Ver quem te curtiu</li>
+      <li><span class="check">✔</span> Mensagens Ilimitadas</li>
+    </ul>
+
+    <%# Ação Principal %>
+    <%= link_to plans_path, class: "btn-upgrade-action" do %>
+      ASSINAR AGORA
+    <% end %>
+
+    
+  </div>
+</div>
+
+<style>
+  /* CSS INLINE PARA O MODAL (Para garantir que carregue via AJAX) */
+ .upgrade-modal-backdrop {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; /* Use vw para garantir largura total */
+    height: 100vh; /* Use vh para garantir altura total */
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); /* Para Safari */
+    
+    /* A MUDANÇA ESTÁ AQUI */
+    z-index: 999999 !important; 
+    pointer-events: all !important; 
+    
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+  .upgrade-modal-content {
+  pointer-events: all !important;
+    z-index: 1000000 !important;
+    background: linear-gradient(145deg, #1c1c1e 0%, #111 100%);
+    border: 1px solid #333;
+    border-radius: 24px;
+    padding: 30px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .close-modal-btn {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(255,255,255,0.1); border: none;
+    color: #fff; width: 30px; height: 30px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  .icon-circle {
+    font-size: 3rem; margin-bottom: 15px;
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+  }
+
+  .modal-title {
+    color: #fff; font-size: 1.5rem; margin-bottom: 10px; font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, #d4af37 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .modal-description {
+    color: #aaa; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;
+  }
+
+  .modal-benefits {
+    list-style: none; padding: 0; margin-bottom: 25px; text-align: left;
+    background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
+  }
+  .modal-benefits li {
+    margin-bottom: 8px; color: #ddd; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
+  }
+  .check { color: #d4af37; font-weight: bold; }
+
+  .btn-upgrade-action {
+    display: block; width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #d4af37, #b49028);
+    color: #000; font-weight: 800; text-decoration: none;
+    border-radius: 50px; text-transform: uppercase; letter-spacing: 1px;
+    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+    transition: transform 0.2s;
+  }
+  .btn-upgrade-action:hover { transform: scale(1.03); }
+
+  .btn-maybe-later {
+    background: none; border: none; color: #666; margin-top: 15px;
+    font-size: 0.85rem; cursor: pointer; text-decoration: underline;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>

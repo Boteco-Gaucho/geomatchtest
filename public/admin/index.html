@@ -1,0 +1,3259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoMatch · Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:#0f172a}
+    ::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+    @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(74,222,128,.75)}70%{box-shadow:0 0 0 8px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+    .pulse-online{animation:pulse-ring 1.7s ease-out infinite}
+    .leaflet-popup-content-wrapper{background:#1e293b!important;border:1px solid #334155!important;color:#e2e8f0!important;border-radius:10px!important;box-shadow:0 8px 24px rgba(0,0,0,.6)!important;padding:0!important}
+    .leaflet-popup-content{margin:10px 14px!important}
+    .leaflet-popup-tip{background:#334155!important}
+    .leaflet-control-zoom a{background:#1e293b!important;color:#94a3b8!important;border-color:#334155!important}
+    .leaflet-control-zoom a:hover{background:#334155!important;color:#fff!important}
+    .leaflet-control-attribution{background:rgba(15,23,42,.7)!important;color:#475569!important;font-size:10px!important}
+    .leaflet-control-attribution a{color:#64748b!important}
+    input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5)}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100" style="font-family:system-ui,-apple-system,sans-serif;">
+
+<!-- ══════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════ -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-sm px-4">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-900 font-black text-lg" style="background:linear-gradient(135deg,#f59e0b,#d97706)">G</div>
+        <span class="text-2xl font-bold">GeoMatch <span style="color:#f59e0b">Admin</span></span>
+      </div>
+      <p class="text-slate-500 text-sm">Área restrita — apenas administradores</p>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-7 shadow-2xl">
+      <div id="login-error" class="hidden mb-4 px-4 py-3 rounded-xl text-sm text-red-400 bg-red-500/10 border border-red-500/25 text-center"></div>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">E-mail</label>
+          <input id="login-email" type="email" required placeholder="admin@geomatch.app"
+            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Senha</label>
+          <input id="login-password" type="password" required placeholder="••••••••"
+            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors" />
+        </div>
+        <button id="login-btn" type="submit" class="w-full font-bold py-2.5 rounded-xl text-sm text-slate-900 mt-1 transition-opacity hover:opacity-90" style="background:#f59e0b">
+          Entrar no Painel
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════ -->
+<div id="dashboard" class="hidden min-h-screen flex" style="display:none!important">
+
+  <!-- SIDEBAR -->
+  <aside class="w-60 flex-shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col fixed top-0 left-0 h-full z-20">
+    <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-900 font-black text-sm flex-shrink-0" style="background:linear-gradient(135deg,#f59e0b,#d97706)">G</div>
+      <div><div class="font-bold text-sm">GeoMatch</div><div class="text-xs font-semibold" style="color:#f59e0b">Admin Panel</div></div>
+    </div>
+
+    <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" id="sidebar-nav">
+      <button data-section="overview"    class="nav-btn active-nav w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-slate-800 text-left">
+        <svg class="w-4 h-4 flex-shrink-0" style="color:#f59e0b" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+        Visão Geral
+      </button>
+      <button data-section="map" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+        Mapa ao Vivo
+      </button>
+      <button data-section="analytics" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Analytics
+      </button>
+      <button data-section="users" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        Usuários
+      </button>
+      <button data-section="reports" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Denúncias
+        <span id="badge-reports" class="ml-auto text-white text-xs font-bold rounded-full px-1.5 py-px hidden" style="background:#ef4444;min-width:18px;text-align:center">0</span>
+      </button>
+      <button data-section="performance" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Performance
+      </button>
+      <button data-section="insights" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+        Insights BI
+      </button>
+      <button data-section="engagement" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Engajamento
+      </button>
+      <button data-section="political" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+        Inteligência Política
+        <span class="ml-auto text-xs font-bold px-1.5 py-px rounded-full text-slate-900" style="background:#f59e0b;font-size:9px">BI</span>
+      </button>
+      <button data-section="plans" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Planos de Assinatura
+        <span class="ml-auto text-xs font-bold px-1.5 py-px rounded-full text-slate-900" style="background:#22c55e;font-size:9px">SaaS</span>
+      </button>
+      <button data-section="moderation" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Moderação de Fotos
+        <span id="badge-moderation" class="ml-auto hidden text-xs font-bold px-1.5 py-px rounded-full text-slate-900" style="background:#f59e0b;font-size:9px">0</span>
+      </button>
+      <button data-section="logs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        Histórico de Ações
+      </button>
+      <a href="/admin/settings" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors text-left">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 10v2m0-2a2 2 0 100-4m0 4a2 2 0 110-4m0-4V4"/></svg>
+        Configurações valores avulso
+      </a>
+    </nav>
+
+    <div class="p-3 border-t border-slate-800">
+      <div class="flex items-center gap-3 px-2">
+        <div id="admin-avatar" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-900 font-bold text-xs flex-shrink-0" style="background:#f59e0b">A</div>
+        <div class="flex-1 min-w-0">
+          <div id="admin-name" class="text-xs font-semibold text-white truncate">Admin</div>
+          <div class="text-xs text-slate-500">Administrador</div>
+        </div>
+        <button onclick="logout()" title="Sair" class="text-slate-500 hover:text-red-400 transition-colors p-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 flex flex-col" style="margin-left:240px;min-height:100vh;">
+
+    <!-- Top bar -->
+    <div class="sticky top-0 z-10 bg-slate-950/95 backdrop-blur border-b border-slate-800 px-7 py-3 flex items-center justify-between">
+      <div>
+        <h1 id="section-title" class="font-bold text-base">Visão Geral</h1>
+        <p class="text-xs text-slate-500 mt-0.5">Atualizado: <span id="last-updated">—</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+          Ao vivo · <span id="countdown">30</span>s
+        </div>
+        <button onclick="forceRefresh()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">↺ Agora</button>
+      </div>
+    </div>
+
+    <div class="p-7 space-y-7 flex-1">
+
+      <!-- ══════════════ VISÃO GERAL ══════════════ -->
+      <section id="section-overview">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+          <!-- Card Total -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="p-2 rounded-lg" style="background:rgba(59,130,246,.12)"><svg class="w-5 h-5" style="color:#60a5fa" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+              <span class="text-xs text-slate-500 font-medium">TOTAL</span>
+            </div>
+            <div id="stat-total-users" class="text-3xl font-bold mb-1">—</div>
+            <div class="text-xs text-slate-400">Usuários cadastrados</div>
+            <div class="text-xs mt-1.5" style="color:#4ade80">+<span id="stat-new-today">0</span> hoje</div>
+          </div>
+          <!-- Card Online -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="p-2 rounded-lg" style="background:rgba(74,222,128,.1)"><svg class="w-5 h-5" style="color:#4ade80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+              <span class="flex items-center gap-1 text-xs font-medium" style="color:#4ade80"><span class="w-1.5 h-1.5 rounded-full inline-block animate-pulse" style="background:#4ade80"></span>AO VIVO</span>
+            </div>
+            <div id="stat-active-now" class="text-3xl font-bold mb-1">—</div>
+            <div class="text-xs text-slate-400">Online agora</div>
+            <div class="text-xs text-slate-500 mt-1.5">Últimos 5 min</div>
+          </div>
+          <!-- Card Matches -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-start justify-between mb-4">
+              <div class="p-2 rounded-lg" style="background:rgba(245,158,11,.1)"><svg class="w-5 h-5" style="color:#fbbf24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+              <span class="text-xs text-slate-500 font-medium">MATCHES</span>
+            </div>
+            <div id="stat-total-matches" class="text-3xl font-bold mb-1">—</div>
+            <div class="text-xs text-slate-400">Conversas ativas</div>
+            <div class="text-xs text-slate-500 mt-1.5"><span id="stat-messages-today">0</span> msgs hoje</div>
+          </div>
+          <!-- Card Denúncias -->
+          <div class="bg-slate-900 rounded-2xl p-5" style="border:1px solid rgba(239,68,68,.3)">
+            <div class="flex items-start justify-between mb-4">
+              <div class="p-2 rounded-lg" style="background:rgba(239,68,68,.1)"><svg class="w-5 h-5" style="color:#f87171" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+              <span class="text-xs font-medium" style="color:#f87171">PENDENTE</span>
+            </div>
+            <div id="stat-pending-reports" class="text-3xl font-bold mb-1" style="color:#f87171">—</div>
+            <div class="text-xs text-slate-400">Denúncias pendentes</div>
+            <div class="text-xs text-slate-500 mt-1.5"><span id="stat-banned">0</span> banidos</div>
+          </div>
+        </div>
+        <!-- Mini mapa -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <span class="font-semibold text-sm">Mapa Global ao Vivo</span>
+              <span class="ml-3 text-xs text-slate-500"><span id="mini-online">0</span> online · <span id="mini-total">0</span> com localização</span>
+            </div>
+            <button onclick="gotoSection('map')" class="text-xs font-medium hover:opacity-75 transition-opacity" style="color:#f59e0b">Ver completo →</button>
+          </div>
+          <div id="map-mini" style="height:340px;background:#0f172a"></div>
+        </div>
+      </section>
+
+      <!-- ══════════════ MAPA AO VIVO ══════════════ -->
+      <section id="section-map" class="hidden">
+        <!-- Filtros demográficos do mapa -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 flex items-center gap-3 flex-wrap">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex-shrink-0">Filtrar Mapa:</span>
+          <input id="map-filter-city" type="text" placeholder="Cidade…"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-32" />
+          <input id="map-filter-state" type="text" placeholder="Estado / UF…"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-32" />
+          <select id="map-filter-gender"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+            <option value="">Todos gêneros</option>
+            <option value="male">Masculino</option>
+            <option value="female">Feminino</option>
+            <option value="non_binary">Não-binário</option>
+          </select>
+          <select id="map-filter-age"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+            <option value="">Todas as idades</option>
+            <option value="18-25">18 – 25</option>
+            <option value="26-35">26 – 35</option>
+            <option value="36-45">36 – 45</option>
+            <option value="46+">46+</option>
+          </select>
+          <button onclick="applyMapFilter()"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-900 transition-opacity hover:opacity-90 flex-shrink-0" style="background:#f59e0b">
+            Aplicar
+          </button>
+          <button onclick="clearMapFilter()"
+            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors flex-shrink-0">
+            Limpar
+          </button>
+          <span id="map-filter-badge" class="hidden text-xs font-semibold px-2 py-1 rounded-lg" style="background:rgba(245,158,11,.15);color:#f59e0b">Filtro ativo</span>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-slate-800 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <span class="font-semibold">Mapa ao Vivo</span>
+              <span class="ml-3 text-xs text-slate-500"><span id="full-online">0</span> online · <span id="full-total">0</span> com localização</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none">
+                <input id="toggle-heatmap" type="checkbox" onchange="toggleHeatmap()" class="rounded" />
+                Mapa de Calor
+              </label>
+              <div class="flex items-center gap-3 text-xs text-slate-400">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#4ade80"></span>Online</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#475569"></span>Offline</span>
+              </div>
+            </div>
+          </div>
+          <div id="map-full" style="height:540px;background:#0f172a"></div>
+        </div>
+      </section>
+
+      <!-- ══════════════ ANALYTICS ══════════════ -->
+      <section id="section-analytics" class="hidden">
+
+        <!-- Filtro de datas -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6 flex items-center gap-4 flex-wrap">
+          <span class="text-sm font-medium text-slate-300">Período:</span>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500">De</label>
+              <input id="date-from" type="date"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-yellow-500 transition-colors" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500">Até</label>
+              <input id="date-to" type="date"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-yellow-500 transition-colors" />
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="setPreset(7)"  class="preset-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">7d</button>
+            <button onclick="setPreset(30)" class="preset-btn px-3 py-1.5 bg-slate-700 rounded-lg text-xs font-bold transition-colors" style="color:#f59e0b">30d</button>
+            <button onclick="setPreset(90)" class="preset-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">90d</button>
+          </div>
+          <button onclick="applyDateFilter()"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-900 transition-opacity hover:opacity-90" style="background:#f59e0b">
+            Aplicar
+          </button>
+          <div id="analytics-loading" class="hidden text-xs text-slate-500 flex items-center gap-2">
+            <span class="w-3 h-3 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin inline-block"></span>
+            Carregando…
+          </div>
+        </div>
+
+        <!-- Retenção + Engajamento -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Retenção D1</div>
+            <div id="ret-d1" class="text-2xl font-bold" style="color:#4ade80">—%</div>
+            <div id="ret-d1-base" class="text-xs text-slate-500 mt-1">base: —</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Retenção D7</div>
+            <div id="ret-d7" class="text-2xl font-bold" style="color:#fbbf24">—%</div>
+            <div id="ret-d7-base" class="text-xs text-slate-500 mt-1">base: —</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Retenção D30</div>
+            <div id="ret-d30" class="text-2xl font-bold" style="color:#f87171">—%</div>
+            <div id="ret-d30-base" class="text-xs text-slate-500 mt-1">base: —</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Matches no Período</div>
+            <div id="eng-matches" class="text-2xl font-bold">—</div>
+            <div class="text-xs text-slate-500 mt-1">conversas</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Mensagens</div>
+            <div id="eng-messages" class="text-2xl font-bold">—</div>
+            <div class="text-xs text-slate-500 mt-1">enviadas</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-widest mb-2">Msgs / Match</div>
+            <div id="eng-avg" class="text-2xl font-bold">—</div>
+            <div class="text-xs text-slate-500 mt-1">média</div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Gráfico de Crescimento -->
+          <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-sm">Crescimento de Usuários</h3>
+              <span id="growth-total" class="text-xs text-slate-500">— no período</span>
+            </div>
+            <div style="position:relative;height:220px">
+              <canvas id="growth-chart"></canvas>
+            </div>
+          </div>
+          <!-- Gráfico de Planos -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Distribuição por Plano</h3>
+            <div style="position:relative;height:180px">
+              <canvas id="plan-chart"></canvas>
+            </div>
+            <div id="plan-legend" class="mt-4 space-y-1.5"></div>
+          </div>
+        </div>
+
+        <!-- Alertas de Bot -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-slate-800 flex items-center gap-3">
+            <svg class="w-4 h-4 flex-shrink-0" style="color:#f87171" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <h3 class="font-semibold text-sm">Alertas de Bot <span class="text-xs text-slate-500 font-normal">(>500 swipes/hora)</span></h3>
+            <span id="bot-count" class="ml-auto text-xs text-slate-500">0 suspeitos</span>
+          </div>
+          <div id="bot-table" class="px-6 py-4 text-sm text-slate-500">
+            Nenhum alerta de bot no momento.
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ USUÁRIOS ══════════════ -->
+      <section id="section-users" class="hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <!-- Cabeçalho: título + contador + ações -->
+          <div class="px-6 pt-4 pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-3 mb-3">
+              <h2 class="font-semibold text-sm">Gestão de Usuários</h2>
+              <span id="users-results-count" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full">— encontrados</span>
+              <div class="ml-auto flex items-center gap-2">
+                <button onclick="clearUserFilters()"
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors text-slate-400">
+                  Limpar filtros
+                </button>
+                <button onclick="exportCSV()"
+                  class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  CSV
+                </button>
+              </div>
+            </div>
+            <!-- Barra de filtros avançada -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <input id="user-search" type="text" placeholder="Buscar por e-mail…"
+                onkeyup="debounceSearch()"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-44" />
+              <select id="user-filter-plan" onchange="loadUsers(1)"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-yellow-500 transition-colors w-36">
+                <option value="">Todos os planos</option>
+              </select>
+              <select id="user-filter-state" onchange="loadUsers(1)"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-yellow-500 transition-colors w-36">
+                <option value="">Estado (UF)</option>
+                <option value="AC">AC – Acre</option>
+                <option value="AL">AL – Alagoas</option>
+                <option value="AP">AP – Amapá</option>
+                <option value="AM">AM – Amazonas</option>
+                <option value="BA">BA – Bahia</option>
+                <option value="CE">CE – Ceará</option>
+                <option value="DF">DF – Distrito Federal</option>
+                <option value="ES">ES – Espírito Santo</option>
+                <option value="GO">GO – Goiás</option>
+                <option value="MA">MA – Maranhão</option>
+                <option value="MT">MT – Mato Grosso</option>
+                <option value="MS">MS – Mato Grosso do Sul</option>
+                <option value="MG">MG – Minas Gerais</option>
+                <option value="PA">PA – Pará</option>
+                <option value="PB">PB – Paraíba</option>
+                <option value="PR">PR – Paraná</option>
+                <option value="PE">PE – Pernambuco</option>
+                <option value="PI">PI – Piauí</option>
+                <option value="RJ">RJ – Rio de Janeiro</option>
+                <option value="RN">RN – Rio Grande do Norte</option>
+                <option value="RS">RS – Rio Grande do Sul</option>
+                <option value="RO">RO – Rondônia</option>
+                <option value="RR">RR – Roraima</option>
+                <option value="SC">SC – Santa Catarina</option>
+                <option value="SP">SP – São Paulo</option>
+                <option value="SE">SE – Sergipe</option>
+                <option value="TO">TO – Tocantins</option>
+              </select>
+              <input id="user-filter-city" type="text" placeholder="Cidade…"
+                onkeyup="debounceSearch()"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-28" />
+              <select id="user-filter-education" onchange="loadUsers(1)"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-yellow-500 transition-colors w-44">
+                <option value="">Escolaridade</option>
+                <option value="high_school">Ensino Médio</option>
+                <option value="college_incomplete">Superior Incompleto</option>
+                <option value="college_complete">Superior Completo</option>
+              </select>
+              <select id="user-filter-gender" onchange="loadUsers(1)"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+                <option value="">Gênero</option>
+                <option value="male">Masc.</option>
+                <option value="female">Fem.</option>
+                <option value="non_binary">NB</option>
+              </select>
+              <select id="user-filter-age" onchange="loadUsers(1)"
+                class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+                <option value="">Idade</option>
+                <option value="18-25">18-25</option>
+                <option value="26-35">26-35</option>
+                <option value="36-45">36-45</option>
+                <option value="46+">46+</option>
+              </select>
+              <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+                <input id="filter-banned" type="checkbox" onchange="loadUsers(1)" class="rounded" />Banidos
+              </label>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-3 text-left font-semibold">Usuário</th>
+                  <th class="px-6 py-3 text-left font-semibold">Plano</th>
+                  <th class="px-6 py-3 text-left font-semibold">Localização</th>
+                  <th class="px-6 py-3 text-left font-semibold">Escolaridade</th>
+                  <th class="px-6 py-3 text-left font-semibold">Cadastro</th>
+                  <th class="px-6 py-3 text-left font-semibold">Último acesso</th>
+                  <th class="px-6 py-3 text-left font-semibold">Status</th>
+                  <th class="px-6 py-3 text-right font-semibold">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="8" class="px-6 py-16 text-center text-slate-500">Carregando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="px-6 py-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span id="pagination-info">—</span>
+            <div id="pagination-btns" class="flex items-center gap-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ DENÚNCIAS ══════════════ -->
+      <section id="section-reports" class="hidden">
+        <!-- Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div class="bg-slate-900 rounded-2xl p-5" style="border:1px solid rgba(239,68,68,.3)">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Pendentes</div>
+            <div id="rpt-pending" class="text-3xl font-bold" style="color:#f87171">—</div>
+            <div class="text-xs text-slate-400 mt-1">aguardando revisão</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Resolvidas</div>
+            <div id="rpt-resolved" class="text-3xl font-bold text-white">—</div>
+            <div class="text-xs text-slate-400 mt-1">no total</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Usuários Banidos</div>
+            <div id="rpt-banned" class="text-3xl font-bold text-white">—</div>
+            <div class="text-xs text-slate-400 mt-1">contas suspensas</div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+          <h3 class="font-semibold text-sm mb-4">Por Categoria</h3>
+          <div id="report-categories" class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="text-slate-500 text-sm col-span-4">Carregando…</div>
+          </div>
+        </div>
+
+        <!-- Report list -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-800 flex items-center gap-3 flex-wrap">
+            <h3 class="font-semibold text-sm flex-shrink-0">Denúncias Recentes</h3>
+            <div class="flex items-center gap-2 ml-auto flex-wrap">
+              <select id="rpt-filter-status" onchange="loadReports(1)"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+                <option value="">Todas</option>
+                <option value="pending">Pendentes</option>
+                <option value="resolved">Resolvidas</option>
+              </select>
+              <select id="rpt-filter-cat" onchange="loadReports(1)"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500 transition-colors">
+                <option value="">Todas as categorias</option>
+                <option value="harassment">Assédio</option>
+                <option value="fake_profile">Perfil Falso</option>
+                <option value="spam">Spam</option>
+                <option value="inappropriate_content">Conteúdo Impróprio</option>
+                <option value="underage">Menor de Idade</option>
+                <option value="scam">Fraude</option>
+                <option value="other">Outros</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-3 text-left font-semibold">#</th>
+                  <th class="px-6 py-3 text-left font-semibold">Denunciante</th>
+                  <th class="px-6 py-3 text-left font-semibold">Categoria</th>
+                  <th class="px-6 py-3 text-left font-semibold">Descrição</th>
+                  <th class="px-6 py-3 text-left font-semibold">Data</th>
+                  <th class="px-6 py-3 text-left font-semibold">Status</th>
+                  <th class="px-6 py-3 text-right font-semibold">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="reports-tbody">
+                <tr><td colspan="7" class="px-6 py-16 text-center text-slate-500">Carregando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="px-6 py-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <span id="rpt-pagination-info">—</span>
+            <div id="rpt-pagination-btns" class="flex items-center gap-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ PERFORMANCE ══════════════ -->
+      <section id="section-performance" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Banco de Dados -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4" style="color:#60a5fa" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M21 12c0 1.657-4.03 3-9 3s-9-1.343-9-3"/><path stroke-linecap="round" stroke-width="2" d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/></svg>
+              Banco de Dados
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Status</span>
+                <span id="db-status" class="text-sm font-semibold" style="color:#4ade80">—</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Latência</span>
+                <span id="db-latency" class="text-sm font-mono font-semibold text-white">— ms</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Pool (tamanho)</span>
+                <span id="db-pool-size" class="text-sm font-mono text-white">—</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Conexões ativas</span>
+                <span id="db-pool-busy" class="text-sm font-mono text-white">—</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-slate-400">Cache</span>
+                <span id="db-cache" class="text-sm font-mono text-white">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monetização -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4" style="color:#fbbf24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Monetização
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Receita Total</span>
+                <span id="rev-total" class="text-sm font-bold" style="color:#fbbf24">R$ —</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">MRR Estimado</span>
+                <span id="rev-mrr" class="text-sm font-bold" style="color:#4ade80">R$ —</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Pagamentos Confirmados</span>
+                <span id="rev-payments" class="text-sm font-mono text-white">—</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                <span class="text-sm text-slate-400">Usuários Premium</span>
+                <span id="rev-premium" class="text-sm font-mono text-white">—</span>
+              </div>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-slate-400">Taxa de Conversão</span>
+                <span id="rev-conversion" class="text-sm font-bold" style="color:#a78bfa">—%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ ENGAJAMENTO ══════════════ -->
+      <section id="section-engagement" class="hidden">
+
+        <!-- Filtros de Engajamento -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6 flex items-center gap-3 flex-wrap">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex-shrink-0">Período e Filtro:</span>
+          <div class="flex items-center gap-1.5">
+            <button onclick="setEngPeriod(7)"  id="eng-btn-7"  class="eng-period-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">7d</button>
+            <button onclick="setEngPeriod(15)" id="eng-btn-15" class="eng-period-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">15d</button>
+            <button onclick="setEngPeriod(30)" id="eng-btn-30" class="eng-period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-colors" style="background:rgba(245,158,11,.2);color:#f59e0b">30d</button>
+          </div>
+          <input id="eng-filter-city"  type="text" placeholder="Cidade…"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-32" />
+          <input id="eng-filter-state" type="text" placeholder="Estado / UF…"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-32" />
+          <button onclick="loadEngagement()"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-900" style="background:#f59e0b">Aplicar</button>
+          <div id="eng-loading" class="hidden text-xs text-slate-500 flex items-center gap-2">
+            <span class="w-3 h-3 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin inline-block"></span>Carregando…
+          </div>
+          <button onclick="exportEngagementCSV()"
+            class="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Exportar CSV
+          </button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Usuários Ativos</div>
+            <div id="eng-active-users" class="text-3xl font-bold text-white">—</div>
+            <div class="text-xs text-slate-400 mt-1">no período</div>
+          </div>
+          <div class="bg-slate-900 rounded-2xl p-5" style="border:1px solid rgba(245,158,11,.3)">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Match Rate Global</div>
+            <div id="eng-match-rate" class="text-3xl font-bold" style="color:#f59e0b">—%</div>
+            <div class="text-xs text-slate-400 mt-1">curtidas → matches</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Mensagens Trocadas</div>
+            <div id="eng-total-msgs" class="text-3xl font-bold text-white">—</div>
+            <div class="text-xs text-slate-400 mt-1">no período</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Total de Likes</div>
+            <div id="eng-total-likes" class="text-3xl font-bold text-white">—</div>
+            <div class="text-xs text-slate-400 mt-1">no período</div>
+          </div>
+        </div>
+
+        <!-- Gráficos comparativos por Gênero -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Mensagens Enviadas por Gênero</h3>
+            <div style="position:relative;height:220px"><canvas id="eng-msgs-chart"></canvas></div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Likes Dados por Gênero</h3>
+            <div style="position:relative;height:220px"><canvas id="eng-likes-chart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Match Rate + Velocidade de Resposta por Gênero -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Taxa de Match por Gênero</h3>
+            <div id="eng-match-gender" class="space-y-3">
+              <div class="text-slate-500 text-xs">Carregando…</div>
+            </div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">
+              Velocidade de Resposta
+              <span class="text-slate-500 text-xs font-normal ml-1">(média em minutos)</span>
+            </h3>
+            <div id="eng-response-time" class="space-y-3">
+              <div class="text-slate-500 text-xs">Carregando…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Uso por Turno -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+          <h3 class="font-semibold text-sm mb-4">Uso por Turno do Dia (horário de Brasília)</h3>
+          <div style="position:relative;height:200px"><canvas id="eng-shift-chart"></canvas></div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Top Engajados -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-800">
+              <h3 class="font-semibold text-sm">Top 10 — Mais Engajados</h3>
+              <p class="text-xs text-slate-500 mt-0.5">mensagens + likes no período</p>
+            </div>
+            <div id="rank-engaged" class="p-4"><div class="text-slate-500 text-xs">Carregando…</div></div>
+          </div>
+
+          <!-- Top Curtidos -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-800">
+              <h3 class="font-semibold text-sm">Top 10 — Mais Curtidos</h3>
+              <p class="text-xs text-slate-500 mt-0.5">likes recebidos</p>
+            </div>
+            <div id="rank-liked" class="p-4"><div class="text-slate-500 text-xs">Carregando…</div></div>
+          </div>
+
+          <!-- Top Curtidores -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-800">
+              <h3 class="font-semibold text-sm">Top 10 — Mais Curtidores</h3>
+              <p class="text-xs text-slate-500 mt-0.5">likes dados</p>
+            </div>
+            <div id="rank-liking" class="p-4"><div class="text-slate-500 text-xs">Carregando…</div></div>
+          </div>
+
+          <!-- Resposta Rápida -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-800">
+              <h3 class="font-semibold text-sm">Top 10 — Resposta Mais Rápida</h3>
+              <p class="text-xs text-slate-500 mt-0.5">mín. 3 respostas para entrar no ranking</p>
+            </div>
+            <div id="rank-responders" class="p-4"><div class="text-slate-500 text-xs">Carregando…</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ INSIGHTS BI ══════════════ -->
+      <section id="section-insights" class="hidden">
+
+        <!-- Ação de exportação BI -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-bold text-base">Inteligência de Negócio</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Dados demográficos agregados e anonimizados</p>
+          </div>
+          <a id="bi-export-link" href="#" onclick="downloadBiExport(event)"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-slate-900 transition-opacity hover:opacity-90" style="background:#f59e0b">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Exportar BI (CSV)
+          </a>
+        </div>
+
+        <!-- Gráficos de pizza -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Escolaridade -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Escolaridade</h3>
+            <div style="position:relative;height:180px">
+              <canvas id="education-chart"></canvas>
+            </div>
+            <div id="education-legend" class="mt-4 space-y-1.5"></div>
+          </div>
+
+          <!-- Interesses Políticos/Sociais -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Interesses Declarados</h3>
+            <div style="position:relative;height:180px">
+              <canvas id="interests-chart"></canvas>
+            </div>
+            <div id="interests-legend" class="mt-4 space-y-1.5"></div>
+          </div>
+
+          <!-- Faixa Etária -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Faixa Etária</h3>
+            <div style="position:relative;height:180px">
+              <canvas id="age-chart"></canvas>
+            </div>
+            <div id="age-legend" class="mt-4 space-y-1.5"></div>
+          </div>
+        </div>
+
+        <!-- Top Cidades + Ocupações -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Top Cidades</h3>
+            <div id="top-cities-list" class="space-y-2">
+              <div class="text-slate-500 text-xs">Carregando…</div>
+            </div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-4">Top Ocupações</h3>
+            <div id="top-occupations-list" class="space-y-2">
+              <div class="text-slate-500 text-xs">Carregando…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trending Topics / Word Cloud -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-semibold text-sm">Trending Topics</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Top 10 palavras nas mensagens · stop words removidas</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="wc-region" type="text" placeholder="Filtrar por cidade…"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-36" />
+              <button onclick="loadWordCloud()"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-900" style="background:#f59e0b">
+                Atualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Alertas de blacklist -->
+          <div id="wc-blacklist-alert" class="hidden mb-4 px-4 py-3 rounded-xl text-sm border" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#f87171">
+            <strong>Alerta:</strong> <span id="wc-blacklist-text"></span>
+          </div>
+
+          <!-- Trending words -->
+          <div id="trending-words" class="flex flex-wrap gap-2">
+            <div class="text-slate-500 text-xs py-4">Carregando…</div>
+          </div>
+
+          <p class="text-xs text-slate-600 mt-4" id="wc-total-msgs"></p>
+        </div>
+      </section>
+
+      <!-- ══════════════ PLANOS DE ASSINATURA ══════════════ -->
+      <section id="section-plans" class="hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-bold text-base">Gestão de Planos SaaS</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Configure planos, preços e benefícios do sistema</p>
+          </div>
+          <button onclick="openPlanModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-slate-900 transition-opacity hover:opacity-90" style="background:#22c55e">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Novo Plano
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6" id="plans-stats">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Planos Ativos</div>
+            <div class="text-3xl font-bold text-white" id="plans-count-active">—</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Inativos</div>
+            <div class="text-3xl font-bold text-slate-400" id="plans-count-inactive">—</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Assinaturas</div>
+            <div class="text-3xl font-bold" style="color:#f59e0b" id="plans-total-subs">—</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">MRR Estimado</div>
+            <div class="text-3xl font-bold" style="color:#22c55e" id="plans-mrr">—</div>
+          </div>
+        </div>
+
+        <!-- Cards de Preço -->
+        <div id="plans-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="text-slate-500 text-sm py-8 text-center col-span-full">Carregando planos…</div>
+        </div>
+
+        <!-- Modal de Edição/Criação -->
+        <div id="plan-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center">
+          <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg mx-4 p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-bold text-lg" id="plan-modal-title">Novo Plano</h3>
+              <button onclick="closePlanModal()" class="text-slate-400 hover:text-white transition-colors">✕</button>
+            </div>
+            <form id="plan-form" class="space-y-4">
+              <input type="hidden" id="plan-id" />
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Código do Plano</label>
+                <input type="text" id="plan-code" required placeholder="ex: plus, gold, premium"
+                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nome do Plano</label>
+                <input type="text" id="plan-name" required placeholder="ex: GeoMatch Plus"
+                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Descrição</label>
+                <textarea id="plan-description" rows="2" placeholder="Descreva os benefícios do plano…"
+                  class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors resize-none"
+                ></textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Preço (centavos)</label>
+                  <input type="number" id="plan-price-cents" required min="0" placeholder="990"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors" />
+                  <p class="text-xs text-slate-500 mt-1">Ex: 990 = R$ 9,90</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Moeda</label>
+                  <select id="plan-currency"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-green-500 transition-colors">
+                    <option value="BRL">BRL (R$)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Duração (dias)</label>
+                  <input type="number" id="plan-duration-days" required min="1" value="30"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Duração (meses)</label>
+                  <input type="number" id="plan-duration-months" required min="1" value="1"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-green-500 transition-colors" />
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Max Likes/Dia</label>
+                  <input type="number" id="plan-max-likes" required min="0" value="50"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-green-500 transition-colors" />
+                </div>
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Boost</label>
+                  <input type="checkbox" id="plan-has-boost" class="w-5 h-5 rounded border-slate-700 bg-slate-800 text-green-500 focus:ring-green-500" />
+                </div>
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Incógnito</label>
+                  <input type="checkbox" id="plan-has-incognito" class="w-5 h-5 rounded border-slate-700 bg-slate-800 text-green-500 focus:ring-green-500" />
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="plan-active" checked class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-green-500 focus:ring-green-500" />
+                  Plano Ativo
+                </label>
+                <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="plan-recommended" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-500 focus:ring-yellow-500" />
+                  Recomendado
+                </label>
+              </div>
+              <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closePlanModal()" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                  Cancelar
+                </button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-900 transition-opacity hover:opacity-90" style="background:#22c55e">
+                  Salvar Plano
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal de Confirmação de Desativação -->
+        <div id="plan-delete-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center">
+          <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm mx-4 p-6 text-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" style="background:rgba(239,68,68,.1)">
+              <svg class="w-6 h-6" style="color:#ef4444" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="font-bold text-lg mb-2">Desativar Plano?</h3>
+            <p class="text-sm text-slate-400 mb-6">O plano será desativado (soft delete). Assinaturas existentes continuarão válidas.</p>
+            <div class="flex gap-3">
+              <button onclick="closePlanDeleteModal()" class="flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                Cancelar
+              </button>
+              <button onclick="confirmPlanDelete()" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors">
+                Sim, Desativar
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════ INTELIGÊNCIA POLÍTICA ══════════════ -->
+      <section id="section-political" class="hidden">
+
+        <!-- Header + Export -->
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div>
+            <h2 class="font-bold text-base">Hub de Inteligência Política</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Análise de sentimento e tendências sociais · dados 100% anonimizados (LGPD)</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="pol-days" onchange="loadPolitical()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500">
+              <option value="7">7 dias</option>
+              <option value="15">15 dias</option>
+              <option value="30" selected>30 dias</option>
+              <option value="60">60 dias</option>
+            </select>
+            <select id="pol-topic" onchange="loadPolitical()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-yellow-500">
+              <option value="">Todos os tópicos</option>
+              <option value="Saúde">Saúde</option>
+              <option value="Educação">Educação</option>
+              <option value="Segurança">Segurança</option>
+              <option value="Economia">Economia</option>
+              <option value="Impostos">Impostos</option>
+              <option value="Política">Política</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Habitação">Habitação</option>
+              <option value="Meio Ambiente">Meio Ambiente</option>
+            </select>
+            <button onclick="exportPoliticalReport(event)"
+              class="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-slate-900 transition-opacity hover:opacity-90" style="background:#f59e0b">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Relatório CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Headline Insights Banner -->
+        <div id="pol-headlines" class="flex gap-3 mb-6 overflow-x-auto pb-1">
+          <div class="text-slate-500 text-xs py-3">Carregando insights…</div>
+        </div>
+
+        <!-- Sentimento Geral + Termos de Monitoramento -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+          <!-- Sentimento Geral (pizza) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <h3 class="font-semibold text-sm mb-1">Sentimento Geral</h3>
+            <p id="pol-sent-total" class="text-xs text-slate-500 mb-4"></p>
+            <div style="position:relative;height:180px">
+              <canvas id="pol-sentiment-chart"></canvas>
+            </div>
+            <div id="pol-sentiment-legend" class="mt-4 space-y-1.5"></div>
+          </div>
+
+          <!-- Termos de Monitoramento -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 lg:col-span-2">
+            <h3 class="font-semibold text-sm mb-3">Termos de Monitoramento</h3>
+            <p class="text-xs text-slate-500 mb-3">Adicione candidatos, partidos ou palavras-chave para análise comparativa.</p>
+            <div class="flex gap-2 mb-3">
+              <input id="pol-term-input" type="text" placeholder="Ex: Lula, PT, Bolsonaro…"
+                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors"
+                onkeydown="if(event.key==='Enter')addPolTerm()" />
+              <button onclick="addPolTerm()" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-900" style="background:#f59e0b">
+                + Adicionar
+              </button>
+            </div>
+            <div id="pol-terms-tags" class="flex flex-wrap gap-2 mb-4"></div>
+            <button onclick="loadPolitical()" class="text-xs font-semibold hover:opacity-75 transition-opacity" style="color:#f59e0b">
+              Analisar termos →
+            </button>
+          </div>
+        </div>
+
+        <!-- Menções por Tópico (barras horizontais) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-sm">Volume de Menções por Tópico</h3>
+            <span class="text-xs text-slate-500">com variação % vs. período anterior</span>
+          </div>
+          <div id="pol-topic-bars" class="space-y-3">
+            <div class="text-slate-500 text-xs">Carregando…</div>
+          </div>
+        </div>
+
+        <!-- Comparação de Sentimento entre Candidatos (stacked bar) -->
+        <div id="pol-candidates-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6 hidden">
+          <h3 class="font-semibold text-sm mb-4">Sentimento por Termo Monitorado</h3>
+          <div style="position:relative;height:260px">
+            <canvas id="pol-candidates-chart"></canvas>
+          </div>
+          <div id="pol-candidates-regions" class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Mapa de Calor Temático -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-sm">Mapa de Calor Temático</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Densidade geográfica das discussões · células com &lt;10 usuários são suprimidas (LGPD)</p>
+            </div>
+            <span id="pol-heatmap-topic" class="text-xs font-semibold px-2 py-1 rounded-lg text-slate-900" style="background:#f59e0b">Segurança</span>
+          </div>
+          <div id="pol-heatmap-map" style="height:380px;border-radius:12px;overflow:hidden"></div>
+          <p id="pol-heatmap-empty" class="text-xs text-slate-500 mt-3 hidden">Nenhum dado geolocalizado para o tópico selecionado.</p>
+        </div>
+
+      </section>
+
+      <!-- ══════════════ MODERAÇÃO DE FOTOS ══════════════ -->
+      <section id="section-moderation" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-bold text-base">Moderação de Fotos</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Verificação de identidade</p>
+          </div>
+          <span id="mod-pending-badge" class="text-xs px-3 py-1 rounded-full font-semibold border" style="color:#f59e0b;background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)">0 pendentes</span>
+        </div>
+        <div class="flex gap-2 mb-5">
+          <button id="mod-tab-pending" data-tab="pending" onclick="switchModTab('pending')" class="text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors" style="color:#f59e0b;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)">Pendentes</button>
+          <button id="mod-tab-verified" data-tab="verified" onclick="switchModTab('verified')" class="text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors" style="color:#64748b;background:transparent;border-color:#1e293b">Verificados</button>
+          <button id="mod-tab-rejected" data-tab="rejected" onclick="switchModTab('rejected')" class="text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors" style="color:#64748b;background:transparent;border-color:#1e293b">Recusados</button>
+        </div>
+
+        <div id="mod-list" class="space-y-5"></div>
+
+        <div id="mod-empty" class="hidden text-center py-20 text-slate-500">
+          <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <p class="text-sm font-medium">Nenhuma verificação pendente</p>
+          <p class="text-xs mt-1 text-slate-600">Todos os envios foram revisados.</p>
+        </div>
+
+        <div id="mod-loading" class="text-center py-20 text-slate-500 text-sm">Carregando…</div>
+      </section>
+
+      <!-- ══════════════ HISTÓRICO DE AÇÕES ══════════════ -->
+      <section id="section-logs" class="hidden">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-bold text-base">Histórico de Ações</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Auditoria de alterações realizadas pelos administradores</p>
+          </div>
+          <button onclick="fetchAdminLogs(1)" title="Atualizar" class="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-lg font-medium transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Atualizar
+          </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-wrap gap-3 mb-5">
+          <select id="logs-filter-action" onchange="fetchAdminLogs(1)"
+            class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 outline-none focus:border-yellow-500 transition-colors">
+            <option value="">Todas as ações</option>
+            <option value="plan_change">Mudança de Plano</option>
+          </select>
+          <input id="logs-filter-user-id" type="number" placeholder="ID do usuário alvo"
+            oninput="debounceLogsSearch()"
+            class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 placeholder-slate-500 outline-none focus:border-yellow-500 transition-colors w-44" />
+          <button onclick="clearLogsFilters()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs rounded-xl transition-colors">
+            Limpar filtros
+          </button>
+        </div>
+
+        <!-- Tabela -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="px-6 py-3 text-left font-semibold text-xs text-slate-400 uppercase tracking-wider">Data / Hora</th>
+                <th class="px-6 py-3 text-left font-semibold text-xs text-slate-400 uppercase tracking-wider">Administrador</th>
+                <th class="px-6 py-3 text-left font-semibold text-xs text-slate-400 uppercase tracking-wider">Ação</th>
+                <th class="px-6 py-3 text-left font-semibold text-xs text-slate-400 uppercase tracking-wider">Alvo</th>
+                <th class="px-6 py-3 text-left font-semibold text-xs text-slate-400 uppercase tracking-wider">Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="logs-tbody">
+              <tr><td colspan="5" class="px-6 py-16 text-center text-slate-500">Selecione a aba para carregar o histórico.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="flex items-center justify-between mt-4 text-xs text-slate-500">
+          <span id="logs-pagination-info">—</span>
+          <div id="logs-pagination-btns" class="flex gap-2"></div>
+        </div>
+
+      </section>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /dashboard -->
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+'use strict';
+// ─────────────────────────────────────────────
+const API   = '/api/v1';
+const ADMIN = '/api/v1/admin';
+const TILE  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_OPTS = { attribution:'&copy; OSM &copy; CARTO', subdomains:'abcd', maxZoom:19 };
+const REFRESH_SEC = 30;
+const SECTION_TITLES = { overview:'Visão Geral', map:'Mapa ao Vivo', analytics:'Analytics', users:'Usuários', reports:'Denúncias', performance:'Performance', insights:'Insights BI', engagement:'Engajamento & Comportamento', political:'Inteligência Política', plans:'Planos de Assinatura', moderation:'Moderação de Fotos', logs:'Histórico de Ações' };
+
+// State
+let token       = null;
+let mapMini     = null, mapFull = null;
+let markersMini = [], markersFull = [];
+let heatLayer   = null;
+let heatActive  = false;
+let growthChart = null, planChart = null;
+let educationChart = null, interestsChart = null, ageChart = null;
+let engMsgsChart = null, engLikesChart = null, engShiftChart = null;
+let engPeriodDays = 30, lastEngData = null;
+let polSentChart = null, polCandChart = null, polHeatMap = null, polHeatLayer = null;
+let polTerms = [], lastPolData = null;
+let refreshTimer = null, tickTimer = null, tick = REFRESH_SEC;
+let searchTimer  = null;
+let lastUsersData = [];
+let logsSearchTimer = null;
+
+// Chart.js global dark config
+Chart.defaults.color          = '#64748b';
+Chart.defaults.borderColor    = 'rgba(30,41,59,.8)';
+Chart.defaults.font.family    = 'system-ui,-apple-system,sans-serif';
+Chart.defaults.font.size      = 11;
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('gm_admin_token');
+  const name  = localStorage.getItem('gm_admin_name');
+
+  // Init date pickers with defaults (last 30 days)
+  const today = new Date();
+  const ago30 = new Date(); ago30.setDate(today.getDate() - 30);
+  el('date-from').value = fmtISO(ago30);
+  el('date-to').value   = fmtISO(today);
+
+  if (saved) { token = saved; bootDashboard(name || 'Admin'); }
+
+  // Sidebar click delegation
+  document.getElementById('sidebar-nav').addEventListener('click', e => {
+    const btn = e.target.closest('.nav-btn');
+    if (btn) gotoSection(btn.dataset.section, btn);
+  });
+});
+
+// ─────────────────────────────────────────────
+//  LOGIN
+// ─────────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = el('login-btn'), err = el('login-error');
+  btn.textContent = 'Verificando…'; btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    const res  = await fetch(`${API}/login`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ email: el('login-email').value, password: el('login-password').value }) });
+    const data = await res.json();
+    if (!res.ok)          throw new Error(data.error || 'Erro ao autenticar.');
+    if (!data.user?.admin) throw new Error('Esta conta não tem permissão de administrador.');
+    token = data.token;
+    localStorage.setItem('gm_admin_token', token);
+    localStorage.setItem('gm_admin_name',  data.user.name);
+    bootDashboard(data.user.name);
+  } catch(ex) {
+    err.textContent = ex.message; err.classList.remove('hidden');
+  } finally {
+    btn.textContent = 'Entrar no Painel'; btn.disabled = false;
+  }
+});
+
+// ─────────────────────────────────────────────
+//  BOOT DASHBOARD
+// ─────────────────────────────────────────────
+function bootDashboard(name) {
+  el('login-screen').classList.add('hidden');
+  const dash = el('dashboard');
+  dash.classList.remove('hidden');
+  dash.style.removeProperty('display');
+  el('admin-name').textContent   = name;
+  el('admin-avatar').textContent = name.charAt(0).toUpperCase();
+  initMaps();
+  forceRefresh();
+  clearInterval(refreshTimer); clearInterval(tickTimer);
+  tick = REFRESH_SEC;
+  refreshTimer = setInterval(forceRefresh, REFRESH_SEC * 1000);
+  tickTimer    = setInterval(() => { tick = Math.max(0,tick-1); setText('countdown', tick); }, 1000);
+}
+
+function logout() {
+  token = null;
+  localStorage.removeItem('gm_admin_token');
+  localStorage.removeItem('gm_admin_name');
+  clearInterval(refreshTimer); clearInterval(tickTimer);
+  el('dashboard').style.display = 'none';
+  el('dashboard').classList.add('hidden');
+  el('login-screen').classList.remove('hidden');
+}
+
+// ─────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────
+let activeSection = 'overview';
+function gotoSection(name, clickedBtn) {
+  ['overview','map','analytics','users','reports','performance','insights','engagement','political','plans','moderation','logs'].forEach(s => {
+    el(`section-${s}`)?.classList.add('hidden');
+  });
+  el(`section-${name}`)?.classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('text-white','bg-slate-800','active-nav');
+    b.classList.add('text-slate-400');
+  });
+  const btn = clickedBtn || document.querySelector(`.nav-btn[data-section="${name}"]`);
+  if (btn) { btn.classList.add('text-white','bg-slate-800'); btn.classList.remove('text-slate-400'); }
+  setText('section-title', SECTION_TITLES[name] || name);
+  activeSection = name;
+  if (name === 'map')         setTimeout(() => { mapFull?.invalidateSize(); loadHeatmapData(); }, 80);
+  if (name === 'users')       { loadUserFilterPlans(); loadUsers(1); }
+  if (name === 'analytics')   loadAnalytics();
+  if (name === 'performance') loadPerformance();
+  if (name === 'reports')     loadReports();
+  if (name === 'insights')    { loadInsights(); loadWordCloud(); }
+  if (name === 'engagement')  loadEngagement();
+  if (name === 'political')   { loadPolitical(); setTimeout(initPolHeatMap, 120); }
+  if (name === 'plans')        loadPlans();
+  if (name === 'moderation')   loadModeration();
+  if (name === 'logs')         fetchAdminLogs(1);
+}
+
+// ─────────────────────────────────────────────
+//  FETCH HELPER
+// ─────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}`, ...(opts.headers||{}) } });
+  if (res.status === 401) { logout(); return null; }
+  return res;
+}
+
+// ─────────────────────────────────────────────
+//  AUTO-REFRESH
+// ─────────────────────────────────────────────
+function forceRefresh() {
+  tick = REFRESH_SEC; setText('countdown', tick);
+  setText('last-updated', new Date().toLocaleTimeString('pt-BR'));
+  loadStats();
+  loadLiveMap();
+}
+
+// ─────────────────────────────────────────────
+//  STATS
+// ─────────────────────────────────────────────
+async function loadStats() {
+  const res = await api(`${ADMIN}/stats`); if (!res?.ok) return;
+  const d = await res.json();
+  setText('stat-total-users',     fmt(d.users?.total));
+  setText('stat-active-now',      fmt(d.users?.active_now));
+  setText('stat-new-today',       fmt(d.users?.new_today));
+  setText('stat-total-matches',   fmt(d.engagement?.total_matches));
+  setText('stat-messages-today',  fmt(d.engagement?.messages_today));
+  setText('stat-pending-reports', fmt(d.moderation?.pending_reports));
+  setText('stat-banned',          fmt(d.users?.banned));
+  // Assinaturas e MRR reais (apenas planos pagos)
+  if (d.revenue?.subscriptions_count != null) setText('plans-total-subs', fmt(d.revenue.subscriptions_count));
+  if (d.revenue?.mrr_brl            != null) setText('plans-mrr', 'R$ ' + fmt2(d.revenue.mrr_brl));
+  const pending = d.moderation?.pending_reports || 0;
+  const badge = el('badge-reports');
+  badge.textContent = pending > 99 ? '99+' : pending;
+  pending > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────
+//  MAPS
+// ─────────────────────────────────────────────
+function initMaps() {
+  if (!mapMini) {
+    mapMini = L.map('map-mini', { zoomControl:true, scrollWheelZoom:false }).setView([10,15],2);
+    L.tileLayer(TILE, TILE_OPTS).addTo(mapMini);
+  }
+  if (!mapFull) {
+    mapFull = L.map('map-full', { zoomControl:true }).setView([10,15],2);
+    L.tileLayer(TILE, TILE_OPTS).addTo(mapFull);
+  }
+}
+
+// mapFilterParams: object with active filter values (city, state, gender, age_range)
+let mapFilterParams = {};
+
+async function loadLiveMap(extraParams = mapFilterParams) {
+  let url = `${ADMIN}/live_map`;
+  const qs = buildQS(extraParams);
+  if (qs) url += `?${qs}`;
+  const res = await api(url); if (!res?.ok) return;
+  const { users = [] } = await res.json();
+  const online = users.filter(u => u.is_online).length;
+  setText('mini-online', fmt(online)); setText('mini-total', fmt(users.length));
+  setText('full-online', fmt(online)); setText('full-total', fmt(users.length));
+  renderMarkers(mapMini, markersMini, users, 9);
+  renderMarkers(mapFull, markersFull, users, 12);
+}
+
+function applyMapFilter() {
+  mapFilterParams = {};
+  const city    = el('map-filter-city')?.value?.trim();
+  const state   = el('map-filter-state')?.value?.trim();
+  const gender  = el('map-filter-gender')?.value;
+  const ageRange= el('map-filter-age')?.value;
+  if (city)     mapFilterParams.city      = city;
+  if (state)    mapFilterParams.state     = state;
+  if (gender)   mapFilterParams.gender    = gender;
+  if (ageRange) mapFilterParams.age_range = ageRange;
+  const hasFilter = Object.keys(mapFilterParams).length > 0;
+  el('map-filter-badge')?.classList.toggle('hidden', !hasFilter);
+  loadLiveMap(mapFilterParams);
+  if (heatActive) loadHeatmapData();
+}
+
+function clearMapFilter() {
+  mapFilterParams = {};
+  ['map-filter-city','map-filter-state'].forEach(id => { const e = el(id); if(e) e.value = ''; });
+  ['map-filter-gender','map-filter-age'].forEach(id => { const e = el(id); if(e) e.value = ''; });
+  el('map-filter-badge')?.classList.add('hidden');
+  loadLiveMap({});
+}
+
+function buildQS(obj) {
+  return Object.entries(obj)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+}
+
+function renderMarkers(map, bucket, users, size) {
+  if (!map) return;
+  bucket.forEach(m => m.remove()); bucket.length = 0;
+  users.forEach(u => {
+    if (!u.lat || !u.lng) return;
+    const online = !!u.is_online;
+    const color  = online ? '#4ade80' : '#475569';
+    const border = online ? '#16a34a' : '#334155';
+    const icon = L.divIcon({
+      className: '',
+      html:`<div class="${online?'pulse-online':''}" style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${border}"></div>`,
+      iconSize:[size,size], iconAnchor:[size/2,size/2]
+    });
+    const marker = L.marker([u.lat,u.lng],{icon})
+      .bindPopup(`<div style="min-width:100px"><div style="font-weight:700;color:${color};margin-bottom:3px">${online?'● Online':'● Offline'}</div><div style="color:#94a3b8">ID: ${u.id}</div>${u.last_seen_at?`<div style="color:#64748b;font-size:11px;margin-top:2px">${fmtDate(u.last_seen_at)}</div>`:''}</div>`, {closeButton:false,maxWidth:160})
+      .addTo(map);
+    bucket.push(marker);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  HEATMAP
+// ─────────────────────────────────────────────
+let heatmapData = null;
+async function loadHeatmapData() {
+  if (!mapFull) return;
+  const res = await api(`${ADMIN}/heatmap?precision=2`); if (!res?.ok) return;
+  const data = await res.json();
+  heatmapData = data.clusters.map(c => [c.lat, c.lng, c.intensity]);
+  if (heatActive) renderHeatmap();
+}
+
+function toggleHeatmap() {
+  heatActive = el('toggle-heatmap').checked;
+  if (heatActive) {
+    markersFull.forEach(m => m.remove());
+    if (!heatmapData) { loadHeatmapData(); return; }
+    renderHeatmap();
+  } else {
+    heatLayer?.remove(); heatLayer = null;
+    loadLiveMap();
+  }
+}
+
+function renderHeatmap() {
+  if (!heatmapData || !mapFull) return;
+  heatLayer?.remove();
+  heatLayer = L.heatLayer(heatmapData, { radius:28, blur:18, maxZoom:12, gradient:{ 0.2:'#1e40af', 0.5:'#7c3aed', 0.8:'#dc2626', 1:'#fbbf24' } }).addTo(mapFull);
+}
+
+// ─────────────────────────────────────────────
+//  ANALYTICS
+// ─────────────────────────────────────────────
+async function loadAnalytics() {
+  const from = el('date-from').value;
+  const to   = el('date-to').value;
+  el('analytics-loading').classList.remove('hidden');
+  const res = await api(`${ADMIN}/analytics?from=${from}&to=${to}`);
+  el('analytics-loading').classList.add('hidden');
+  if (!res?.ok) return;
+  const d = await res.json();
+
+  // Retenção
+  setText('ret-d1',      d.retention?.d1?.rate  + '%');
+  setText('ret-d7',      d.retention?.d7?.rate  + '%');
+  setText('ret-d30',     d.retention?.d30?.rate + '%');
+  setText('ret-d1-base',  'base: ' + fmt(d.retention?.d1?.base));
+  setText('ret-d7-base',  'base: ' + fmt(d.retention?.d7?.base));
+  setText('ret-d30-base', 'base: ' + fmt(d.retention?.d30?.base));
+
+  // Engajamento
+  setText('eng-matches',  fmt(d.engagement?.matches));
+  setText('eng-messages', fmt(d.engagement?.messages));
+  setText('eng-avg',      d.engagement?.avg_messages_per_match);
+
+  // Gráfico de crescimento
+  setText('growth-total', fmt(d.growth?.total_period) + ' no período');
+  renderGrowthChart(d.growth?.daily || [], from, to);
+
+  // Gráfico de planos
+  renderPlanChart(d.demographics?.by_plan || {});
+
+  // Bot alerts
+  renderBotAlerts(d.bot_alerts || []);
+}
+
+function applyDateFilter() {
+  loadAnalytics();
+}
+
+function setPreset(days) {
+  const to  = new Date();
+  const from = new Date(); from.setDate(to.getDate() - days);
+  el('date-from').value = fmtISO(from);
+  el('date-to').value   = fmtISO(to);
+  loadAnalytics();
+}
+
+// ─────────────────────────────────────────────
+//  CHART.JS
+// ─────────────────────────────────────────────
+function renderGrowthChart(daily, from, to) {
+  // Preenche dias sem dados com 0
+  const filled = {};
+  const cur = new Date(from), end = new Date(to);
+  while (cur <= end) { filled[fmtISO(cur)] = 0; cur.setDate(cur.getDate()+1); }
+  daily.forEach(p => { filled[p.date] = p.count; });
+
+  const labels = Object.keys(filled);
+  const values = Object.values(filled);
+
+  if (growthChart) { growthChart.destroy(); growthChart = null; }
+  const ctx = document.getElementById('growth-chart');
+  if (!ctx) return;
+
+  growthChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets:[{
+        label: 'Novos usuários',
+        data: values,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245,158,11,.08)',
+        borderWidth: 2,
+        pointRadius: labels.length > 60 ? 0 : 3,
+        pointHoverRadius: 5,
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode:'index', intersect:false, backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1, titleColor:'#f1f5f9', bodyColor:'#94a3b8' } },
+      scales: {
+        x: { grid: { color:'rgba(30,41,59,.6)' }, ticks: { maxTicksLimit: 8, maxRotation: 0 } },
+        y: { grid: { color:'rgba(30,41,59,.6)' }, beginAtZero: true, ticks: { precision:0 } }
+      }
+    }
+  });
+}
+
+const PLAN_COLORS = { Free:'#64748b', Plus:'#f59e0b', Gold:'#ef4444', default:'#7c3aed' };
+
+function renderPlanChart(byPlan) {
+  if (planChart) { planChart.destroy(); planChart = null; }
+  const ctx = document.getElementById('plan-chart');
+  if (!ctx) return;
+
+  const labels = Object.keys(byPlan);
+  const values = Object.values(byPlan);
+  const colors = labels.map(l => PLAN_COLORS[l] || PLAN_COLORS.default);
+  const total  = values.reduce((a,b) => a+b, 0);
+
+  planChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets:[{ data:values, backgroundColor:colors, borderWidth:0, hoverOffset:4 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout: '68%',
+      plugins: {
+        legend: { display:false },
+        tooltip: { backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1, titleColor:'#f1f5f9', bodyColor:'#94a3b8' }
+      }
+    }
+  });
+
+  // Legend manual
+  el('plan-legend').innerHTML = labels.map((l,i) => `
+    <div class="flex items-center justify-between">
+      <span class="flex items-center gap-2 text-xs text-slate-400">
+        <span class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style="background:${colors[i]}"></span>${l}
+      </span>
+      <span class="text-xs font-medium text-white">${fmt(values[i])} <span class="text-slate-500">(${total > 0 ? (values[i]/total*100).toFixed(1) : 0}%)</span></span>
+    </div>`).join('');
+}
+
+function renderBotAlerts(alerts) {
+  setText('bot-count', alerts.length + ' suspeitos');
+  const div = el('bot-table');
+  if (!alerts.length) { div.innerHTML = '<p class="text-slate-500 text-sm py-2">Nenhum alerta de bot no momento. ✓</p>'; return; }
+  div.innerHTML = `<table class="w-full text-sm"><thead><tr class="text-xs text-slate-500 uppercase border-b border-slate-800"><th class="py-2 text-left">ID</th><th class="py-2 text-left">Usuário</th><th class="py-2 text-left">E-mail</th><th class="py-2 text-right" style="color:#f87171">Likes/Hora</th></tr></thead><tbody>${
+    alerts.map(a => `<tr class="border-b border-slate-800/50"><td class="py-2 text-slate-400">${a.user_id}</td><td class="py-2">${esc(a.name||'—')}</td><td class="py-2 text-slate-400">${esc(a.email||'—')}</td><td class="py-2 text-right font-bold" style="color:#f87171">${fmt(a.like_count_1h)}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+// ─────────────────────────────────────────────
+//  USERS TABLE
+// ─────────────────────────────────────────────
+async function loadUsers(page = 1) {
+  const q        = el('user-search')?.value?.trim()         || '';
+  const banned   = el('filter-banned')?.checked             || false;
+  const planId   = el('user-filter-plan')?.value            || '';
+  const state    = el('user-filter-state')?.value           || '';
+  const city     = el('user-filter-city')?.value?.trim()    || '';
+  const eduLevel = el('user-filter-education')?.value       || '';
+  const gender   = el('user-filter-gender')?.value          || '';
+  const ageRange = el('user-filter-age')?.value             || '';
+
+  let url = `${ADMIN}/users?page=${page}`;
+  if (q)        url += `&q=${encodeURIComponent(q)}`;
+  if (banned)   url += `&banned=true`;
+  if (planId)   url += `&plan_id=${encodeURIComponent(planId)}`;
+  if (state)    url += `&state=${encodeURIComponent(state)}`;
+  if (city)     url += `&city=${encodeURIComponent(city)}`;
+  if (eduLevel) url += `&education_level=${encodeURIComponent(eduLevel)}`;
+  if (gender)   url += `&gender=${encodeURIComponent(gender)}`;
+  if (ageRange) url += `&age_range=${encodeURIComponent(ageRange)}`;
+
+  const tbody = el('users-tbody');
+  tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-16 text-center text-slate-500">Carregando…</td></tr>`;
+
+  const res = await api(url); if (!res?.ok) return;
+  const data = await res.json();
+  lastUsersData = data.users || [];
+
+  const tc = data.pagination?.total_count ?? 0;
+  setText('users-results-count', `${fmt(tc)} encontrado${tc !== 1 ? 's' : ''}`);
+
+  if (!lastUsersData.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-16 text-center text-slate-500">Nenhum usuário encontrado.</td></tr>`;
+    setText('pagination-info', '0 usuários'); el('pagination-btns').innerHTML = ''; return;
+  }
+
+  tbody.innerHTML = lastUsersData.map(u => `
+    <tr id="row-${u.id}" class="border-b border-slate-800/50 hover:bg-slate-800/25 transition-colors">
+      <td class="px-6 py-3.5">
+        <div class="font-medium text-white text-sm">${esc(u.name)}</div>
+        <div class="text-slate-400 text-xs mt-0.5">${esc(u.email)}</div>
+        ${u.admin ? '<span style="color:#fbbf24;font-size:10px;font-weight:700;background:rgba(245,158,11,.1);padding:1px 6px;border-radius:4px;display:inline-block;margin-top:2px">ADMIN</span>' : ''}
+      </td>
+      <td class="px-6 py-3.5">
+        <span class="text-xs bg-slate-800 px-2 py-1 rounded-lg font-medium">${esc(u.plan || 'Gratuito')}</span>
+        ${u.plan_is_admin_grant ? '<span class="admin-grant-badge" style="color:#f59e0b;font-size:10px;font-weight:700;background:rgba(245,158,11,.12);padding:1px 7px;border-radius:4px;display:inline-block;margin-left:5px;border:1px solid rgba(245,158,11,.3);">Cortesia Admin</span>' : ''}
+      </td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs">
+        ${u.city ? esc(u.city) : '—'}${u.state ? `<span class="text-slate-600"> · </span>${esc(u.state)}` : ''}
+      </td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs">${esc(u.education_label || '—')}</td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs">${fmtDate(u.created_at)}</td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs">${u.last_seen_at ? fmtDate(u.last_seen_at) : '—'}</td>
+      <td class="px-6 py-3.5">
+        <span id="status-${u.id}" class="text-xs px-2 py-1 rounded-full font-semibold border" style="${u.banned ? 'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);' : 'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);'}">${u.banned ? 'Banido' : 'Ativo'}</span>
+      </td>
+      <td class="px-6 py-3.5 text-right">
+        <div class="flex items-center justify-end gap-2">
+          <a href="/users/${u.id}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-lg font-medium transition-colors">Ver Perfil</a>
+          <button onclick="openUserPlanModal(${u.id})" class="px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800/60 text-indigo-300 text-xs rounded-lg font-medium transition-colors border border-indigo-700/40">Plano</button>
+          ${!u.admin ? `<button id="ban-btn-${u.id}" onclick="toggleBan(${u.id},${!!u.banned})" class="px-3 py-1.5 text-xs rounded-lg font-semibold border transition-colors" style="${u.banned ? 'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);' : 'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);'}">${u.banned ? 'Reativar' : 'Banir'}</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+
+  const { current_page: cp, total_pages: tp, total_count: tc2 } = data.pagination;
+  setText('pagination-info', `${fmt(tc2)} usuários · página ${cp} de ${tp}`);
+  const pEl = el('pagination-btns'); pEl.innerHTML = '';
+  if (cp > 1)  pEl.innerHTML += `<button onclick="loadUsers(${cp-1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">← Anterior</button>`;
+  pEl.innerHTML += `<span class="px-3 py-1.5 bg-slate-700 rounded-lg text-xs font-bold">${cp}</span>`;
+  if (cp < tp) pEl.innerHTML += `<button onclick="loadUsers(${cp+1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">Próxima →</button>`;
+}
+
+function clearUserFilters() {
+  ['user-search','user-filter-plan','user-filter-state','user-filter-city',
+   'user-filter-education','user-filter-gender','user-filter-age'].forEach(id => {
+    const f = el(id); if (f) f.value = '';
+  });
+  const banned = el('filter-banned'); if (banned) banned.checked = false;
+  loadUsers(1);
+}
+
+async function loadUserFilterPlans() {
+  const sel = el('user-filter-plan');
+  if (!sel) return;
+  const res = await api(`${ADMIN}/plans`);
+  if (!res?.ok) return;
+  const data = await res.json();
+  const plans = (data.plans || []).filter(p => p.active !== false);
+  sel.innerHTML = '<option value="">Todos os planos</option>' +
+    plans.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+}
+
+async function toggleBan(userId, isBanned) {
+  const btn = el(`ban-btn-${userId}`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res = await api(`${ADMIN}/users/${userId}/ban`, { method:'PATCH' });
+  if (!res?.ok) { if (btn) { btn.disabled = false; btn.textContent = isBanned?'Reativar':'Banir'; } return; }
+  const data = await res.json();
+  const now = data.banned;
+  const statusEl = el(`status-${userId}`);
+  if (statusEl) { statusEl.textContent = now?'Banido':'Ativo'; statusEl.style.cssText = now?'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);':'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);'; }
+  if (btn) { btn.disabled=false; btn.textContent=now?'Reativar':'Banir'; btn.style.cssText=now?'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);':'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);'; btn.onclick=()=>toggleBan(userId,now); }
+}
+
+// ─────────────────────────────────────────────
+//  ATRIBUIÇÃO MANUAL DE PLANO
+// ─────────────────────────────────────────────
+let _userPlanTargetId = null;
+
+async function openUserPlanModal(userId) {
+  const user = (lastUsersData || []).find(u => u.id === userId);
+  _userPlanTargetId = userId;
+  el('user-plan-modal-name').textContent = user ? user.name : `Usuário #${userId}`;
+
+  const select = el('user-plan-select');
+  select.innerHTML = '<option value="">Carregando…</option>';
+
+  el('user-plan-modal').style.display = 'flex';
+
+  const res = await api(`${ADMIN}/plans`);
+  if (!res?.ok) { select.innerHTML = '<option value="">Erro ao carregar planos</option>'; return; }
+  const data = await res.json();
+  const plans = (data.plans || data).filter(p => p.active !== false);
+  const currentPlan = user ? user.plan : '';
+  select.innerHTML = plans.map(p =>
+    `<option value="${p.id}" ${p.name === currentPlan ? 'selected' : ''}>${esc(p.name)}</option>`
+  ).join('');
+}
+
+function closeUserPlanModal() {
+  el('user-plan-modal').style.display = 'none';
+  _userPlanTargetId = null;
+}
+
+async function saveUserSubscription() {
+  const planId = el('user-plan-select').value;
+  if (!planId || !_userPlanTargetId) return;
+
+  const btn = el('user-plan-modal').querySelector('button[onclick="saveUserSubscription()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+  const res = await api(`${ADMIN}/users/${_userPlanTargetId}/update_subscription`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan_id: planId })
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Salvar'; }
+  if (!res?.ok) return;
+  const data = await res.json();
+
+  // Atualiza o badge de plano na linha da tabela sem recarregar
+  const row = el(`row-${_userPlanTargetId}`);
+  if (row) {
+    const planCell = row.querySelector('td:nth-child(2)');
+    if (planCell) {
+      const planSpan = planCell.querySelector('span:first-child');
+      if (planSpan) planSpan.textContent = data.plan_name;
+
+      // Remove badge antigo (se houver) e re-insere conforme a resposta
+      const existingBadge = planCell.querySelector('.admin-grant-badge');
+      if (existingBadge) existingBadge.remove();
+      if (data.plan_is_admin_grant) {
+        planCell.insertAdjacentHTML('beforeend',
+          '<span class="admin-grant-badge" style="color:#f59e0b;font-size:10px;font-weight:700;background:rgba(245,158,11,.12);padding:1px 7px;border-radius:4px;display:inline-block;margin-left:5px;border:1px solid rgba(245,158,11,.3);">Cortesia Admin</span>'
+        );
+      }
+    }
+  }
+  closeUserPlanModal();
+}
+
+// ─────────────────────────────────────────────
+//  MODERAÇÃO DE FOTOS
+// ─────────────────────────────────────────────
+const ADMIN_MOD = `${ADMIN}/moderation`;
+
+let _modData = { pending: [], verified: [], rejected: [] };
+
+function switchModTab(tab) {
+  ['pending','verified','rejected'].forEach(t => {
+    const btn = el(`mod-tab-${t}`);
+    if (!btn) return;
+    if (t === tab) {
+      btn.style.color = '#f59e0b'; btn.style.background = 'rgba(245,158,11,.12)'; btn.style.borderColor = 'rgba(245,158,11,.35)';
+    } else {
+      btn.style.color = '#64748b'; btn.style.background = 'transparent'; btn.style.borderColor = '#1e293b';
+    }
+  });
+  el('mod-empty').classList.add('hidden');
+  const list = _modData[tab] || [];
+  if (!list.length) { el('mod-empty').classList.remove('hidden'); el('mod-list').innerHTML = ''; return; }
+  el('mod-list').innerHTML = list.map(u => renderModerationCard(u, tab)).join('');
+}
+
+async function loadModeration() {
+  el('mod-loading').classList.remove('hidden');
+  el('mod-list').innerHTML = '';
+  el('mod-empty').classList.add('hidden');
+
+  const res = await api(ADMIN_MOD);
+  el('mod-loading').classList.add('hidden');
+  if (!res?.ok) return;
+
+  const data = await res.json();
+  _modData.pending  = data.pending  || [];
+  _modData.verified = data.verified || [];
+  _modData.rejected = data.rejected || [];
+
+  const count = data.pagination?.total_count ?? _modData.pending.length;
+  const badge = el('badge-moderation');
+  if (badge) {
+    badge.textContent = count > 99 ? '99+' : count;
+    count > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+  }
+  setText('mod-pending-badge', `${fmt(count)} pendente${count !== 1 ? 's' : ''}`);
+
+  switchModTab('pending');
+}
+
+function renderModerationCard(u, tab = 'pending') {
+  // helpers de imagem
+  function kycImg(src, label) {
+    const s = src ? esc(src) : '';
+    return s
+      ? `<img src="${s}" alt="${label}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:.625rem;background:#1e293b;display:block">`
+      : `<div style="width:100%;aspect-ratio:4/3;border-radius:.625rem;background:#1e293b;display:flex;align-items:center;justify-content:center;color:#475569;font-size:.6875rem;text-align:center;padding:.5rem">Não enviado</div>`;
+  }
+  function avatarImg(src) {
+    return src
+      ? `<img src="${esc(src)}" alt="Avatar" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:.75rem;background:#1e293b">`
+      : `<div style="width:100%;aspect-ratio:1;border-radius:.75rem;background:#1e293b;display:flex;align-items:center;justify-content:center;color:#475569;font-size:.75rem">Sem foto</div>`;
+  }
+
+  const statusBadge = tab === 'verified'
+    ? `<span style="font-size:.6875rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;color:#22c55e;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25)">Verificado</span>`
+    : tab === 'rejected'
+      ? `<span style="font-size:.6875rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;color:#f87171;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25)">Recusado</span>`
+      : `<span style="font-size:.6875rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;color:#f59e0b;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25)">Pendente</span>`;
+
+  const rejectionReasonMap = {
+    no_face_in_selfie:          'Rosto não detectado na selfie',
+    explicit_content:           'Conteúdo inapropriado',
+    name_not_found_in_document: 'Nome não encontrado no documento',
+    face_mismatch:              'Rosto não corresponde ao documento',
+    api_error:                  'Erro na análise',
+    no_face_detected:           'Rosto não detectado',
+    name_not_found_in_photo:    'Nome não encontrado'
+  };
+  const rejectionReasonHtml = tab === 'rejected' && u.ai_moderation_details?.reason
+    ? `<div style="margin-top:.5rem;font-size:.75rem;color:#f87171;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:.5rem;padding:.4rem .7rem;display:inline-block">Motivo: ${rejectionReasonMap[u.ai_moderation_details.reason] || u.ai_moderation_details.reason}</div>`
+    : '';
+
+  const actions = tab === 'verified'
+    ? `<div style="display:flex;gap:.625rem;flex-wrap:wrap">
+        <button onclick="reanalyzePhoto(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#fff;background:#3b82f6;border:1px solid #2563eb;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.25rem"><svg style="width:.875rem;height:.875rem;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Reanalisar IA</button>
+        <button onclick="banFromModeration(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#f87171;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);cursor:pointer">Banir</button>
+       </div>`
+    : tab === 'rejected'
+      ? `<div style="display:flex;gap:.625rem;flex-wrap:wrap">
+          <button onclick="undoRejection(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:700;color:#fff;background:#7c3aed;border:1px solid #6d28d9;cursor:pointer">↩ Desfazer</button>
+          <button onclick="banFromModeration(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#f87171;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);cursor:pointer">🚫 Banir</button>
+         </div>`
+      : `<div style="display:flex;gap:.625rem;flex-wrap:wrap">
+          <button onclick="approveVerification(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:700;color:#fff;background:#16a34a;border:none;cursor:pointer">✓ Aprovar</button>
+          <button onclick="rejectVerificationPhoto(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);cursor:pointer">⚠ Recusar</button>
+          <button onclick="reanalyzePhoto(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#fff;background:#3b82f6;border:1px solid #2563eb;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.25rem"><svg style="width:.875rem;height:.875rem;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Reanalisar IA</button>
+          <button onclick="banFromModeration(${u.id})" style="flex:1;padding:.5rem;border-radius:.75rem;font-size:.8125rem;font-weight:600;color:#f87171;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);cursor:pointer">🚫 Banir</button>
+         </div>`;
+
+  // Seção de fotos: verificado mostra avatar; demais mostram os 3 documentos KYC
+  const docLabelStyle = 'font-size:.625rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem;font-weight:600';
+  const photos = tab === 'verified'
+    ? `<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.25rem;max-width:160px">
+        <div>
+          <div style="${docLabelStyle}">Foto de Perfil</div>
+          ${avatarImg(u.avatar_url)}
+        </div>
+       </div>`
+    : `<div style="margin-bottom:1.25rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.625rem;margin-bottom:.625rem">
+          <div>
+            <div style="${docLabelStyle}">Frente Doc.</div>
+            ${kycImg(u.document_front_url, 'Frente do documento')}
+          </div>
+          <div>
+            <div style="${docLabelStyle}">Verso Doc.</div>
+            ${kycImg(u.document_back_url, 'Verso do documento')}
+          </div>
+          <div>
+            <div style="${docLabelStyle}">Selfie</div>
+            ${kycImg(u.selfie_with_document_url, 'Selfie com documento')}
+          </div>
+        </div>
+       </div>`;
+
+  const aiStatusBadge = (() => {
+    const pct = u.ai_moderation_score != null ? Math.round(u.ai_moderation_score * 100) : null;
+    const base = 'font-size:.6875rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;border:1px solid;display:inline-block;margin-top:.375rem';
+    switch (u.ai_moderation_status) {
+      case 'approved':
+        return `<span style="${base};color:#22c55e;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25)">Análise IA: Aprovado (${pct}%)</span>`;
+      case 'rejected':
+        return `<span style="${base};color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)">Análise IA: Recusado (${pct}%)</span>`;
+      case 'manual_review':
+        return `<span style="${base};color:#f97316;background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.25)">Análise IA: Revisão Manual (${pct}%)</span>`;
+      case 'error':
+        return `<span style="${base};color:#fca5a5;background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.15)">Análise IA: Erro</span>`;
+      default:
+        return `<span style="${base};color:#94a3b8;background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.2)">Análise IA: Pendente</span>`;
+    }
+  })();
+
+  return `
+<div id="mod-card-${u.id}" style="background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1.25rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div>
+      <div style="font-weight:600;font-size:.9375rem;color:#f1f5f9">${esc(u.name)}</div>
+      <div style="font-size:.75rem;color:#64748b;margin-top:.125rem">${esc(u.email)} · ${fmtDate(u.created_at)}</div>
+      ${aiStatusBadge}
+      ${rejectionReasonHtml}
+    </div>
+    ${statusBadge}
+  </div>
+  ${photos}
+  ${actions}
+</div>`;
+}
+
+function removeModerationCard(userId) {
+  // Remove da lista visual
+  const card = el(`mod-card-${userId}`);
+  if (card) card.remove();
+  // Remove do cache em memória (todas as listas)
+  _modData.pending  = _modData.pending.filter(u => u.id !== userId);
+  _modData.verified = _modData.verified.filter(u => u.id !== userId);
+  _modData.rejected = _modData.rejected.filter(u => u.id !== userId);
+  if (!el('mod-list').children.length) {
+    el('mod-empty').classList.remove('hidden');
+    setText('mod-pending-badge', '0 pendentes');
+    const badge = el('badge-moderation');
+    if (badge) badge.classList.add('hidden');
+  }
+}
+
+async function approveVerification(userId) {
+  const res = await api(`${ADMIN_MOD}/${userId}/verify_user`, { method: 'PATCH' });
+  if (!res?.ok) return;
+  removeModerationCard(userId);
+}
+
+async function rejectVerificationPhoto(userId) {
+  const reason = prompt('Motivo da recusa (opcional):') ?? '';
+  const res = await api(`${ADMIN_MOD}/${userId}/reject_photo`, {
+    method: 'PATCH',
+    body: JSON.stringify({ reason })
+  });
+  if (!res?.ok) return;
+  removeModerationCard(userId);
+}
+
+async function banFromModeration(userId) {
+  if (!confirm('Banir esta conta? Esta ação suspende o acesso do usuário.')) return;
+  const res = await api(`${ADMIN_MOD}/${userId}/ban_user`, { method: 'PATCH' });
+  if (!res?.ok) return;
+  removeModerationCard(userId);
+}
+
+async function undoRejection(userId) {
+  const res = await api(`${ADMIN_MOD}/${userId}/undo_rejection`, { method: 'PATCH' });
+  if (!res?.ok) { showToast('Erro ao desfazer a rejeição.', 'error'); return; }
+  removeModerationCard(userId);
+  showToast('Rejeição revertida. O usuário pode reenviar a foto de verificação.');
+}
+
+function showToast(msg, type = 'success') {
+  const colors = { success: '#16a34a', error: '#dc2626' };
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;padding:.875rem 1.25rem;border-radius:.75rem;font-size:.875rem;font-weight:500;color:#fff;background:${colors[type]||colors.success};box-shadow:0 4px 16px rgba(0,0,0,.4);transition:opacity .3s`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+window.reanalyzePhoto = async function(userId) {
+  if (!confirm('Deseja enviar esta foto novamente para análise da Inteligência Artificial?')) return;
+  try {
+    const res = await api(`/api/v1/admin/moderation/${userId}/reanalyze`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      alert('Reanálise iniciada! Aguarde alguns segundos e a página será atualizada.');
+      setTimeout(() => loadData(), 2000);
+    } else {
+      alert(data.error || 'Erro ao reanalisar.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erro de conexão.');
+  }
+};
+
+// ─────────────────────────────────────────────
+//  CSV EXPORT
+// ─────────────────────────────────────────────
+function exportCSV() {
+  if (!lastUsersData.length) { alert('Carregue a lista de usuários primeiro.'); return; }
+  const headers = ['ID','Nome','Email','Plano','Cidade','Estado','Status','Cadastro','Último Acesso'];
+  const rows = lastUsersData.map(u => [
+    u.id, `"${(u.name||'').replace(/"/g,'""')}"`, `"${(u.email||'').replace(/"/g,'""')}"`,
+    u.plan||'', u.city||'', u.state||'', u.banned?'Banido':'Ativo', fmtDate(u.created_at), u.last_seen_at ? fmtDate(u.last_seen_at) : ''
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:`geomatch_usuarios_${fmtISO(new Date())}.csv` });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ─────────────────────────────────────────────
+//  REPORTS
+// ─────────────────────────────────────────────
+const RPT_CAT_LABELS = {
+  harassment:'Assédio', fake_profile:'Perfil Falso', spam:'Spam',
+  inappropriate_content:'Conteúdo Impróprio', underage:'Menor de Idade',
+  scam:'Fraude', other:'Outros'
+};
+const RPT_CAT_COLORS = {
+  harassment:'#ef4444', fake_profile:'#f97316', spam:'#eab308',
+  inappropriate_content:'#8b5cf6', underage:'#ec4899',
+  scam:'#f43f5e', other:'#64748b'
+};
+
+async function loadReports(page = 1) {
+  const status = el('rpt-filter-status')?.value || '';
+  const cat    = el('rpt-filter-cat')?.value    || '';
+  let url = `${ADMIN}/reports?page=${page}`;
+  if (status) url += `&status=${status}`;
+  if (cat)    url += `&category=${cat}`;
+
+  el('reports-tbody').innerHTML = `<tr><td colspan="7" class="px-6 py-16 text-center text-slate-500">Carregando…</td></tr>`;
+
+  const res = await api(url); if (!res?.ok) return;
+  const d   = await res.json();
+
+  // Stats
+  setText('rpt-pending',  fmt(d.stats?.pending));
+  setText('rpt-resolved', fmt(d.stats?.resolved));
+  setText('rpt-banned',   fmt(d.stats?.banned));
+
+  // Badge sync
+  const badge = el('badge-reports');
+  const pend  = d.stats?.pending || 0;
+  badge.textContent = pend > 99 ? '99+' : pend;
+  pend > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+
+  // Categories
+  const bycat = d.by_category || {};
+  el('report-categories').innerHTML = Object.entries(RPT_CAT_LABELS).map(([k,v]) => {
+    const count = bycat[k] ?? 0;
+    const color = RPT_CAT_COLORS[k] || '#64748b';
+    return `<div class="bg-slate-800 rounded-xl p-3 cursor-pointer hover:bg-slate-700 transition-colors" onclick="filterByCategory('${k}')">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
+        <span class="text-xs text-slate-400">${v}</span>
+      </div>
+      <div class="text-xl font-bold text-white">${fmt(count)}</div>
+    </div>`;
+  }).join('');
+
+  // Table
+  const reports = d.reports || [];
+  if (!reports.length) {
+    el('reports-tbody').innerHTML = `<tr><td colspan="7" class="px-6 py-16 text-center text-slate-500">Nenhuma denúncia encontrada.</td></tr>`;
+    setText('rpt-pagination-info','0 denúncias'); el('rpt-pagination-btns').innerHTML = ''; return;
+  }
+
+  el('reports-tbody').innerHTML = reports.map(r => {
+    const catLabel = RPT_CAT_LABELS[r.category] || r.category || '—';
+    const catColor = RPT_CAT_COLORS[r.category] || '#64748b';
+    const resolved = r.resolved;
+    const desc     = esc(r.description || '').substring(0, 80) + (r.description?.length > 80 ? '…' : '');
+    const reporter = r.reporter ? `<div class="font-medium text-white text-xs">${esc(r.reporter.name)}</div><div class="text-slate-500 text-xs">${esc(r.reporter.email)}</div>` : '<span class="text-slate-500 text-xs">—</span>';
+    return `<tr id="rpt-row-${r.id}" class="border-b border-slate-800/50 hover:bg-slate-800/25 transition-colors">
+      <td class="px-6 py-3.5 text-slate-500 text-xs font-mono">#${r.id}</td>
+      <td class="px-6 py-3.5">${reporter}</td>
+      <td class="px-6 py-3.5">
+        <span class="text-xs px-2 py-1 rounded-full font-semibold" style="color:${catColor};background:${catColor}18">${catLabel}</span>
+      </td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs max-w-xs" title="${esc(r.description || '')}">${desc}</td>
+      <td class="px-6 py-3.5 text-slate-400 text-xs">${fmtDate(r.created_at)}</td>
+      <td class="px-6 py-3.5">
+        <span id="rpt-status-${r.id}" class="text-xs px-2 py-1 rounded-full font-semibold border" style="${resolved?'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);':'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);'}">${resolved?'Resolvida':'Pendente'}</span>
+      </td>
+      <td class="px-6 py-3.5 text-right">
+        <button id="rpt-btn-${r.id}" onclick="resolveReport(${r.id},${resolved})" class="px-3 py-1.5 text-xs rounded-lg font-semibold border transition-colors" style="${resolved?'color:#94a3b8;background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.2);':'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);'}">${resolved?'Reabrir':'Resolver'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Pagination
+  const { current_page:cp, total_pages:tp, total_count:tc } = d.pagination;
+  setText('rpt-pagination-info', `${fmt(tc)} denúncias · página ${cp} de ${tp}`);
+  const pEl = el('rpt-pagination-btns'); pEl.innerHTML = '';
+  if (cp > 1)  pEl.innerHTML += `<button onclick="loadReports(${cp-1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">← Anterior</button>`;
+  pEl.innerHTML += `<span class="px-3 py-1.5 bg-slate-700 rounded-lg text-xs font-bold">${cp}</span>`;
+  if (cp < tp) pEl.innerHTML += `<button onclick="loadReports(${cp+1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">Próxima →</button>`;
+}
+
+async function resolveReport(reportId, isResolved) {
+  const btn = el(`rpt-btn-${reportId}`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res = await api(`${ADMIN}/reports/${reportId}/resolve`, { method:'PATCH' });
+  if (!res?.ok) { if (btn) { btn.disabled = false; btn.textContent = isResolved?'Reabrir':'Resolver'; } return; }
+  const data     = await res.json();
+  const nowRes   = data.resolved;
+  const statusEl = el(`rpt-status-${reportId}`);
+  if (statusEl) {
+    statusEl.textContent = nowRes ? 'Resolvida' : 'Pendente';
+    statusEl.style.cssText = nowRes ? 'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);' : 'color:#f87171;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);';
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent  = nowRes ? 'Reabrir' : 'Resolver';
+    btn.style.cssText = nowRes ? 'color:#94a3b8;background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.2);' : 'color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25);';
+    btn.onclick = () => resolveReport(reportId, nowRes);
+  }
+}
+
+function filterByCategory(cat) {
+  el('rpt-filter-cat').value = cat;
+  loadReports(1);
+}
+
+// ─────────────────────────────────────────────
+//  PERFORMANCE
+// ─────────────────────────────────────────────
+async function loadPerformance() {
+  const res = await api(`${ADMIN}/performance`); if (!res?.ok) return;
+  const d = await res.json();
+  const dbOk = d.database?.status === 'ok';
+  el('db-status').textContent  = dbOk ? '● Online' : '● Offline';
+  el('db-status').style.color  = dbOk ? '#4ade80' : '#f87171';
+  setText('db-latency',    d.database?.latency_ms != null ? d.database.latency_ms + ' ms' : '—');
+  setText('db-pool-size',  d.database?.pool?.size  ?? '—');
+  setText('db-pool-busy',  d.database?.pool?.busy  ?? '—');
+  setText('db-cache',      d.database?.cache_adapter ?? '—');
+  setText('rev-total',     d.revenue?.total_brl    != null ? 'R$ ' + fmt2(d.revenue.total_brl)   : 'R$ —');
+  setText('rev-mrr',       d.revenue?.mrr_brl      != null ? 'R$ ' + fmt2(d.revenue.mrr_brl)     : 'R$ —');
+  setText('rev-payments',  fmt(d.revenue?.paid_payments));
+  setText('rev-premium',   fmt(d.revenue?.premium_users));
+  setText('rev-conversion',d.revenue?.conversion_rate != null ? d.revenue.conversion_rate + '%' : '—');
+}
+
+// ─────────────────────────────────────────────
+//  ENGAJAMENTO & COMPORTAMENTO
+// ─────────────────────────────────────────────
+const GENDER_COLORS = { male:'#3b82f6', female:'#ec4899', 'Não informado':'#64748b', '?':'#64748b' };
+const GENDER_LABELS = { male:'Masculino', female:'Feminino', 'Não informado':'Outros', '?':'Outros', non_binary:'Não-binário' };
+const SHIFT_COLORS  = { 'Manhã':'#f59e0b', 'Tarde':'#3b82f6', 'Noite':'#8b5cf6', 'Madrugada':'#475569' };
+
+function setEngPeriod(days) {
+  engPeriodDays = days;
+  document.querySelectorAll('.eng-period-btn').forEach(b => {
+    const active = b.id === `eng-btn-${days}`;
+    b.style.background = active ? 'rgba(245,158,11,.2)' : '';
+    b.style.color      = active ? '#f59e0b' : '';
+    b.style.fontWeight = active ? 'bold' : '';
+  });
+  loadEngagement();
+}
+
+async function loadEngagement() {
+  el('eng-loading')?.classList.remove('hidden');
+  const city  = el('eng-filter-city')?.value?.trim()  || '';
+  const state = el('eng-filter-state')?.value?.trim() || '';
+  let url = `${ADMIN}/engagement?days=${engPeriodDays}`;
+  if (city)  url += `&city=${encodeURIComponent(city)}`;
+  if (state) url += `&state=${encodeURIComponent(state)}`;
+
+  const res = await api(url);
+  el('eng-loading')?.classList.add('hidden');
+  if (!res?.ok) return;
+  const d = await res.json();
+  lastEngData = d;
+
+  // KPIs
+  setText('eng-active-users', fmt(d.kpis?.active_users));
+  el('eng-match-rate').textContent  = (d.kpis?.match_rate ?? '—') + '%';
+  setText('eng-total-msgs',  fmt(d.kpis?.total_messages));
+  setText('eng-total-likes', fmt(d.kpis?.total_likes));
+
+  // Charts
+  renderEngBarChart('eng-msgs-chart',  'engMsgsChart',  d.by_gender || [], 'messages_sent', 'Mensagens');
+  renderEngBarChart('eng-likes-chart', 'engLikesChart', d.by_gender || [], 'likes_given',   'Likes');
+  renderShiftChart(d.by_shift || []);
+
+  // Match rate por gênero
+  renderEngGenderCards('eng-match-gender', d.swipe_stats || [], s => ({
+    label: (GENDER_LABELS[s.gender] || s.gender),
+    value: s.match_rate + '%',
+    sub:   `${fmt(s.matches)} matches de ${fmt(s.likes_given)} likes`,
+    color: GENDER_COLORS[s.gender] || '#64748b'
+  }));
+
+  // Velocidade de resposta
+  renderEngGenderCards('eng-response-time', d.response_time || [], r => ({
+    label: (GENDER_LABELS[r.gender] || r.gender),
+    value: r.avg_formatted || '—',
+    sub:   `${fmt(r.response_count)} respostas medidas`,
+    color: GENDER_COLORS[r.gender] || '#64748b'
+  }));
+
+  // Rankings
+  renderRanking('rank-engaged',    d.top_rankings?.top_engaged    || [], u => `${fmt(u.score)} pts`);
+  renderRanking('rank-liked',      d.top_rankings?.top_liked      || [], u => `${fmt(u.score)} likes`);
+  renderRanking('rank-liking',     d.top_rankings?.top_liking     || [], u => `${fmt(u.score)} likes`);
+  renderRanking('rank-responders', d.top_rankings?.top_responders || [], u => `${u.avg_minutes ? u.avg_minutes.toFixed(1) : '—'} min`);
+}
+
+function renderEngBarChart(canvasId, storeKey, byGender, field, label) {
+  if (window[storeKey]) { window[storeKey].destroy(); window[storeKey] = null; }
+  const ctx = el(canvasId); if (!ctx) return;
+  const labels = byGender.map(g => GENDER_LABELS[g.gender] || g.gender);
+  const values = byGender.map(g => g[field] || 0);
+  const colors = byGender.map(g => GENDER_COLORS[g.gender] || '#64748b');
+  window[storeKey] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label, data: values, backgroundColor: colors.map(c => c + 'cc'), borderColor: colors, borderWidth: 2, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1, titleColor:'#f1f5f9', bodyColor:'#94a3b8' } },
+      scales: {
+        x: { grid: { color:'rgba(30,41,59,.6)' } },
+        y: { grid: { color:'rgba(30,41,59,.6)' }, beginAtZero: true, ticks: { precision:0 } }
+      }
+    }
+  });
+}
+
+function renderShiftChart(byShift) {
+  if (engShiftChart) { engShiftChart.destroy(); engShiftChart = null; }
+  const ctx = el('eng-shift-chart'); if (!ctx) return;
+  const order = ['Manhã','Tarde','Noite','Madrugada'];
+  const sorted = order.map(s => byShift.find(r => r.shift === s) || { shift:s, messages:0, active_users:0 });
+  engShiftChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(r => r.shift),
+      datasets: [
+        { label: 'Mensagens', data: sorted.map(r => r.messages),     backgroundColor: sorted.map(r => (SHIFT_COLORS[r.shift] || '#475569') + 'cc'), borderColor: sorted.map(r => SHIFT_COLORS[r.shift] || '#475569'), borderWidth:2, borderRadius:6 },
+        { label: 'Usuários',  data: sorted.map(r => r.active_users), backgroundColor: 'rgba(148,163,184,.15)',                                        borderColor: '#475569', borderWidth:1, borderRadius:6, type:'bar' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color:'#64748b', boxWidth:12 } }, tooltip: { backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1, titleColor:'#f1f5f9', bodyColor:'#94a3b8' } },
+      scales: {
+        x: { grid: { color:'rgba(30,41,59,.6)' } },
+        y: { grid: { color:'rgba(30,41,59,.6)' }, beginAtZero: true, ticks: { precision:0 } }
+      }
+    }
+  });
+}
+
+function renderEngGenderCards(containerId, data, mapFn) {
+  const div = el(containerId); if (!div) return;
+  if (!data.length) { div.innerHTML = '<p class="text-slate-500 text-xs">Sem dados no período.</p>'; return; }
+  div.innerHTML = data.map(item => {
+    const { label, value, sub, color } = mapFn(item);
+    return `<div class="flex items-center justify-between py-2.5 border-b border-slate-800/60 last:border-0">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color}"></span>
+        <span class="text-sm text-slate-300">${esc(label)}</span>
+      </div>
+      <div class="text-right">
+        <div class="text-sm font-bold text-white">${esc(value)}</div>
+        <div class="text-xs text-slate-500">${esc(sub)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRanking(containerId, data, scoreFn) {
+  const div = el(containerId); if (!div) return;
+  if (!data.length) { div.innerHTML = '<p class="text-slate-500 text-xs">Sem dados no período.</p>'; return; }
+  div.innerHTML = data.map((u, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+    const gc = GENDER_COLORS[u.gender] || '#64748b';
+    return `<div class="flex items-center gap-3 py-2 border-b border-slate-800/50 last:border-0">
+      <span class="text-sm w-7 text-center flex-shrink-0 font-bold ${i < 3 ? '' : 'text-slate-500'}">${medal}</span>
+      <a href="/users/${u.id}" target="_blank" class="flex-1 min-w-0 hover:opacity-75 transition-opacity">
+        <div class="text-xs font-semibold text-white truncate">${esc(u.username || 'Usuário')}</div>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="text-xs" style="color:${gc}">${esc(GENDER_LABELS[u.gender] || u.gender || '?')}</span>
+          <span class="text-slate-600 text-xs">·</span>
+          <span class="text-xs text-slate-500">${esc(u.plan || 'Gratuito')}</span>
+        </div>
+      </a>
+      <span class="text-xs font-bold text-slate-300 flex-shrink-0">${esc(scoreFn(u))}</span>
+    </div>`;
+  }).join('');
+}
+
+function exportEngagementCSV() {
+  if (!lastEngData) { alert('Carregue os dados primeiro.'); return; }
+  const d = lastEngData;
+  const lines = ['\uFEFF'];
+
+  lines.push('## KPIs Globais');
+  lines.push('Métrica,Valor');
+  lines.push(`Usuários Ativos,${d.kpis?.active_users ?? ''}`);
+  lines.push(`Match Rate (%),${d.kpis?.match_rate ?? ''}`);
+  lines.push(`Total Mensagens,${d.kpis?.total_messages ?? ''}`);
+  lines.push(`Total Likes,${d.kpis?.total_likes ?? ''}`);
+  lines.push('');
+
+  lines.push('## Engajamento por Gênero');
+  lines.push('Gênero,Usuários Ativos,% Participação,Mensagens,Likes');
+  (d.by_gender || []).forEach(g => {
+    lines.push(`"${g.gender}",${g.active_users},${g.share_pct},${g.messages_sent},${g.likes_given}`);
+  });
+  lines.push('');
+
+  lines.push('## Match Rate por Gênero');
+  lines.push('Gênero,Likes Dados,Likes Recebidos,Matches,Taxa (%)');
+  (d.swipe_stats || []).forEach(s => {
+    lines.push(`"${s.gender}",${s.likes_given},${s.likes_received},${s.matches},${s.match_rate}`);
+  });
+  lines.push('');
+
+  lines.push('## Velocidade de Resposta por Gênero');
+  lines.push('Gênero,Média (min),Amostras');
+  (d.response_time || []).forEach(r => {
+    lines.push(`"${r.gender}",${r.avg_minutes},${r.response_count}`);
+  });
+  lines.push('');
+
+  lines.push('## Uso por Turno');
+  lines.push('Turno,Mensagens,Usuários Únicos');
+  (d.by_shift || []).forEach(s => {
+    lines.push(`"${s.shift}",${s.messages},${s.active_users}`);
+  });
+
+  const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:`geomatch_engagement_${fmtISO(new Date())}.csv` });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ─────────────────────────────────────────────
+//  INSIGHTS BI
+// ─────────────────────────────────────────────
+const EDU_LABELS = {
+  fundamental_incompleto:'Fund. Incompleto', fundamental_completo:'Fund. Completo',
+  medio_incompleto:'Médio Incompleto',       medio_completo:'Médio Completo',
+  superior_incompleto:'Superior Incompleto', superior_completo:'Superior Completo',
+  pos_graduacao:'Pós-Graduação',             mestrado:'Mestrado', doutorado:'Doutorado'
+};
+const CHART_PALETTE = ['#f59e0b','#3b82f6','#8b5cf6','#ec4899','#10b981','#ef4444','#f97316','#06b6d4','#84cc16','#a78bfa'];
+
+async function loadInsights() {
+  const res = await api(`${ADMIN}/insights`); if (!res?.ok) return;
+  const d   = await res.json();
+
+  renderPieInsight('education-chart', 'education-legend',
+    d.by_education  || {},
+    k => EDU_LABELS[k] || k);
+
+  renderPieInsight('interests-chart', 'interests-legend',
+    d.by_interest || {},
+    k => k);
+
+  renderPieInsight('age-chart', 'age-legend',
+    d.by_age_range || {},
+    k => k);
+
+  renderBarList('top-cities-list',       d.top_cities      || {});
+  renderBarList('top-occupations-list',  d.top_occupations || {});
+}
+
+function renderPieInsight(canvasId, legendId, dataObj, labelFn) {
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
+  if (!labels.length) {
+    const c = el(canvasId); if(c) { const p = c.parentElement; p.innerHTML = '<p class="text-slate-500 text-xs py-12 text-center">Sem dados</p>'; }
+    el(legendId) && (el(legendId).innerHTML = ''); return;
+  }
+  const colors = labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+  const total  = values.reduce((a,b) => a+b, 0);
+
+  // Destroy previous chart stored in global
+  const storeKey = canvasId.replace('-chart','') + 'Chart';
+  if (window[storeKey]) { window[storeKey].destroy(); window[storeKey] = null; }
+
+  const ctx = el(canvasId); if (!ctx) return;
+  window[storeKey] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: labels.map(labelFn), datasets:[{ data:values, backgroundColor:colors, borderWidth:0, hoverOffset:4 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins: {
+        legend: { display:false },
+        tooltip: { backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1, titleColor:'#f1f5f9', bodyColor:'#94a3b8' }
+      }
+    }
+  });
+
+  el(legendId).innerHTML = labels.map((k, i) => `
+    <div class="flex items-center justify-between">
+      <span class="flex items-center gap-2 text-xs text-slate-400">
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${colors[i]}"></span>${esc(labelFn(k))}
+      </span>
+      <span class="text-xs font-medium text-white">${fmt(values[i])} <span class="text-slate-600">(${total?((values[i]/total)*100).toFixed(1):0}%)</span></span>
+    </div>`).join('');
+}
+
+function renderBarList(containerId, dataObj) {
+  const entries = Object.entries(dataObj).sort((a,b) => b[1]-a[1]).slice(0,10);
+  const maxVal  = entries[0]?.[1] || 1;
+  const div = el(containerId); if (!div) return;
+  if (!entries.length) { div.innerHTML = '<p class="text-slate-500 text-xs">Sem dados</p>'; return; }
+  div.innerHTML = entries.map(([k,v]) => `
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-slate-300 w-28 truncate flex-shrink-0" title="${esc(k)}">${esc(k)}</span>
+      <div class="flex-1 bg-slate-800 rounded-full h-1.5">
+        <div class="h-1.5 rounded-full" style="width:${(v/maxVal*100).toFixed(1)}%;background:#f59e0b"></div>
+      </div>
+      <span class="text-xs text-slate-400 w-8 text-right flex-shrink-0">${fmt(v)}</span>
+    </div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+//  WORD CLOUD / TRENDING TOPICS
+// ─────────────────────────────────────────────
+async function loadWordCloud() {
+  const region = el('wc-region')?.value?.trim() || '';
+  let url = `${ADMIN}/word_cloud`;
+  if (region) url += `?region=${encodeURIComponent(region)}`;
+
+  const res = await api(url); if (!res?.ok) return;
+  const d   = await res.json();
+
+  // Trending words
+  const container = el('trending-words');
+  const words = d.top_words || [];
+  if (!words.length) {
+    container.innerHTML = '<p class="text-slate-500 text-xs py-4">Nenhuma palavra encontrada no período.</p>';
+  } else {
+    const maxCount = words[0]?.count || 1;
+    container.innerHTML = words.map((w, i) => {
+      const scale = 0.75 + (w.count / maxCount) * 0.85; // 0.75rem → 1.6rem
+      const opacity = 0.5 + (w.count / maxCount) * 0.5;
+      const color = CHART_PALETTE[i % CHART_PALETTE.length];
+      return `<span class="px-3 py-1.5 rounded-full font-bold cursor-default transition-transform hover:scale-110"
+        title="${fmt(w.count)} ocorrências"
+        style="font-size:${scale.toFixed(2)}rem;color:${color};opacity:${opacity.toFixed(2)};background:${color}18;border:1px solid ${color}30">
+        ${esc(w.word)}
+      </span>`;
+    }).join('');
+  }
+
+  // Total
+  el('wc-total-msgs') && (el('wc-total-msgs').textContent = `${fmt(d.total_messages)} mensagens analisadas · ${d.period_from} → ${d.period_to}`);
+
+  // Blacklist alerts
+  const alerts = d.blacklist_alerts || [];
+  const alertDiv = el('wc-blacklist-alert');
+  if (alerts.length) {
+    el('wc-blacklist-text').textContent = alerts.map(a => `"${a.word}" (${fmt(a.count)}×)`).join(' · ');
+    alertDiv.classList.remove('hidden');
+  } else {
+    alertDiv.classList.add('hidden');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  BI EXPORT
+// ─────────────────────────────────────────────
+async function downloadBiExport(e) {
+  e.preventDefault();
+  const btn = e.currentTarget;
+  btn.textContent = 'Gerando…'; btn.style.opacity = '0.7';
+  try {
+    const res = await fetch(`${ADMIN}/bi_export`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) { alert('Erro ao gerar exportação BI.'); return; }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `geomatch_bi_${new Date().toISOString().split('T')[0]}.csv`
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Exportar BI (CSV)';
+    btn.style.opacity = '';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  INTELIGÊNCIA POLÍTICA
+// ─────────────────────────────────────────────
+const SENT_COLORS = { positive:'#22c55e', neutral:'#64748b', negative:'#ef4444' };
+const SENT_LABELS = { positive:'Positivo', neutral:'Neutro', negative:'Negativo' };
+
+function addPolTerm() {
+  const input = el('pol-term-input');
+  const term  = input.value.trim();
+  if (!term || polTerms.includes(term) || polTerms.length >= 10) return;
+  polTerms.push(term);
+  input.value = '';
+  renderPolTermTags();
+}
+
+function removePolTerm(term) {
+  polTerms = polTerms.filter(t => t !== term);
+  renderPolTermTags();
+}
+
+function renderPolTermTags() {
+  const container = el('pol-terms-tags');
+  if (!container) return;
+  if (polTerms.length === 0) {
+    container.innerHTML = '<span class="text-xs text-slate-500">Nenhum termo adicionado.</span>';
+    return;
+  }
+  container.innerHTML = polTerms.map(t =>
+    `<span class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-slate-900" style="background:#f59e0b">
+      ${esc(t)}
+      <button onclick="removePolTerm('${esc(t)}')" class="ml-1 hover:opacity-70 transition-opacity font-bold">×</button>
+    </span>`
+  ).join('');
+}
+
+async function loadPolitical() {
+  const days  = el('pol-days')?.value  || 30;
+  const topic = el('pol-topic')?.value || '';
+
+  const qs = new URLSearchParams({ days });
+  if (topic) qs.set('topic', topic);
+  polTerms.forEach(t => qs.append('terms[]', t));
+
+  const headlinesEl = el('pol-headlines');
+  if (headlinesEl) headlinesEl.innerHTML = '<div class="text-slate-500 text-xs py-3 animate-pulse">Carregando…</div>';
+
+  const res = await api(`${ADMIN}/political_intelligence?${qs}`);
+  if (!res?.ok) {
+    if (headlinesEl) headlinesEl.innerHTML = '<div class="text-red-400 text-xs py-2">Erro ao carregar dados políticos.</div>';
+    return;
+  }
+  const data = await res.json();
+
+  // Expõe erro do rescue_from no controller, se houver
+  if (data.error) {
+    if (headlinesEl) headlinesEl.innerHTML = `<div class="text-red-400 text-xs py-2">Erro: ${esc(data.message || data.error)}</div>`;
+    console.error('[political_intelligence]', data);
+    return;
+  }
+
+  lastPolData = data;
+  renderPolHeadlines(data.headline_insights || []);
+  renderPolSentimentPie(data.sentiment_overall || {});
+  renderPolTopicBars(data.by_topic || []);
+  renderPolCandidates(data.candidate_mentions || []);
+  renderPolHeatmapData(data.thematic_heatmap || [], topic || 'Segurança');
+}
+
+function renderPolHeadlines(insights) {
+  const container = el('pol-headlines');
+  if (!container) return;
+  if (insights.length === 0) {
+    container.innerHTML = '<div class="text-slate-500 text-xs py-3">Nenhum insight significativo no período. Tente ampliar o intervalo de datas.</div>';
+    return;
+  }
+  container.innerHTML = insights.map(i => {
+    const up      = i.trend_pct > 0;
+    const color   = up ? '#22c55e' : '#ef4444';
+    const arrow   = up ? '↑' : '↓';
+    const sentColor = i.sentiment_label === 'positivo' ? '#22c55e' : i.sentiment_label === 'negativo' ? '#ef4444' : '#64748b';
+    return `<div class="flex-shrink-0 w-72 bg-slate-900 border border-slate-700 rounded-2xl p-4 cursor-default"
+                 style="border-left:3px solid ${color}">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full text-slate-900" style="background:${color}20;color:${color}">${esc(i.topic)}</span>
+        <span class="text-lg font-black" style="color:${color}">${arrow} ${Math.abs(i.trend_pct)}%</span>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">${esc(i.description)}</p>
+      <div class="flex items-center gap-3 mt-2.5">
+        <span class="text-xs text-slate-500">${fmt(i.current_mentions)} menções</span>
+        <span class="text-xs font-semibold" style="color:${sentColor}">${i.sentiment_label}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPolSentimentPie(sent) {
+  const total = sent.total || 0;
+  setText('pol-sent-total', `${fmt(total)} mensagens analisadas`);
+
+  const data   = [sent.positive || 0, sent.neutral || 0, sent.negative || 0];
+  const labels = ['Positivo', 'Neutro', 'Negativo'];
+  const colors = [SENT_COLORS.positive, SENT_COLORS.neutral, SENT_COLORS.negative];
+
+  if (polSentChart) polSentChart.destroy();
+  const ctx = el('pol-sentiment-chart')?.getContext('2d');
+  if (!ctx) return;
+  polSentChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+    options: {
+      cutout: '68%', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%`
+      }}}
+    }
+  });
+
+  const legend = el('pol-sentiment-legend');
+  if (legend) legend.innerHTML = labels.map((l, i) =>
+    `<div class="flex items-center justify-between text-xs">
+       <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colors[i]}"></span>${l}</span>
+       <span class="font-semibold text-white">${(data[i] || 0).toFixed(1)}%</span>
+     </div>`
+  ).join('');
+}
+
+function renderPolTopicBars(topics) {
+  const container = el('pol-topic-bars');
+  if (!container) return;
+  if (topics.length === 0) {
+    container.innerHTML = '<div class="text-slate-500 text-xs">Sem dados no período.</div>';
+    return;
+  }
+  const max = Math.max(...topics.map(t => t.mentions), 1);
+
+  container.innerHTML = topics.map(t => {
+    const pct     = ((t.mentions / max) * 100).toFixed(1);
+    const trend   = t.trend_pct;
+    const tColor  = trend == null ? '#64748b' : trend > 0 ? '#22c55e' : trend < 0 ? '#ef4444' : '#64748b';
+    const tLabel  = trend == null ? '' : `${trend > 0 ? '↑' : '↓'} ${Math.abs(trend).toFixed(1)}%`;
+    const sent    = t.sentiment || {};
+    const posW    = (sent.positive || 0).toFixed(1);
+    const negW    = (sent.negative || 0).toFixed(1);
+    const neuW    = (sent.neutral  || 0).toFixed(1);
+    return `<div>
+      <div class="flex items-center justify-between text-xs mb-1">
+        <span class="font-medium text-slate-200 w-28 truncate">${esc(t.topic)}</span>
+        <div class="flex items-center gap-3 ml-2">
+          <span class="text-slate-400">${fmt(t.mentions)} menções</span>
+          <span class="font-semibold w-16 text-right" style="color:${tColor}">${tLabel}</span>
+        </div>
+      </div>
+      <!-- Barra de sentimento empilhada -->
+      <div class="flex rounded-full overflow-hidden h-3" style="background:#1e293b">
+        <div title="Positivo ${posW}%" style="width:${(+posW * +pct / 100).toFixed(1)}%;background:#22c55e" class="transition-all"></div>
+        <div title="Neutro ${neuW}%"   style="width:${(+neuW * +pct / 100).toFixed(1)}%;background:#475569" class="transition-all"></div>
+        <div title="Negativo ${negW}%" style="width:${(+negW * +pct / 100).toFixed(1)}%;background:#ef4444" class="transition-all"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPolCandidates(candidates) {
+  const section = el('pol-candidates-section');
+  if (!section) return;
+  if (candidates.length === 0) { section.classList.add('hidden'); return; }
+  section.classList.remove('hidden');
+
+  // Stacked bar chart
+  if (polCandChart) polCandChart.destroy();
+  const ctx = el('pol-candidates-chart')?.getContext('2d');
+  if (ctx) {
+    polCandChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: candidates.map(c => c.term),
+        datasets: [
+          { label: 'Positivo', data: candidates.map(c => c.sentiment?.positive || 0), backgroundColor: '#22c55e' },
+          { label: 'Neutro',   data: candidates.map(c => c.sentiment?.neutral  || 0), backgroundColor: '#475569' },
+          { label: 'Negativo', data: candidates.map(c => c.sentiment?.negative || 0), backgroundColor: '#ef4444' },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, grid: { color:'rgba(30,41,59,.8)' }, ticks: { color:'#94a3b8' } },
+          y: { stacked: true, max: 100, grid: { color:'rgba(30,41,59,.8)' }, ticks: { color:'#94a3b8', callback: v => v + '%' } }
+        },
+        plugins: {
+          legend: { position:'bottom', labels: { color:'#94a3b8', boxWidth:10, padding:16 } },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` } }
+        }
+      }
+    });
+  }
+
+  // Tabelas de região por candidato
+  const regionsEl = el('pol-candidates-regions');
+  if (regionsEl) {
+    regionsEl.innerHTML = candidates.filter(c => c.by_region?.length).map(c => `
+      <div>
+        <h4 class="text-xs font-semibold text-slate-300 mb-2">"${esc(c.term)}" — por região</h4>
+        <table class="w-full text-xs">
+          <thead><tr class="text-slate-500 border-b border-slate-800">
+            <th class="pb-1 text-left font-medium">Região</th>
+            <th class="pb-1 text-right font-medium">Menções</th>
+            <th class="pb-1 text-right font-medium">Usuários</th>
+          </tr></thead>
+          <tbody class="divide-y divide-slate-800/50">
+            ${c.by_region.map(r => `
+              <tr>
+                <td class="py-1.5 text-slate-300 truncate max-w-[140px]">${esc(r.region || '—')}</td>
+                <td class="py-1.5 text-right text-slate-200">${fmt(r.mentions)}</td>
+                <td class="py-1.5 text-right text-slate-400">≥${fmt(r.users)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('');
+  }
+}
+
+function initPolHeatMap() {
+  if (polHeatMap) return;
+  const container = el('pol-heatmap-map');
+  if (!container) return;
+  polHeatMap = L.map('pol-heatmap-map', { zoomControl: true }).setView([-15.8, -47.9], 4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 18
+  }).addTo(polHeatMap);
+  // Renderiza dados se já carregados
+  if (lastPolData) {
+    const topic = el('pol-topic')?.value || 'Segurança';
+    renderPolHeatmapData(lastPolData.thematic_heatmap || [], topic);
+  }
+}
+
+function renderPolHeatmapData(points, topic) {
+  setText('pol-heatmap-topic', topic || 'Todos');
+  const empty = el('pol-heatmap-empty');
+  if (!polHeatMap) return;
+  polHeatMap.invalidateSize();
+
+  if (polHeatLayer) { polHeatMap.removeLayer(polHeatLayer); polHeatLayer = null; }
+
+  if (points.length === 0) {
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  const maxIntensity = Math.max(...points.map(p => p.intensity), 1);
+  const heatData = points.map(p => [p.lat, p.lng, p.intensity / maxIntensity]);
+
+  polHeatLayer = L.heatLayer(heatData, {
+    radius: 30, blur: 22, maxZoom: 10,
+    gradient: { 0.2:'#1e3a5f', 0.4:'#1d4ed8', 0.6:'#f59e0b', 0.8:'#f97316', 1.0:'#ef4444' }
+  }).addTo(polHeatMap);
+
+  // Centraliza o mapa nos dados
+  const lats = points.map(p => p.lat), lngs = points.map(p => p.lng);
+  const bounds = [[Math.min(...lats) - 1, Math.min(...lngs) - 1], [Math.max(...lats) + 1, Math.max(...lngs) + 1]];
+  try { polHeatMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 8 }); } catch(_) {}
+}
+
+async function exportPoliticalReport(e) {
+  e.preventDefault();
+  const btn = e.currentTarget;
+  const origHtml = btn.innerHTML;
+  btn.textContent = 'Gerando…'; btn.style.opacity = '0.7';
+  try {
+    const days  = el('pol-days')?.value  || 30;
+    const topic = el('pol-topic')?.value || '';
+    const qs    = new URLSearchParams({ days, report: 'csv' });
+    if (topic) qs.set('topic', topic);
+    polTerms.forEach(t => qs.append('terms[]', t));
+
+    const res = await fetch(`${ADMIN}/political_intelligence?${qs}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) { alert('Erro ao gerar relatório.'); return; }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `geomatch_inteligencia_politica_${new Date().toISOString().split('T')[0]}.csv`
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.innerHTML = origHtml; btn.style.opacity = '';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PLANOS DE ASSINATURA (SaaS)
+// ─────────────────────────────────────────────
+let lastPlansData = [];
+let currentPlanId = null;
+let planToDelete = null;
+
+async function loadPlans() {
+  const container = el('plans-cards-container');
+  if (container) container.innerHTML = '<div class="text-slate-500 text-sm py-8 text-center col-span-full">Carregando planos…</div>';
+  
+  const res = await api(`${ADMIN}/plans`);
+  if (!res?.ok) {
+    let errMsg = 'Erro ao carregar planos.';
+    try { const d = await res.json(); errMsg = d.error || errMsg; } catch {}
+    if (container) container.innerHTML = `<div class="text-red-400 text-sm py-8 text-center col-span-full">❌ ${esc(errMsg)}</div>`;
+    return;
+  }
+  
+  const data = await res.json();
+  lastPlansData = data.plans || [];
+  const meta = data.meta || {};
+  
+  // Atualizar stats
+  setText('plans-count-active', meta.active || 0);
+  setText('plans-count-inactive', meta.inactive || 0);
+  // Assinaturas: apenas planos pagos (price_cents > 0)
+  const paidSubs = lastPlansData.filter(p => (p.price_cents || 0) > 0)
+    .reduce((acc, p) => acc + (p.active_subscriptions || 0), 0);
+  setText('plans-total-subs', fmt(paidSubs));
+
+  // MRR real: soma (price/100 × assinantes) apenas de planos pagos e ativos
+  const mrr = lastPlansData.reduce((acc, p) => {
+    if (p.active && (p.price_cents || 0) > 0) {
+      return acc + ((p.price_cents || 0) / 100) * (p.active_subscriptions || 0);
+    }
+    return acc;
+  }, 0);
+  setText('plans-mrr', 'R$ ' + fmt2(mrr));
+  
+  // Renderizar cards
+  if (container) {
+    if (!lastPlansData.length) {
+      container.innerHTML = '<div class="text-slate-500 text-sm py-8 text-center col-span-full">Nenhum plano cadastrado.</div>';
+      return;
+    }
+    
+    container.innerHTML = lastPlansData.map(plan => {
+      // Campos diretos da tabela plans — coerção estrita para boolean
+      const maxLikesPerDay = parseInt(plan.max_likes_per_day) || 0;
+      const hasBoost = plan.has_boost === true;
+      const hasIncognito = plan.has_incognito === true;
+      const durationDays = plan.duration_days ?? 30;
+      const durationMonths = Math.round((plan.duration_days ?? 30) / 30) || 1;
+      
+      // Formatar preço corretamente (price_cents / 100)
+      const priceCents = parseInt(plan.price_cents) || 0;
+      let priceFormatted;
+      
+      if (priceCents === 0) {
+        priceFormatted = 'Grátis';
+      } else {
+        const priceInReais = priceCents / 100;
+        try {
+          priceFormatted = new Intl.NumberFormat('pt-BR', { 
+            style: 'currency', 
+            currency: plan.price_currency || 'BRL',
+            minimumFractionDigits: 2
+          }).format(priceInReais);
+        } catch (e) {
+          // Fallback se Intl não estiver disponível
+          priceFormatted = `R$ ${priceInReais.toFixed(2).replace('.', ',')}`;
+        }
+      }
+      
+      const isActive = plan.active;
+      const isRecommended = plan.is_recommended;
+      
+      // Classes CSS baseadas no estado
+      const statusClass = isActive 
+        ? 'text-green-400 bg-green-500/10 border-green-500/25' 
+        : 'text-slate-400 bg-slate-800 border-slate-700';
+      const opacityClass = isActive ? '' : 'opacity-60 grayscale';
+      
+      // Destaque visual para plano recomendado
+      const borderClass = isRecommended 
+        ? 'border-yellow-500/50 shadow-lg shadow-yellow-500/10' 
+        : 'border-slate-800 hover:border-slate-700';
+      
+      return `
+        <div class="bg-slate-900 rounded-2xl p-6 border relative ${opacityClass} transition-all ${borderClass}">
+          ${isRecommended ? `
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 text-[10px] font-bold uppercase tracking-wider shadow-lg">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              Mais Popular
+            </div>
+          ` : ''}
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-lg text-white">${esc(plan.name)}</h3>
+              <p class="text-xs text-slate-500 font-mono mt-0.5">${esc(plan.code)}</p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full border font-semibold ${statusClass}">
+              ${isActive ? '● Ativo' : '○ Inativo'}
+            </span>
+          </div>
+          
+          <div class="mb-4">
+            <span class="text-3xl font-bold ${isRecommended ? 'text-yellow-400' : 'text-white'}">${priceFormatted}</span>
+            <span class="text-sm text-slate-500">/${durationMonths} mês${durationMonths > 1 ? 'es' : ''}</span>
+          </div>
+          
+          ${plan.description ? `<p class="text-sm text-slate-400 mb-4 line-clamp-2">${esc(plan.description)}</p>` : '<div class="mb-4"></div>'}
+          
+          <div class="space-y-2 mb-5">
+            <div class="flex items-center justify-between text-sm py-1 border-b border-slate-800/50">
+              <span class="text-slate-400">Likes por dia</span>
+              <span class="font-semibold text-white">${maxLikesPerDay}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm py-1 border-b border-slate-800/50">
+              <span class="text-slate-400">Boost</span>
+              ${hasBoost
+                ? '<span class="text-green-400 font-semibold">✓ Incluído</span>'
+                : '<span class="flex items-center gap-1 text-slate-500"><svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>Não incluso</span>'}
+            </div>
+            <div class="flex items-center justify-between text-sm py-1">
+              <span class="text-slate-400">Modo Incógnito</span>
+              ${hasIncognito
+                ? '<span class="text-green-400 font-semibold">✓ Incluído</span>'
+                : '<span class="flex items-center gap-1 text-slate-500"><svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>Não incluso</span>'}
+            </div>
+            ${durationDays ? `
+            <div class="flex items-center justify-between text-sm py-1 border-t border-slate-800/50">
+              <span class="text-slate-400">Duração</span>
+              <span class="text-white">${durationDays} dias</span>
+            </div>` : ''}
+          </div>
+          
+          <div class="flex gap-2">
+            <button onclick="editPlan(${plan.id})" class="flex-1 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-white transition-colors">
+              Editar
+            </button>
+            ${isActive ? `
+            <button onclick="promptDeletePlan(${plan.id})" class="px-3 py-2 rounded-xl text-sm font-medium border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors" title="Desativar plano">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>` : `
+            <button onclick="reactivatePlan(${plan.id})" class="px-3 py-2 rounded-xl text-sm font-medium border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors" title="Reativar plano">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function openPlanModal(planId = null) {
+  const modal = el('plan-modal');
+  const title = el('plan-modal-title');
+  const form = el('plan-form');
+  
+  form.reset();
+  el('plan-id').value = '';
+  el('plan-active').checked = true;
+  el('plan-recommended').checked = false;
+  
+  if (planId) {
+    const plan = lastPlansData.find(p => p.id === planId);
+    if (!plan) return;
+    
+    title.textContent = 'Editar Plano';
+    el('plan-id').value = plan.id;
+    el('plan-code').value = plan.code;
+    el('plan-name').value = plan.name;
+    el('plan-description').value = plan.description || '';
+    el('plan-price-cents').value = plan.price_cents;
+    el('plan-currency').value = plan.price_currency || 'BRL';
+    el('plan-duration-days').value = plan.duration_days ?? 30;
+    el('plan-duration-months').value = Math.round((plan.duration_days ?? 30) / 30) || 1;
+    el('plan-max-likes').value = plan.max_likes_per_day ?? 0;
+    el('plan-has-boost').checked = plan.has_boost ?? false;
+    el('plan-has-incognito').checked = plan.has_incognito ?? false;
+    el('plan-active').checked = plan.active;
+    el('plan-recommended').checked = plan.is_recommended ?? false;
+  } else {
+    title.textContent = 'Novo Plano';
+    el('plan-duration-days').value = 30;
+    el('plan-duration-months').value = 1;
+    el('plan-max-likes').value = 50;
+    el('plan-currency').value = 'BRL';
+    el('plan-has-boost').checked = false;
+    el('plan-has-incognito').checked = false;
+  }
+  
+  currentPlanId = planId;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closePlanModal() {
+  const modal = el('plan-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  currentPlanId = null;
+}
+
+function promptDeletePlan(planId) {
+  planToDelete = planId;
+  const modal = el('plan-delete-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closePlanDeleteModal() {
+  const modal = el('plan-delete-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  planToDelete = null;
+}
+
+async function confirmPlanDelete() {
+  if (!planToDelete) return;
+  
+  const res = await api(`${ADMIN}/plans/${planToDelete}`, { method: 'DELETE' });
+  if (res?.ok) {
+    closePlanDeleteModal();
+    loadPlans();
+  } else {
+    alert('Erro ao desativar plano.');
+  }
+}
+
+async function reactivatePlan(planId) {
+  const res = await api(`${ADMIN}/plans/${planId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ plan: { active: true } })
+  });
+  if (res?.ok) {
+    loadPlans();
+  } else {
+    alert('Erro ao reativar plano.');
+  }
+}
+
+function editPlan(planId) {
+  openPlanModal(planId);
+}
+
+// Form submission
+document.addEventListener('DOMContentLoaded', () => {
+  const planForm = el('plan-form');
+  if (planForm) {
+    planForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      
+      const planData = {
+        plan: {
+          code: el('plan-code').value.trim(),
+          name: el('plan-name').value.trim(),
+          description: el('plan-description').value.trim(),
+          price_cents: parseInt(el('plan-price-cents').value) || 0,
+          price_currency: el('plan-currency').value || 'BRL',
+          duration_days: parseInt(el('plan-duration-days').value) || 30,
+          duration_months: parseInt(el('plan-duration-months').value) || 1,
+          max_likes_per_day: parseInt(el('plan-max-likes').value) || 50,
+          has_boost: el('plan-has-boost').checked,
+          has_incognito: el('plan-has-incognito').checked,
+          active: el('plan-active').checked,
+          is_recommended: el('plan-recommended').checked
+        }
+      };
+      
+      const url = currentPlanId ? `${ADMIN}/plans/${currentPlanId}` : `${ADMIN}/plans`;
+      const method = currentPlanId ? 'PATCH' : 'POST';
+      
+      const res = await api(url, {
+        method: method,
+        body: JSON.stringify(planData)
+      });
+      
+      if (res?.ok) {
+        closePlanModal();
+        loadPlans();
+      } else {
+        const data = await res.json();
+        const details = Array.isArray(data.details) ? '\n• ' + data.details.join('\n• ') : '';
+        alert('Erro: ' + (data.error || 'Não foi possível salvar o plano.') + details);
+      }
+    });
+  }
+});
+
+// ─────────────────────────────────────────────
+//  HISTÓRICO DE AÇÕES (ADMIN LOGS)
+// ─────────────────────────────────────────────
+
+// Traduz action key → label legível
+function logActionLabel(action) {
+  const MAP = { plan_change: 'Mudança de Plano' };
+  return MAP[action] || action;
+}
+
+// Converte o objeto details em frase legível
+function logDetailsText(details) {
+  if (!details || typeof details !== 'object') return '—';
+  if (details.from_plan && details.to_plan) {
+    return `De ${esc(details.from_plan)} → ${esc(details.to_plan)}`;
+  }
+  // fallback genérico
+  return Object.entries(details)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(' · ') || '—';
+}
+
+// Formata ISO timestamp → "DD/MM/AAAA HH:MM"
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function fetchAdminLogs(page = 1) {
+  const action = el('logs-filter-action')?.value  || '';
+  const userId = el('logs-filter-user-id')?.value || '';
+
+  let url = `${ADMIN}/logs?page=${page}`;
+  if (action) url += `&log_action=${encodeURIComponent(action)}`;
+  if (userId) url += `&user_id=${encodeURIComponent(userId)}`;
+
+  const tbody = el('logs-tbody');
+  tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-slate-500">Carregando…</td></tr>`;
+
+  const res = await api(url);
+  if (!res?.ok) {
+    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-slate-500">Erro ao carregar histórico.</td></tr>`;
+    return;
+  }
+
+  const data = await res.json();
+  const logs = data.logs || [];
+
+  if (!logs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center text-slate-500">Nenhuma ação registrada.</td></tr>`;
+    setText('logs-pagination-info', '0 registros');
+    el('logs-pagination-btns').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = logs.map(log => `
+    <tr class="border-b border-slate-800/50 hover:bg-slate-800/25 transition-colors">
+      <td class="px-6 py-3.5 text-slate-400 text-xs whitespace-nowrap">${fmtDateTime(log.created_at)}</td>
+      <td class="px-6 py-3.5">
+        <div class="text-white text-xs font-medium">${esc(log.admin_name || '—')}</div>
+        <div class="text-slate-500 text-xs mt-0.5">${esc(log.admin_email || '')}</div>
+      </td>
+      <td class="px-6 py-3.5">
+        <span style="color:#f59e0b;font-size:11px;font-weight:700;background:rgba(245,158,11,.10);padding:2px 8px;border-radius:4px;border:1px solid rgba(245,158,11,.25);">${esc(logActionLabel(log.action))}</span>
+      </td>
+      <td class="px-6 py-3.5">
+        <span class="text-xs text-slate-300">${esc(log.target_type)} <span class="text-slate-500">#${log.target_id}</span></span>
+      </td>
+      <td class="px-6 py-3.5 text-slate-300 text-xs">${logDetailsText(log.details)}</td>
+    </tr>`).join('');
+
+  const { current_page: cp, total_pages: tp, total_count: tc } = data.pagination;
+  setText('logs-pagination-info', `${fmt(tc)} registro${tc !== 1 ? 's' : ''} · página ${cp} de ${tp}`);
+
+  const pEl = el('logs-pagination-btns');
+  pEl.innerHTML = '';
+  if (cp > 1)  pEl.innerHTML += `<button onclick="fetchAdminLogs(${cp-1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">← Anterior</button>`;
+  pEl.innerHTML += `<span class="px-3 py-1.5 bg-slate-700 rounded-lg text-xs font-bold">${cp}</span>`;
+  if (cp < tp) pEl.innerHTML += `<button onclick="fetchAdminLogs(${cp+1})" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs transition-colors">Próxima →</button>`;
+}
+
+function clearLogsFilters() {
+  const a = el('logs-filter-action');   if (a) a.value = '';
+  const u = el('logs-filter-user-id'); if (u) u.value = '';
+  fetchAdminLogs(1);
+}
+
+function debounceLogsSearch() {
+  clearTimeout(logsSearchTimer);
+  logsSearchTimer = setTimeout(() => fetchAdminLogs(1), 400);
+}
+
+// ─────────────────────────────────────────────
+//  SEARCH DEBOUNCE
+// ─────────────────────────────────────────────
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadUsers(1), 380);
+}
+
+// ─────────────────────────────────────────────
+//  UTILITIES
+// ─────────────────────────────────────────────
+function el(id)       { return document.getElementById(id); }
+function setText(id,v){ const e=el(id); if(e) e.textContent = v ?? '—'; }
+function fmt(n)       { return n == null ? '—' : Number(n).toLocaleString('pt-BR'); }
+function fmt2(n)      { return Number(n).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function fmtDate(iso) { if(!iso) return '—'; return new Date(iso).toLocaleDateString('pt-BR',{ day:'2-digit', month:'short', year:'numeric' }); }
+function fmtISO(d)    { return d.toISOString().split('T')[0]; }
+function esc(s)       { if(!s) return ''; return String(s).replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+<!-- ══ Modal de Atribuição de Plano ao Usuário (global — fora de qualquer section) ══ -->
+<div id="user-plan-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)">
+  <div style="background:#0f172a;border:1px solid #334155;border-radius:1rem;width:100%;max-width:360px;margin:0 1rem;padding:1.5rem">
+    <h3 style="font-weight:700;font-size:1rem;margin-bottom:.25rem;color:#f1f5f9">Alterar Plano</h3>
+    <p id="user-plan-modal-name" style="font-size:.875rem;color:#94a3b8;margin-bottom:1rem"></p>
+    <label style="display:block;font-size:.75rem;color:#94a3b8;margin-bottom:.25rem">Plano</label>
+    <select id="user-plan-select" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:.75rem;padding:.625rem .75rem;font-size:.875rem;color:#f1f5f9;margin-bottom:1.25rem">
+      <option value="">Carregando…</option>
+    </select>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="closeUserPlanModal()" style="flex:1;padding:.625rem;border-radius:.75rem;font-size:.875rem;color:#94a3b8;background:transparent;border:1px solid #334155;cursor:pointer">Cancelar</button>
+      <button onclick="saveUserSubscription()" style="flex:1;padding:.625rem;border-radius:.75rem;font-size:.875rem;font-weight:700;color:#fff;background:#4f46e5;border:none;cursor:pointer">Salvar</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
