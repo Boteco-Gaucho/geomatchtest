@@ -40,6 +40,14 @@ body:has(.au-main) {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+// No app nativo o .au-header não é renderizado (layout: !turbo_native_app?), então o
+// conteúdo começava colado no topo e a pílula "Ao vivo agora" ficava embaixo do relógio
+// da barra de status. Desce o conteúdo pela área segura (notch / Dynamic Island), com
+// um mínimo de 24px para aparelhos que não informam a área segura.
+body.turbo-native .au-main {
+  padding-top: max(env(safe-area-inset-top, 0px), 24px);
+}
+
 /* ---------------- Cabeçalho ---------------- */
 .au-header {
   display: flex;
