@@ -1,0 +1,34 @@
+<% is_recommended = recommended_plan.present? && plan.id == recommended_plan.id %>
+<% is_current = current_user&.respond_to?(:plan_id) && current_user.plan_id == plan.id %>
+
+<div class="pricing-row pricing-row--head pricing-cell <%= "pricing-recommended" if is_recommended %>">
+  <div class="pricing-plan-head">
+    <% if is_recommended %>
+      <span class="pricing-recommended-tag"><%= t("plans.index.recommended_tag") %></span>
+    <% end %>
+
+    <p class="pricing-plan-name"><%= plan.name %></p>
+    <p class="pricing-plan-price">
+      <%= plan.price.format %>
+      <% unless plan.code == "free" %>
+        <span class="pricing-plan-status"><%= t("plans.index.per_duration_days", count: plan.duration_days) %></span>
+      <% end %>
+    </p>
+
+    <div class="pricing-plan-status">
+      <% if is_current %>
+        <%= t("plans.index.status.current") %>
+      <% elsif plan.code == "free" %>
+        <%= t("plans.index.status.free") %>
+      <% else %>
+        <%= t("plans.index.status.upgrade_available") %>
+      <% end %>
+    </div>
+
+    <% if plan.description.present? %>
+      <div class="pricing-plan-status"><%= plan.description %></div>
+    <% end %>
+  </div>
+</div>
+
+

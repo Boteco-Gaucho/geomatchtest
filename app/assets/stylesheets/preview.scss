@@ -1,0 +1,219 @@
+// Prefixo Único: .pp- (Profile Preview)
+.pp-edit-profile-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #000;
+  overflow-y: auto; // Libera o movimento
+  -webkit-overflow-scrolling: touch;
+  // Cancela o padding do .authenticated-layout para este wrapper tomar conta da safe area
+  margin-top: calc(-1 * env(safe-area-inset-top, 0px));
+
+  // 1. HEADER
+  .pp-edit-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    // Estende o header para cobrir a safe area e empurra o conteúdo abaixo do notch
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    height: auto;
+    min-height: 60px;
+
+    .pp-header-btn-left, .pp-header-btn-right {
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .pp-header-title {
+      .pp-title-img {
+        height: 25px;
+        object-fit: contain;
+      }
+    }
+
+    .pp-check-circle {
+      background: #d4af37;
+      border-radius: 50%;
+      padding: 5px;
+      display: flex;
+      color: #000;
+    }
+  }
+
+  // 2. ABAS
+  .pp-edit-tabs {
+    position: sticky;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    z-index: 999;
+    display: flex;
+    background: #000;
+    border-bottom: 1px solid #222;
+
+    .pp-tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px 0;
+      text-decoration: none;
+      font-weight: 500;
+      color: #666;
+
+      &.pp-active {
+        color: #d4af37;
+        border-bottom: 2px solid #d4af37;
+      }
+      
+      &.pp-inactive {
+        opacity: 0.6;
+      }
+    }
+  }
+
+  // 3. CONTEÚDO (CARD)
+  .pp-preview-container {
+    padding: 20px;
+    padding-bottom: 60px;
+
+    .pp-gold-card-frame {
+      border: 1px solid #d4af37; // Borda dourada do frame
+      border-radius: 25px;
+      overflow: hidden;
+      position: relative;
+      background: #1a1a1a;
+    }
+
+    .pp-card-gallery {
+      position: relative;
+      aspect-ratio: 3 / 4; // Mantém proporção de foto
+
+      .pp-progress-bar-container {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        right: 0;
+        display: flex;
+        gap: 4px;
+        padding: 0 10px;
+        z-index: 10;
+
+        .pp-progress-step {
+          flex: 1;
+          height: 3px;
+          background: rgba(255,255,255,0.3);
+          border-radius: 2px;
+          &.pp-active { background: #fff; }
+        }
+      }
+
+      .pp-slides-container {
+        height: 100%;
+        .pp-slide-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .pp-slide-gradient {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 50%;
+          background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        }
+      }
+
+      .pp-card-user-info {
+        position: absolute;
+        left: 20px;
+        bottom: 40px;
+        color: #fff;
+        z-index: 5;
+
+        .pp-location-badge {
+          background: rgba(0,0,0,0.5);
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 0.7rem;
+          display: inline-block;
+          margin-bottom: 8px;
+        }
+
+        .pp-user-title {
+          font-size: 1.8rem;
+          margin: 0;
+          .pp-age { font-weight: 300; }
+        }
+      }
+
+      .pp-preview-actions-right {
+        position: absolute;
+        right: 15px;
+        bottom: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 10;
+
+        .pp-icon-circle-glass {
+          width: 45px;
+          height: 45px;
+          background: rgba(255,255,255,0.15);
+          backdrop-filter: blur(10px);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255,255,255,0.2);
+        }
+      }
+    }
+  }
+}
+
+.pp-edit-profile-wrapper {
+  /* 1. Define que o container ocupa a tela toda */
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000;
+
+  /* 2. LIBERA O MOVIMENTO: O 'auto' cria o scroll se o conteúdo for grande */
+  overflow-y: auto; 
+  
+  /* 3. Garante deslize suave em iPhones */
+  -webkit-overflow-scrolling: touch;
+
+  /* 4. Padding opcional para o conteúdo não colar no rodapé do celular */
+  padding-bottom: 50px;
+}
+
+/* Garante que nada acima dele (body/html) esteja forçando o travamento */
+html, body {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+
+.pp-slides-container {
+  display: flex;             /* Coloca fotos lado a lado */
+  overflow-x: auto;          /* Permite passar para o lado */
+  scroll-snap-type: x mandatory; /* Faz a foto "travar" centralizada */
+  scroll-behavior: smooth;
+  height: 100%;
+  
+  /* Esconde a barra de rolagem */
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pp-slide-item {
+  min-width: 100%;           /* Cada foto ocupa 100% da largura do card */
+  scroll-snap-align: start;  /* Alinhamento do snap */
+  position: relative;
+  height: 100%;
+}

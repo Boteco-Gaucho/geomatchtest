@@ -1,0 +1,114 @@
+<div class="report-wrapper">
+
+  <%# --- 1. HEADER --- %>
+  <div class="report-header">
+    <%# Botão Voltar (Seta PNG) %>
+    <%= link_to safety_center_path, class: "btn-back" do %>
+      <%= image_tag "seta-esqueda-png.png", class: "icon-arrow" %>
+    <% end %>
+
+    <%# Título (Imagem PNG) %>
+    <div class="header-title-container">
+      <%= image_tag "texto-denuncia-rapida.png", class: "title-img-report" %>
+    </div>
+
+    <%# Ícone Escudo (Direita) %>
+    <div class="header-icon-right">
+      <%= image_tag "icone-central-de-seguranca.png", class: "icon-shield-gray" %>
+    </div>
+  </div>
+
+  <%# --- 2. FORMULÁRIO --- %>
+ <%= form_with model: Report.new, local: true, multipart: true do |f| %>
+  <div class="report-body">
+    
+    <div class="form-section">
+      <label class="section-label">Faça sua denúncia</label>
+      <span class="section-sublabel">Relate sua denúncia</span>
+      <%= f.text_area :description, class: "report-textarea", placeholder: "Descreva o ocorrido..." %>
+    </div>
+
+    <div class="photos-section-container">
+      <div class="photos-header-box">
+        <div class="camera-icon-circle">
+          <%= image_tag "icone-foto.png", class: "icon-camera-png" %>
+        </div>
+        <div class="photos-text">
+          <strong>Adicionar fotos</strong>
+          <span>Adicione fotos referente a denúncia</span>
+        </div>
+      </div>
+
+      <%# Campo de input real, mas escondido %>
+      <%= f.file_field :photos, multiple: true, direct_upload: true, id: "input-fotos", style: "display:none;" %>
+
+      <div class="report-photos-grid">
+  <%# Input real escondido %>
+  <input type="file" id="input-foto-oculto" style="display: none;" accept="image/*" multiple>
+
+  <%# Primeiro quadrado: O botão de clique %>
+  <div class="photo-placeholder-box" id="btn-add-foto">
+    <span class="plus-sign">+</span>
+  </div>
+
+  <%# Outros quadrados que servirão de preview %>
+  <div class="photo-placeholder-box preview-box"></div>
+  <div class="photo-placeholder-box preview-box"></div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-footer">
+    <%= f.submit "Enviar Denúncia", class: "btn-submit-report" %>
+  </div>
+<% end %>
+
+</div>
+
+<script>
+document.addEventListener("change", function(event) {
+  if (event.target && event.target.id === "input-fotos") {
+    const files = event.target.files;
+    const grid = document.querySelector(".report-photos-grid");
+    
+    // Limpa placeholders anteriores ou mostra preview
+    if (files.length > 0) {
+       console.log(files.length + " fotos selecionadas");
+       // Opcional: Adicionar lógica para mostrar miniaturas das fotos aqui
+    }
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAdd = document.getElementById('btn-add-foto');
+  const inputOculto = document.getElementById('input-foto-oculto');
+  const previews = document.querySelectorAll('.preview-box');
+
+  // 1. Ao clicar no quadrado com +, abre o seletor de arquivos
+  btnAdd.addEventListener('click', () => {
+    inputOculto.click();
+  });
+
+  // 2. Quando selecionar a foto, carrega o preview
+  inputOculto.addEventListener('change', function() {
+    const files = this.files;
+    
+    for (let i = 0; i < files.length && i < previews.length; i++) {
+      const reader = new FileReader();
+      const targetBox = previews[i];
+
+      reader.onload = function(e) {
+        // Estiliza o quadrado para mostrar a foto
+        targetBox.style.backgroundImage = `url(${e.target.result})`;
+        targetBox.style.backgroundSize = 'cover';
+        targetBox.style.backgroundPosition = 'center';
+        targetBox.innerHTML = ''; // Remove o sinal de + se houver
+        targetBox.style.border = '1px solid #d4af37'; // Borda dourada ao carregar
+      }
+
+      reader.readAsDataURL(files[i]);
+    }
+  });
+});
+</script>
