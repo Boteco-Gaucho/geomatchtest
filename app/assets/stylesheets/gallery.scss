@@ -14,7 +14,10 @@
 
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 18px calc(110px + env(safe-area-inset-bottom, 0px)); // a área segura do topo vem do .authenticated-layout
+  // A área segura do topo vem do .authenticated-layout. Os 10px de cima dão espaço para o
+  // olho (.ce-eye), a sombra e o anel dele: o overflow-x: hidden abaixo também corta na
+  // vertical, e com o topo colado na borda o botão aparecia "comido" em cima.
+  padding: 10px 18px calc(110px + env(safe-area-inset-bottom, 0px));
   overflow-x: hidden;
   background: var(--ce-bg);
   color: var(--ce-text);
@@ -30,7 +33,6 @@
   align-items: center;
   gap: 10px;
   min-height: 48px;
-  margin-top: -2px;
 }
 
 .ce-back {
