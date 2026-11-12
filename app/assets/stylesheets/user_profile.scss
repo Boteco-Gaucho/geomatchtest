@@ -59,7 +59,7 @@
 
   // Indicadores do carrossel (shared/profile_carousel). A foto vai até o topo da tela,
   // atrás da barra de status: eles descem pela área segura. z-index acima do .up-shade,
-  // senão o desfoque do topo borra as barrinhas.
+  // para o véu escuro do topo não apagar as barrinhas.
   .pc-indicators { top: calc(14px + env(safe-area-inset-top, 0px)); left: 15px; right: 16px; gap: 4px; z-index: 12; }
   .pc-indicator { height: 3px; background: rgba(255, 255, 255, 0.42); box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
   .pc-indicator.pc-indicator--active { background: #fff; }
@@ -87,38 +87,12 @@
   background: linear-gradient(180deg, rgba(28, 21, 17, 0) 52%, rgba(28, 21, 17, 0.9) 100%);
 }
 
-// Com foto: um véu no topo (barra de status, botões e indicadores) e outro embaixo (nome)…
+// Com foto: um véu no topo (barra de status, botões e indicadores) e outro embaixo (nome).
+// Só escurece — a foto fica nítida de ponta a ponta, sem desfoque.
 .up-hero.has-photos .up-shade {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0, rgba(0, 0, 0, 0) calc(120px + env(safe-area-inset-top, 0px))),
     linear-gradient(180deg, rgba(28, 21, 17, 0) 48%, rgba(28, 21, 17, 0.9) 100%);
-
-  // …e a própria foto levemente desfocada nas duas pontas — bem de leve, quase não se
-  // nota —, sumindo aos poucos em direção ao meio (a máscara faz a transição; sem ela o
-  // desfoque acabaria numa linha reta)
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-  }
-
-  &::before {
-    top: 0;
-    height: calc(56px + env(safe-area-inset-top, 0px));
-    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 30%, transparent 100%);
-    mask-image: linear-gradient(180deg, #000 0, #000 30%, transparent 100%);
-  }
-
-  &::after {
-    bottom: 0;
-    height: 24%;
-    -webkit-mask-image: linear-gradient(0deg, #000 0, #000 40%, transparent 100%);
-    mask-image: linear-gradient(0deg, #000 0, #000 40%, transparent 100%);
-  }
 }
 
 .up-round,
