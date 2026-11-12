@@ -57,8 +57,10 @@
   background: #7d6a5c;
   color: #fff;
 
-  // Indicadores do carrossel (shared/profile_carousel)
-  .pc-indicators { top: 14px; left: 15px; right: 16px; gap: 4px; }
+  // Indicadores do carrossel (shared/profile_carousel). A foto vai até o topo da tela,
+  // atrás da barra de status: eles descem pela área segura. z-index acima do .up-shade,
+  // senão o desfoque do topo borra as barrinhas.
+  .pc-indicators { top: calc(14px + env(safe-area-inset-top, 0px)); left: 15px; right: 16px; gap: 4px; z-index: 12; }
   .pc-indicator { height: 3px; background: rgba(255, 255, 255, 0.42); box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); }
   .pc-indicator.pc-indicator--active { background: #fff; }
 }
@@ -85,11 +87,37 @@
   background: linear-gradient(180deg, rgba(28, 21, 17, 0) 52%, rgba(28, 21, 17, 0.9) 100%);
 }
 
-// Com foto, um véu leve no topo para os botões e indicadores aparecerem
+// Com foto: um véu no topo (barra de status, botões e indicadores) e outro embaixo (nome)…
 .up-hero.has-photos .up-shade {
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0, rgba(0, 0, 0, 0) 110px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0, rgba(0, 0, 0, 0) calc(120px + env(safe-area-inset-top, 0px))),
     linear-gradient(180deg, rgba(28, 21, 17, 0) 48%, rgba(28, 21, 17, 0.9) 100%);
+
+  // …e a própria foto desfocada nas duas pontas, sumindo aos poucos em direção ao meio
+  // (a máscara faz a transição; sem ela o desfoque acabaria numa linha reta)
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+
+  &::before {
+    top: 0;
+    height: calc(96px + env(safe-area-inset-top, 0px));
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 30%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0, #000 30%, transparent 100%);
+  }
+
+  &::after {
+    bottom: 0;
+    height: 36%;
+    -webkit-mask-image: linear-gradient(0deg, #000 0, #000 40%, transparent 100%);
+    mask-image: linear-gradient(0deg, #000 0, #000 40%, transparent 100%);
+  }
 }
 
 .up-round,
@@ -112,7 +140,7 @@
 
 .up-back {
   position: absolute;
-  top: 30px;
+  top: calc(30px + env(safe-area-inset-top, 0px)); // abaixo da barra de status
   left: 14px;
   z-index: 20;
 
@@ -121,7 +149,7 @@
 
 .up-fav {
   position: absolute;
-  top: 30px;
+  top: calc(30px + env(safe-area-inset-top, 0px));
   right: 14px;
   z-index: 20;
 
@@ -390,14 +418,12 @@ a.up-message { flex: 1; min-width: 0; text-decoration: none; }
   background: var(--up-safety-sep);
 }
 
-// ---------- Dentro do sheet "perfil completo" do /lead ----------
-// O sheet (lead.scss) cobre a tela toda, inclusive atrás da barra de status:
-// botões e indicadores descem pela área segura do topo.
-.user-profile.is-in-sheet {
-  .up-back,
-  .up-fav { top: calc(30px + env(safe-area-inset-top, 0px)); }
-
-  .up-hero .pc-indicators { top: calc(14px + env(safe-area-inset-top, 0px)); }
+// ---------- Página /users/:id (Curtidas, Favoritos, chat, galeria…) ----------
+// O .authenticated-layout desce o conteúdo pela área segura do topo; aqui a foto sobe
+// de volta para trás da barra de status, igual ao sheet do /lead e à folha do mapa
+// (que já cobrem a tela toda). Botões e indicadores descem pela área segura (acima).
+.user-profile:not(.is-in-sheet):not(.is-in-map) {
+  margin-top: calc(-1 * env(safe-area-inset-top, 0px));
 }
 
 // ---------- Na folha do perfil completo do mapa (/discover_3d) ----------
