@@ -46,7 +46,8 @@ class UsersController < ApplicationController
   # Histórico: bloqueados + denúncias enviadas
   def safety_history
     @blocked_users = current_user.blocked_users.includes(:avatar_attachment, album_photos_attachments: :blob)
-    @my_reports    = current_user.reports_sent.order(created_at: :desc)
+    @my_reports    = current_user.reports_sent.with_attached_photos.order(created_at: :desc)
+    @my_reports    = @my_reports.includes(:reported_user) if Report.reported_user_column?
     respond_to do |format|
       format.html
     end

@@ -1,256 +1,258 @@
 // =========================================================
-// HISTÓRICO DE SEGURANÇA — Dark Premium
+// BLOQUEADOS E DENÚNCIAS (/safety_center/history) — layout do mockup
+// (739px de largura → ×0,528 para 390px; Inter em tamanhos inteiros).
+// Topo, cores e superfícies vêm da Central de Segurança (.safety-center / .sc-*,
+// em safety_center.scss); aqui só as duas listas.
 // =========================================================
 
-.safety-history-wrapper {
-  background-color: #050507;
-  min-height: 100vh;
-  width: 100%;
-  font-family: 'Poppins', sans-serif;
-  color: #fff;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+.safety-history {
+  --sh-soft: #6b665f;        // contagens, linhas de apoio e aviso do rodapé
+  --sh-btn-line: #d9d1c5;    // contorno do "Desbloquear"
+  --sh-link: #8a6532;
+  --sh-ok-bg: #e4efe9;       // escudo do "Tudo tranquilo" e selo "Analisada"
+  --sh-ok: #2d5e4f;
+  --sh-neutral-bg: #ede5d5;
+  --sh-wait-bg: #f6ead3;     // selo "Em análise"
+  --sh-wait: #7a5a1e;
 }
 
-// ---- HEADER ----
-.sh-header {
+/* --- SEÇÕES --- */
+.sh-section { margin-top: 29px; }
+
+.sh-head {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 20px 20px 16px;
-  padding-top: calc(20px + env(safe-area-inset-top));
-  border-bottom: 1px solid #1a1a1d;
-}
-
-.sh-back-btn {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 4px;
-}
-
-.sh-header-text {
-  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .sh-title {
-  font-size: 1.1rem;
-  font-weight: 700;
   margin: 0;
-  color: #fff;
-}
-
-.sh-subtitle {
-  font-size: 0.72rem;
-  color: #888;
-  margin: 2px 0 0;
-}
-
-.sh-icon-shield {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  opacity: 0.7;
-}
-
-// ---- SEÇÕES ----
-.sh-section {
-  padding: 24px 20px 0;
-}
-
-.sh-section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.sh-section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #ccc;
-  margin: 0;
-  flex: 1;
-}
-
-.sh-count-badge {
-  background-color: #1e1e22;
-  color: #aaa;
-  font-size: 0.7rem;
+  font-size: 16px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
-  border: 1px solid #333;
+  line-height: 21px;
+  color: var(--sc-text);
 }
 
-.sh-immutable-notice {
-  font-size: 0.72rem;
-  color: #666;
-  background-color: #0e0e12;
-  border: 1px solid #222;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  line-height: 1.5;
+.sh-count {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--sh-soft);
 }
 
-// ---- LISTA ----
-.sh-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 24px;
-}
-
-// ---- CARD GENÉRICO ----
 .sh-card {
-  background-color: #0e0e12;
-  border: 1px solid #1e1e24;
-  border-radius: 16px;
-  padding: 14px 16px;
+  border: 1px solid var(--sc-border);
+  border-radius: 18px;
+  background: var(--sc-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-// ---- CARD BLOQUEADO ----
-.sh-card-blocked {
+.sh-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li + li { border-top: 1px solid var(--sc-divider); }
+}
+
+/* --- BLOQUEADOS --- */
+.sh-blocked {
   display: flex;
   align-items: center;
   gap: 12px;
-
-  &:hover {
-    border-color: #333;
-  }
+  min-height: 73px;
+  padding: 10px 13px 10px 17px;
 }
 
-.sh-card-avatar {
+.sh-avatar {
   flex-shrink: 0;
-}
-
-.sh-avatar-img {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+  background: var(--sc-divider);
   object-fit: cover;
-  border: 1px solid #333;
 }
 
-.sh-avatar-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: #2a2a30;
-  color: #888;
-  font-size: 1.2rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sh-card-info {
+.sh-blocked-text {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
+  gap: 1px;
 
-.sh-card-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  strong {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 19px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.sh-card-meta {
-  font-size: 0.72rem;
-  color: #666;
-}
-
-.sh-card-action {
-  flex-shrink: 0;
-}
-
-.sh-btn-unblock {
-  background-color: transparent;
-  border: 1px solid #e05252;
-  color: #e05252;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  white-space: nowrap;
-
-  &:active {
-    background-color: #e05252;
-    color: #fff;
+  span {
+    font-size: 13px;
+    line-height: 15px;
+    color: var(--sh-soft);
   }
 }
 
-// ---- CARD DENÚNCIA ----
-.sh-card-report {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.sh-unblock-form {
+  flex-shrink: 0;
+  margin: 0;
 }
+
+.sh-unblock {
+  height: 35px;
+  padding: 0 14px;
+  border: 1px solid var(--sh-btn-line);
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--sc-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover { filter: none; box-shadow: none; }
+  &:active { transform: scale(0.97); }
+}
+
+/* --- MINHAS DENÚNCIAS --- */
+.sh-report { padding: 14px 16px 15px 17px; }
 
 .sh-report-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
-.sh-report-date {
-  font-size: 0.72rem;
-  color: #666;
-}
-
-.sh-status-badge {
-  background-color: #1a2a1a;
-  color: #6fcf6f;
-  font-size: 0.65rem;
+.sh-report-kind {
+  min-width: 0;
+  font-size: 15px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 10px;
-  border: 1px solid #2a4a2a;
-  letter-spacing: 0.02em;
+  line-height: 19px;
 }
 
-.sh-report-description {
-  font-size: 0.85rem;
-  color: #bbb;
-  line-height: 1.5;
-  margin: 0;
+.sh-status {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sh-wait-bg);
+  color: var(--sh-wait);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.sh-status--done { background: var(--sh-ok-bg); color: var(--sh-ok); }
+
+.sh-report-meta {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--sh-soft);
+}
+
+.sh-report-text {
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--sc-muted);
+  overflow-wrap: anywhere;
 }
 
 .sh-report-photos {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .sh-report-thumb {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--sc-border);
+  border-radius: 10px;
   object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid #333;
 }
 
-// ---- ESTADO VAZIO ----
+/* --- ESTADO VAZIO --- */
 .sh-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 32px 20px;
-  color: #444;
+  padding: 24px 20px 28px;
+  text-align: center;
 
-  p {
-    margin: 0;
-    font-size: 0.85rem;
-  }
+  // com o link "Fazer uma denúncia" o cartão respira mais embaixo, como no mockup
+  &:has(.sh-empty-link) { padding-bottom: 37px; }
+}
+
+.sh-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--sh-ok-bg);
+  color: var(--sh-ok);
+
+  svg { width: 22px; height: 22px; stroke-width: 1.9; }
+}
+
+.sh-empty-icon--neutral { background: var(--sh-neutral-bg); color: var(--sc-text); }
+
+.sh-empty-title {
+  margin-top: 9px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 21px;
+}
+
+.sh-empty-text {
+  max-width: 290px;
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 19px;
+  color: var(--sh-soft);
+}
+
+.sh-empty-link {
+  margin-top: 24px;
+  color: var(--sh-link);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 19px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: var(--sh-link); }
+}
+
+.sh-note {
+  margin: 10px 4px 0;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--sh-soft);
+}
+
+/* --- MODO ESCURO --- */
+.dark-mode .safety-history,
+html.dark:not(.light-mode) .safety-history {
+  --sh-soft: #a39e97;
+  --sh-btn-line: #47474a;
+  --sh-link: #e6c993;
+  --sh-ok-bg: rgba(63, 179, 122, 0.16);
+  --sh-ok: #4fd08f;
+  --sh-neutral-bg: rgba(201, 160, 82, 0.16);
+  --sh-wait-bg: rgba(201, 160, 82, 0.16);
+  --sh-wait: #e0bd77;
 }
